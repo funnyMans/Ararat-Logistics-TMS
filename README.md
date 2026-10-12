@@ -16,41 +16,44 @@ locking us into hard structures that require wholesale redesign; any
 organizational or legal assumption must be examined against real operations
 and applicable law.
 
-## Start here
+## Documentation map
 
-1. [TMS vision and company model](docs/trucking/VISION.md) — what we are
-   studying, the defined company, and product boundary.
-2. [Roles and authority](docs/trucking/RESPONSIBILITIES.md) — the operating
-   roles, area accountability, and decision rights.
-3. [Operating workflow](docs/trucking/WORKFLOW.md) — the target load,
-   assignment, execution, and capacity model, including later automation.
-4. [System vision and capability rings](docs/trucking/SYSTEM_VISION.md) —
-   business destination, technical topology, and staged capability layers
-   through a production-candidate pilot.
-5. [Core workflow, contracts, and logical schema](docs/trucking/CORE_WORKFLOW.md) —
-   ordered business transitions, service interactions, conceptual ownership,
-   and failure/notification behavior.
-6. [TMS architecture](docs/trucking/MVP_ARCHITECTURE.md) — Load, Dispatch,
-   and Execution ownership and service relationships.
-7. [First-slice charter](docs/trucking/MVP_START.md) — the ready-load
-   coordination workflow, acceptance scenarios, and deliberate exclusions.
-8. [Decisions and open questions](docs/trucking/OPEN_QUESTIONS.md) — what to
-   resolve when implementation reaches it.
-9. [Development roadmap](docs/README_NEXT_STEPS.md) — modeling gates and the
-   sequence from cleanup to later automation.
-10. [Architecture principles](docs/PROJECT_IDEOLOGY.md) and
-    [monorepo conventions](docs/monorepo.md).
-11. [Local development infrastructure](infra/README.md) and
-    [HTTP service contracts](docs/SERVICE_CONTRACT.md).
+Start with the **[TMS system blueprint](docs/trucking/TMS_SYSTEM_BLUEPRINT.md)**.
+It is the single authority for the whole business-and-technical target:
+what the system is for, how its capabilities fit together, what each owner
+and tool is responsible for, which decisions are agreed, and what remains
+open. It is a strategy and architecture baseline, not a frozen API or build
+specification.
+
+The expanded documents explain one area each; they add detail but cannot
+override a confirmed blueprint decision:
+
+- **Business:** [company roles and authority](docs/trucking/RESPONSIBILITIES.md)
+  and the [business operating model](docs/trucking/OPERATING_MODEL.md).
+- **Technical design:** [technical workflow, records, and failure handling](docs/trucking/TECHNICAL_WORKFLOW.md),
+  followed by the shared [message-contract guide](docs/contracts.md).
+- **Planning:** [first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md),
+  [open decisions](docs/trucking/OPEN_QUESTIONS.md), and the staged roadmap
+  in the blueprint. The first slice is not selected.
+- **Engineering reference:** [HTTP/service baseline](docs/SERVICE_CONTRACT.md),
+  [monorepo conventions](docs/monorepo.md), and
+  [local development environment](infra/README.md).
+
+**Authority order:** the blueprint owns target decisions and architecture;
+the open-decisions register owns the current unresolved-question list;
+expanded domain documents provide detail under the blueprint; engineering
+guides specify repository conventions, not business policy. The blueprint's
+roadmap sequences work but does not approve a first slice.
 
 ## Current state
 
-The architecture and company operating model are being established before
-the TMS product services are built. The retained code is limited to the
-shared Node.js runtime, API gateway, account/profile and authentication
-foundation, database and local developer tooling that can serve the TMS.
-The Load, Dispatch, and Execution services are the planned domain core; they
-are not yet implemented.
+The target architecture and company operating model are being established
+before TMS business workflows are built. The repository currently contains
+the shared Node.js runtime, API gateway, account/profile and authentication
+foundation, database support, and local developer tooling. Load, Dispatch
+Planning, Capacity Commitment, Execution, Notification, and the wider
+supporting capabilities are target boundaries; their business workflows are
+not implemented.
 
 Do not treat a configured component, passing local check, scenario, or
 company hypothesis as evidence of customer fit, compliance, or production
@@ -79,19 +82,21 @@ engineering, not deployment.
 
 ## Scope discipline
 
-The first product workflow starts from a transportation commitment already
-ready for operations and covers authorized capacity assignment, execution
-progress, exception handoff, and completion. The operating model also
-defines a later assignment approach: driver and dispatcher priorities inform
-candidate ranking; the accountable supervisor weighs those preferences
-against company benefit and authorizes the decision. Matching, one-click
-approval, removing assigned capacity from competing candidates, and eventual
-preassignment or automatic assignment are later stages, after the concepts,
-authority, and evaluation criteria are explicit.
+Define the whole target system and its operational model before selecting
+the first small end-to-end implementation slice. The target includes advisory nominations, automated matching and
+reservation/Assignment within explicit policy, exception handling by the
+responsible people, execution, notification, and the full offer-to-next-load
+workflow. Capacity Commitment is a peer service to Load, Dispatch Planning,
+and Execution. The candidate first slice and its explicit exclusions are in the
+[first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md);
+it is not yet the approved implementation plan.
 
-Customer booking, automated optimization, HOS/legal calculation, broad
-carrier/customer portals, billing, and settlement are not part of the first
-workflow. They remain possible later TMS capabilities only where business
-practice, law, and a tested workflow justify them.
+The first slice is not yet approved. It should test a small vertical path
+through the automated target behavior and an exception path; its exact load
+profile, matching rules, source facts, and scope remain to be selected.
+Customer booking, validated legal/HOS calculation, broad carrier/customer
+portals, billing, and settlement are not implied first-slice requirements.
+Their inclusion requires an owned workflow, validated constraints, and
+evidence that it is useful.
 
 This project is available under the [MIT License](LICENSE).
