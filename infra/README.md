@@ -2,7 +2,9 @@
 
 The development stack runs the retained TMS foundation: PostgreSQL, the API
 gateway, authentication, account profiles, and local observability. Load,
-dispatch, and execution services are not implemented yet.
+Dispatch Planning, Capacity Commitment (CC), Execution, Notification, and
+the other TMS business capabilities are not implemented yet. CC is a peer
+service in the target architecture, not part of Dispatch.
 
 ## Start the stack
 
@@ -38,9 +40,9 @@ pnpm docker:migrate:auth
 There is no public self-registration route. Create or update accounts through
 the trusted local operator command after the stack is healthy:
 
-The role-model migration invalidates pre-JWT sessions and does not guess how
-legacy `user` or `admin` accounts map to TMS authority. Reprovision each
-existing account with its explicit TMS role grants before login.
+The role-model migration invalidates pre-JWT sessions and does not infer TMS
+authority from prior account grants. Reprovision each existing account with
+its explicit TMS role grants before login.
 
 ```sh
 read -r -p "Account email: " AUTH_PROVISION_EMAIL

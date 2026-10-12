@@ -1,7 +1,8 @@
 # TMS monorepo and service structure
 
-This repository contains the TMS study system. Its domain boundaries are
-Load, Dispatch, and Execution. Keep
+This repository contains the TMS study system. Its target domain boundaries
+include Load, Dispatch Planning, Capacity Commitment, Execution,
+Notification, and supporting brokerage/workforce/fleet capabilities. Keep
 generated artifacts out of `src/`, and use only the layers that make each
 service's business responsibility easier to understand and test.
 
@@ -22,11 +23,32 @@ service's business responsibility easier to understand and test.
 - `services/auth-service/` — credentials, JWT access, refresh rotation/revocation, and role grants
 - `services/users/` — workforce/person profile records, with no independent role authority
 
-## TMS domain services
+## TMS business boundaries
 
-The target domain services are `services/loads/`, `services/dispatch/`, and
-`services/execution/`. Add them after the model and contracts are settled.
-Each should look like this:
+The target peer business services include Load, Dispatch Planning, Capacity
+Commitment, and Execution, supported by Notification and the wider service
+map in the [TMS system blueprint](./trucking/TMS_SYSTEM_BLUEPRINT.md). The
+current repository does not implement these business workflows. Add concrete
+service packages only after the full architecture and first slice are
+approved:
+
+- `services/loads/` — Load ownership.
+- `services/dispatch/` — automated matching, policy decisions, and canonical
+  Assignment ownership.
+- `services/capacity-commitment/` — peer service owning Reservations and
+  exclusive capacity-window claims.
+- `services/execution/` — movement facts and exceptions.
+- `services/notifications/` — actionable inbox and delivery state.
+
+Brokerage, Workforce/Fleet/Capacity, Documents, and external adapters are
+explicit target boundaries. They may be represented by carefully scoped
+modules or deterministic fixtures until their full workflows are selected.
+Any fake must identify fixture provenance and reject unsupported operations;
+it must not claim to provide authoritative real-world facts. The service
+map and extraction conditions are in the
+[TMS system blueprint](./trucking/TMS_SYSTEM_BLUEPRINT.md).
+
+Once a runnable service is justified, use a structure such as:
 
 - `package.json`
 - `Dockerfile`

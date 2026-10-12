@@ -1,16 +1,17 @@
 # TMS HTTP service baseline
 
 This document defines a shared technical baseline for the TMS gateway,
-identity, workforce-account, Load, Dispatch, and Execution services. It does
-not claim that all planned domain services already exist.
+identity, workforce-account, Load, Dispatch Planning, CC, Execution, and
+Notification boundaries. It does not claim that all planned services
+already exist.
 
 ## Health and readiness
 
-| Endpoint | Contract |
-| --- | --- |
-| `GET /health` | Process/dependency report with service name, status, dependency states, and timestamp. Use HTTP 200 to report the health document, including degraded dependency details. |
-| `GET /ready` | HTTP 200 `{ "ready": true }` when the service can accept its supported work; otherwise HTTP 503 with `{ "ready": false, "details": ... }`. |
-| `GET /metrics` | Prometheus exposition for process and bounded-cardinality service metrics. |
+| Endpoint       | Contract                                                                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /health`  | Process/dependency report with service name, status, dependency states, and timestamp. Use HTTP 200 to report the health document, including degraded dependency details. |
+| `GET /ready`   | HTTP 200 `{ "ready": true }` when the service can accept its supported work; otherwise HTTP 503 with `{ "ready": false, "details": ... }`.                                |
+| `GET /metrics` | Prometheus exposition for process and bounded-cardinality service metrics.                                                                                                |
 
 Health describes observed process/dependency conditions; readiness is the
 service's decision to accept work. A dependency used only for a later
@@ -51,6 +52,10 @@ unbounded identifiers in metric labels.
 
 ## API boundaries
 
+- HTTP endpoints in this document cover user-facing ingress and service
+  health/readiness. They do not define cross-service business transport;
+  the selected cross-service tools and their responsibilities are defined in
+  the [TMS system blueprint](./trucking/TMS_SYSTEM_BLUEPRINT.md).
 - Validate body, path, query, and downstream response data at runtime.
 - Give network calls finite deadlines and bounded, operation-safe retries.
 - Return explicit authorization, validation, conflict, dependency, and
@@ -64,7 +69,7 @@ unbounded identifiers in metric labels.
 
 Gateway, identity, and workforce-account services currently form the
 retained foundation, including JWT issuance, refresh rotation/revocation,
-scoped role grants, and trusted provisioning. The three domain services and
+scoped role grants, and trusted provisioning. The TMS domain services and
 their final route contracts are planned, not yet implemented. See the
-[TMS architecture](./ARCHITECTURE.md) and
-[development roadmap](./README_NEXT_STEPS.md).
+[TMS system blueprint](./trucking/TMS_SYSTEM_BLUEPRINT.md) and
+the [first-slice candidate](./trucking/FIRST_SLICE_CANDIDATE.md).
