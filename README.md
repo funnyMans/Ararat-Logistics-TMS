@@ -1,70 +1,50 @@
 # Trucking Transportation Management System
 
-This repository is a **software-engineering study project**: we are
-designing and building a realistic Transportation Management System (TMS)
-for a trucking company that we define ourselves. We are the owners of the
-model, not a customer proxy. We use real-world operating practices and legal
-constraints to challenge our assumptions, combine useful patterns into a
-coherent model, and learn by implementing and testing it. This is not a
-customer-validated or production-ready business system.
+This repository is the product and engineering baseline for an owner-led
+Transportation Management System (TMS) initiative. The owners define the
+product direction and are establishing its business model, scope, MVP, and
+system architecture. Product assumptions, accepted requirements, evidence,
+legal conclusions, and implemented capabilities are recorded as distinct
+things.
 
-The company model is a US trucking operation with its own fleet and
-brokerage, initially sized around 50–100 trucks. Its working areas are LA
-(the home area), West, Central, and East. The scale and organization are
-design inputs, not product limits. We aim for a model that can grow without
-locking us into hard structures that require wholesale redesign; any
-organizational or legal assumption must be examined against real operations
-and applicable law.
+The initial operating model is a US trucking carrier and brokerage with its
+own fleet, approximately 50–100 trucks, and working areas in LA, West,
+Central, and East. These are current design assumptions, not product limits.
 
 ## Documentation map
 
-Start with the **[TMS system blueprint](docs/trucking/TMS_SYSTEM_BLUEPRINT.md)**.
-It is the single authority for the whole business-and-technical target:
-what the system is for, how its capabilities fit together, what each owner
-and tool is responsible for, which decisions are agreed, and what remains
-open. It is a strategy and architecture baseline, not a frozen API or build
-specification.
+Start with the [documentation guide](docs/README.md) for the documentation
+hierarchy, business/technical separation, and product-establishment path. The
+[TMS system blueprint](docs/trucking/TMS_SYSTEM_BLUEPRINT.md) summarizes
+the currently agreed system scope and architecture.
 
-The expanded documents explain one area each; they add detail but cannot
-override a confirmed blueprint decision:
+Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
+[business operating model](docs/trucking/OPERATING_MODEL.md),
+[roles and authority](docs/trucking/RESPONSIBILITIES.md),
+[technical workflow](docs/trucking/TECHNICAL_WORKFLOW.md),
+[accepted decision log](docs/trucking/DECISIONS.md),
+[open decisions](docs/trucking/OPEN_QUESTIONS.md),
+[first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md),
+[service contracts](docs/contracts.md),
+[monorepo conventions](docs/monorepo.md),
+[local development environment](infra/README.md).
 
-- **Business:** [company roles and authority](docs/trucking/RESPONSIBILITIES.md)
-  and the [business operating model](docs/trucking/OPERATING_MODEL.md).
-- **Technical design:** [technical workflow, records, and failure handling](docs/trucking/TECHNICAL_WORKFLOW.md),
-  followed by the shared [message-contract guide](docs/contracts.md).
-- **Planning:** [first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md),
-  [open decisions](docs/trucking/OPEN_QUESTIONS.md), and the staged roadmap
-  in the blueprint. The first slice is not selected.
-- **Engineering reference:** [HTTP/service baseline](docs/SERVICE_CONTRACT.md),
-  [monorepo conventions](docs/monorepo.md), and
-  [local development environment](infra/README.md).
+## Current implementation
 
-**Authority order:** the blueprint owns target decisions and architecture;
-the open-decisions register owns the current unresolved-question list;
-expanded domain documents provide detail under the blueprint; engineering
-guides specify repository conventions, not business policy. The blueprint's
-roadmap sequences work but does not approve a first slice.
+The implementation currently contains shared Node.js utilities, an API
+gateway with health and observability endpoints, and local development
+observability. The TMS business workflows and the planned Identity service have not yet
+been implemented.
 
-## Current state
-
-The target architecture and company operating model are being established
-before TMS business workflows are built. The repository currently contains
-the shared Node.js runtime, API gateway, account/profile and authentication
-foundation, database support, and local developer tooling. Load, Dispatch
-Planning, Capacity Commitment, Execution, Notification, and the wider
-supporting capabilities are target boundaries; their business workflows are
-not implemented.
-
-Do not treat a configured component, passing local check, scenario, or
-company hypothesis as evidence of customer fit, compliance, or production
-readiness. The system should become more realistic through explicit
-decisions, source-backed assumptions, executable scenarios, and measured
-behavior—not through infrastructure or automation added speculatively.
+Record validation evidence with the product or operational claim it supports.
+Do not present an unverified assumption, an infrastructure component, or a
+passing local check as evidence of market fit, legal compliance, or
+production readiness.
 
 ## Development
 
 Requirements: Node.js version from [`.nvmrc`](.nvmrc), pnpm from the
-`packageManager` field, and Docker Compose for local PostgreSQL and
+`packageManager` field, and Docker Compose for the local API gateway and
 observability services.
 
 ```sh
@@ -76,27 +56,17 @@ pnpm test:unit
 docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
 
-Local infrastructure instructions and current Compose scope are documented
-in [`infra/README.md`](infra/README.md). The development stack is for local
-engineering, not deployment.
+See the [local development guide](infra/README.md) for the current Compose
+scope. Local infrastructure is for engineering and is not a deployment
+environment.
 
-## Scope discipline
+## Product-establishment discipline
 
-Define the whole target system and its operational model before selecting
-the first small end-to-end implementation slice. The target includes advisory nominations, automated matching and
-reservation/Assignment within explicit policy, exception handling by the
-responsible people, execution, notification, and the full offer-to-next-load
-workflow. Capacity Commitment is a peer service to Load, Dispatch Planning,
-and Execution. The candidate first slice and its explicit exclusions are in the
-[first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md);
-it is not yet the approved implementation plan.
-
-The first slice is not yet approved. It should test a small vertical path
-through the automated target behavior and an exception path; its exact load
-profile, matching rules, source facts, and scope remain to be selected.
-Customer booking, validated legal/HOS calculation, broad carrier/customer
-portals, billing, and settlement are not implied first-slice requirements.
-Their inclusion requires an owned workflow, validated constraints, and
-evidence that it is useful.
+Complete and approve the TMS scope, business model, domain ownership and
+relationships, technical boundaries and contracts, role responsibilities,
+MVP outcomes, and verification criteria before TMS capability implementation
+begins. The
+[candidate slice](docs/trucking/FIRST_SLICE_CANDIDATE.md) remains unapproved;
+the required choices are in [open decisions](docs/trucking/OPEN_QUESTIONS.md).
 
 This project is available under the [MIT License](LICENSE).

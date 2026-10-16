@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@app/common": "workspace:*",
-    "@app/contracts": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "dotenv": "^17.4.2",
     "fastify": "^5.12.1",

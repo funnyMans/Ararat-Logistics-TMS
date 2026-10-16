@@ -3,11 +3,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const services = [
-  { name: 'api-gateway', port: 3000, serviceName: 'api-gateway', metricPrefix: 'api_gateway' },
-  { name: 'users', port: 3001, serviceName: 'users', metricPrefix: 'users_service' },
-  { name: 'auth-service', port: 3002, serviceName: 'auth-service', metricPrefix: 'auth_service' },
-];
+const service = {
+  name: 'api-gateway',
+  port: 3000,
+  serviceName: 'api-gateway',
+  metricPrefix: 'api_gateway',
+};
 
 const probe = `
 const port = Number(process.argv[1]);
@@ -38,7 +39,7 @@ async function request(path) {
   assert(healthResponse.status === 200, '/health returned HTTP ' + healthResponse.status);
   const health = await healthResponse.json();
   assert(health.service === expectedService, '/health returned the wrong service name');
-  assert(['ok', 'degraded', 'down'].includes(health.status), '/health returned an invalid status');
+  assert(health.status === 'ok', '/health returned an invalid status');
   assert(health.dependencies && typeof health.dependencies === 'object', '/health omitted dependencies');
   assert(Number.isFinite(Date.parse(health.timestamp)), '/health returned an invalid timestamp');
 
@@ -61,31 +62,29 @@ async function request(path) {
 });
 `;
 
-for (const service of services) {
-  const result = spawnSync(
-    'docker',
-    [
-      'compose',
-      '-f',
-      'infra/docker-compose.dev.yml',
-      'exec',
-      '-T',
-      service.name,
-      'node',
-      '-e',
-      probe,
-      String(service.port),
-      service.serviceName,
-      service.metricPrefix,
-    ],
-    { cwd: repositoryRoot, encoding: 'utf8' }
-  );
+const result = spawnSync(
+  'docker',
+  [
+    'compose',
+    '-f',
+    'infra/docker-compose.dev.yml',
+    'exec',
+    '-T',
+    service.name,
+    'node',
+    '-e',
+    probe,
+    String(service.port),
+    service.serviceName,
+    service.metricPrefix,
+  ],
+  { cwd: repositoryRoot, encoding: 'utf8' }
+);
 
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    process.stderr.write(result.stdout);
-    process.stderr.write(result.stderr);
-    process.exit(result.status ?? 1);
-  }
-  process.stdout.write(result.stdout);
+if (result.error) throw result.error;
+if (result.status !== 0) {
+  process.stderr.write(result.stdout);
+  process.stderr.write(result.stderr);
+  process.exit(result.status ?? 1);
 }
+process.stdout.write(result.stdout);

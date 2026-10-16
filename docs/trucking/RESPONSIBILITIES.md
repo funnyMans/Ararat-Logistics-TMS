@@ -1,214 +1,137 @@
 # Company roles and authority
 
-This is the selected role and responsibility model for our TMS study company,
-not an org chart every carrier should adopt. The company model is informed by
-real-world operations and remains subject to evidence and applicable law.
-Roles define authority and responsibilities; they do not imply one account
-per job title or that every responsibility is automated.
+This is the selected role model for the owner-led TMS company, not
+a staffing recommendation for every carrier. Role grants are authorization
+inputs, not unrestricted access: each owning service must also check access
+to the specific record and transition.
 
-The system is expected to perform routine matching, reservation, and
-Assignment automatically within explicit policy and verified hard
-constraints. Human roles remain responsible for customer/carrier work,
-maintaining trustworthy operational facts, oversight, and exceptions. This
-role model describes the study company's intended operating strategy; it is
-not a headcount-reduction plan or a claim that every carrier should use the
-same staffing ratio.
+This page defines high-level business accountability only. It does not yet
+specify detailed role procedures, permissions, or technical enforcement.
+Settle domain ownership, relationships, and internal contracts before
+designing those role-level solutions.
 
-An account may hold **multiple role grants**, each optionally scoped to an
-area. For example, the chief supervisor has company-wide supervisory
-coordination authority and a separate `area_supervisor` grant scoped to LA.
-The four area keys are `la`, `west`, `central`, and `east`. A role/area grant
-is only a coarse authorization input: access to a particular load or
-execution must also be checked against its ownership and assignment. A
-driver's operating area must not be used as a substitute for checking which
-work is assigned to that driver.
+An account may have multiple grants. Grants may be area-scoped to `la`,
+`west`, `central`, or `east` where the role permits it. Area scope does not
+replace load, assignment, or relationship checks.
 
-## Role grant catalog
+## Role boundaries
 
-| Grant                          | Scope                                    | Core responsibility                                                                                                      |
-| ------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `transportation_executive`     | Company-wide                             | Department-level escalation and cross-department decisions                                                               |
-| `chief_supervisor`             | Company-wide                             | Supervisory coordination and direction of area supervisors                                                               |
-| `area_supervisor`              | One or more areas                        | Accountable operational outcome, policy oversight, and exception/override authority for departures from the granted area |
-| `broker`                       | One or more areas                        | Load readiness, sole commercial book/decline decision, and verified customer communication                               |
-| `outer_fleet_broker`           | Company-wide                             | Cross-area managed/spot outer-capacity sourcing when that capability is in scope                                         |
-| `fleet_dispatcher`             | Assigned fleet group(s), optionally area | Day-to-day in-house driver/truck coordination and capacity proposals                                                     |
-| `contract_capacity_dispatcher` | Carrier relationship(s)                  | Coordination and progress follow-up under the applicable agreement                                                       |
-| `in_house_driver`              | Individual driver identity               | Safe execution and factual progress/exception reporting for assigned work                                                |
-| `contracted_driver`            | Carrier relationship and individual      | Contracted execution and required reporting                                                                              |
-| `customer_contact`             | Own customer/load relationships only     | Submit instructions and receive explicitly permitted customer status                                                     |
-| `outside_carrier_contact`      | Own carrier/load relationships only      | Accept/tender work and report agreed execution milestones                                                                |
-| `outer_fleet_supervisor`       | Company-wide                             | Future contract-capacity program oversight if scale justifies the role                                                   |
+| Grant                                | Scope                                  | Primary responsibility                                                                                       |
+| ------------------------------------ | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `identity_administrator`             | Company-wide                           | Invitation, suspension, credential recovery, and role-grant administration; no transportation authority      |
+| `transportation_executive`           | Company-wide                           | Department-level escalation, cross-department decisions, and company-wide operational KPI definitions/review |
+| `chief_supervisor`                   | Company-wide                           | Supervisory coordination and company-level continuity                                                        |
+| `area_supervisor`                    | One or more areas                      | Accountable operational outcome for departing loads; policy oversight and exception handling                 |
+| `broker`                             | One or more areas                      | Load quality, commercial book/clarify/decline decision, sourcing coordination, and customer communication    |
+| `outer_fleet_broker`                 | Company-wide                           | External capacity sourcing when that capability is in scope                                                  |
+| `fleet_dispatcher`                   | Fleet group(s), optionally area-scoped | In-house fleet coordination, readiness reporting, maintenance-status facts, and operational context          |
+| `contract_capacity_dispatcher`       | Carrier relationship(s)                | Manual tendering to approved Carriers, response tracking, contracted-equipment status, and coordination      |
+| `in_house_driver`                    | Individual driver                      | Safe execution and factual progress, exception, and evidence reporting                                       |
+| `contracted_driver`                  | Carrier relationship and individual    | Contracted execution and required reporting                                                                  |
+| `customer_contact` (deferred)        | Own customer/load relationships        | Future: submit instructions and receive explicitly permitted customer status                                 |
+| `outside_carrier_contact` (deferred) | Own carrier/load relationships         | Future: accept or tender work and report agreed execution milestones                                         |
+| `outer_fleet_supervisor`             | Company-wide; future capability        | Contract-capacity oversight if the program grows enough to justify it                                        |
 
-The outer-fleet and external-counterparty grants describe later capabilities
-in the company model. The first product slice need only enable the roles
-required by its selected assignment and execution scenarios. Do not grant
-company-wide visibility simply because a role is company-wide in the
-reporting chart.
+Both driver grants are execution-only and scoped to the driver's linked
+profile and active Assignments. Drivers may report actual milestones,
+handoffs, incidents, and proof of delivery. They may not book, amend, or
+cancel Loads, change plans, or approve closeout exceptions.
+The responsible dispatcher for the assigned driver and the Load's area
+supervisor (or documented supervisory coverage) may also upload delivery
+evidence. Submission authority does not confer approval authority.
 
-## Reporting and coordination
+Area-scoped grants use `la`, `west`, `central`, or `east`. Area supervisors
+and brokers require an area; fleet dispatchers may optionally have one.
+Other grants do not accept an area scope.
 
-```mermaid
-flowchart TD
-    Exec["Transportation top manager / C-level"]
-    Chief["Chief supervisor<br/>also LA-area supervisor"]
-    West["West supervisor"]
-    Central["Central supervisor"]
-    East["East supervisor"]
-    BrokerLA["LA-area broker<br/>chief broker"]
-    BrokerWest["West-area broker(s)"]
-    BrokerCentral["Central-area broker"]
-    BrokerEast["East-area broker"]
-    OuterBroker["Dedicated outer-fleet broker"]
-    FleetDispatch["Shared fleet dispatchers"]
-    ContractDispatch["Dedicated contract-capacity dispatcher(s)"]
-    OuterSupervisor["Possible future<br/>outer-fleet supervisor"]
-    Driver["In-house drivers"]
-    OwnerOp["Lease-agreement / owner-operator drivers"]
-    Shipper["Shipper / customer contact"]
-    Carrier["Outside carrier"]
+Operational KPI dashboards are visible company-wide to the transportation
+executive and chief supervisor, area-scoped to area supervisors, and
+unavailable to other roles by default.
+The read-only Operations View is available company-wide to the transportation
+executive and chief supervisor; other users are scoped by area or, when they
+have no area grant, by their existing resource and relationship authority.
 
-    Exec --> Chief
-    Chief --> West
-    Chief --> Central
-    Chief --> East
-    Chief --> BrokerLA
-    West --> BrokerWest
-    Central --> BrokerCentral
-    East --> BrokerEast
-    OuterBroker -. "cross-area sourcing" .-> West
-    OuterBroker -. "cross-area sourcing" .-> Central
-    OuterBroker -. "cross-area sourcing" .-> East
-    FleetDispatch -. "operational coordination" .-> Driver
-    ContractDispatch -. "coordination under agreement" .-> OwnerOp
-    BrokerWest -. "customer communication" .-> Shipper
-    BrokerWest -. "spot sourcing" .-> Carrier
-    Chief -. "if created at scale" .-> OuterSupervisor
-    OuterSupervisor -. "contract-capacity oversight" .-> ContractDispatch
-```
+## Domain-owned write authority
 
-Solid arrows show illustrative reporting/oversight; dotted arrows show
-coordination, not authority. Customers and spot carriers are external counterparties, not part of the
-reporting hierarchy. Fleet dispatchers are shared across the supervisors,
-not owned by one area. For a specific load, the departure-area supervisor
-remains accountable for the outcome and exception decisions; routine
-matching/Assignment follows system policy. General dispatcher issues go to
-the chief supervisor. A local incident-area supervisor coordinates help and
-takes operational lead only when delegated under the coverage rules below.
+- Brokers own Load booking, pre-execution amendments, and cancellation
+  requests; they do not make planning or Assignment decisions.
+- Dispatchers own Trip Plans, capacity-reservation requests, and Assignments;
+  they do not rewrite Load requirements or Fleet Readiness facts.
+- Fleet dispatchers own driver/equipment readiness facts; they do not create
+  Load bookings or Assignments.
+- Fleet dispatchers record and verify maintenance-status readiness facts for
+  in-house equipment; contract capacity dispatchers do so for contracted
+  equipment. They record `CLEAR` or `BLOCKED`, with a reason and evidence
+  reference. Neither role owns maintenance work orders or scheduling.
+- Contract capacity dispatchers own sending manual tenders to approved
+  Carriers, negotiating multiple counteroffer rounds, and tracking tender
+  responses. They may accept Carrier counteroffers without blanket supervisor
+  approval. They communicate through the existing external channel and record
+  sent offers and Carrier responses in the TMS; this does not make Carrier
+  acceptance a capacity reservation.
+- Area supervisors authorize closeout exceptions and own execution-exception
+  resolution; Execution records those decisions and case transitions.
+- Customer charge proposals and Carrier cost proposals are separate
+  Load-linked workflows; their roles and review procedures are not
+  interchangeable.
+- Only the broker responsible for handling a Load may submit a Customer
+  charge proposal for it. The standard broker role includes this permission.
+  The Load's area supervisor reviews; if they submitted the proposal, another
+  authorized supervisor reviews, with the chief supervisor or transportation
+  executive providing coverage as needed.
+- Customer charge proposals use the Carrier accessorial catalogue as distinct
+  Customer-charge types. Their submission does not authorize invoicing or
+  settlement.
+- The standard Carrier cost proposal submission permission is granted to
+  `contract_capacity_dispatcher` and the broker responsible for handling the
+  Load; submission also requires Load access. The Load's area supervisor
+  reviews and records its operational outcome. If the area supervisor
+  submitted the proposal, another authorized supervisor reviews it; the chief
+  supervisor or transportation executive may provide coverage. This review
+  does not authorize invoicing, Carrier payment, or settlement.
+- The Load's area supervisor assigns and may reassign each post-delivery
+  claim's designated owner from staff with explicit claim-owner permission,
+  regardless of department. If the owner cannot progress or needs a decision,
+  the case escalates first to the Load's area supervisor, who may escalate
+  further through the supervisory chain. The owner may escalate whenever the
+  case is blocked or requires a decision beyond their authority; escalation
+  is not time-triggered.
+- Each post-delivery claim has a designated owner accountable for coordinating
+  the case through resolution, regardless of department. The owner may resolve
+  the case after recording an audited outcome and reason; this does not create
+  a dedicated claims role.
+- Each domain's owning service remains the only authority that writes its
+  business records. A role grant does not confer cross-domain write access.
 
-## Responsibilities
+## Technical operations authority
 
-| Actor                              | Owns                                                                                                                                         | May do                                                                                                                                                                                                                                                                                | Does not own by default                                                                                                                                       |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Transportation executive / C-level | Department-level escalation and cross-department decisions                                                                                   | Receive critical issues through the chief supervisor; set company policy                                                                                                                                                                                                              | Routine load assignment or unrestricted operational data access                                                                                               |
-| Chief supervisor / LA supervisor   | Supervisory coordination; LA-departure accountability                                                                                        | Direct area supervisors; handle general issues; make LA-departure decisions; escalate critical matters                                                                                                                                                                                | Every non-LA load's operational accountability                                                                                                                |
-| Area supervisor                    | Operational outcome for loads departing their area; policy oversight and exception accountability                                            | Monitor automated decisions; resolve missing/conflicting facts and policy exceptions; discuss strong driver objections; challenge or redirect a Reservation or choose another feasible candidate where policy permits, with reasons; coordinate destination and incident-area support | Booking or declining customer offers; routine approval of each system Assignment; bypassing hard gates or claiming another Reservation's capacity             |
-| Broker                             | Commercial load quality, booking, capacity sourcing, customer communication, and review of potential customer claims                         | Book, clarify, or decline any customer offer regardless of source, without supervisor capacity pre-review; validate instructions; coordinate outside sourcing; set managed-carrier terms; review customer-change evidence and contract terms for possible claims                      | In-transit truck management or final operational assignment                                                                                                   |
-| Dedicated outer-fleet broker       | Finding outer-carrier capacity for loads unlikely to receive suitable in-house priority; keeping managed outer capacity productively engaged | Proactively work low-priority/unmatched loads across areas; negotiate with spot carriers by external channels; issue managed-carrier emergency-rate updates; assign only under delegated supervisor authority                                                                         | Changing the in-house-first priority or exposing customer/load revenue without authorization                                                                  |
-| Fleet dispatcher                   | Day-to-day coordination for assigned in-house driver/truck groups                                                                            | Maintain stable trio configuration, verified next availability, readiness, driver preferences/strong avoid-preferences and operational context; review automated Reservation/Assignment; challenge stale or infeasible decisions; relay driver objections and monitor progress        | Routine approval of Reservations or final Assignments; changing commercial terms; treating an unrecorded nomination as the only capacity the system evaluates |
-| Contract-capacity dispatcher       | Coordination and status follow-up for managed outer-fleet capacity                                                                           | Track agreed milestones and exceptions; report the current offer/readiness and whether a carrier is prepared to haul; route genuine company-side exceptions to its supervisor                                                                                                         | Dispatching in-house drivers, routine assignment approval, or managing contractor-owned equipment                                                             |
-| Future outer-fleet supervisor      | Contract-capacity program oversight if the outer fleet grows enough to justify the role                                                      | Coordinate dedicated contract dispatch, carrier readiness, and cross-area capacity practices under company policy                                                                                                                                                                     | Replacing the load's accountable departure-area supervisor                                                                                                    |
-| In-house driver                    | Safe execution and factual reporting                                                                                                         | State route preferences and strong avoid-preferences; report an objection, readiness/rest, defects, delays, milestones and exceptions; perform resolved/authorized work under applicable company policy and law                                                                       | Changing load terms or source records; having preferences silently treated as consent                                                                         |
-| Owner-operator / contracted driver | Contracted execution and required updates                                                                                                    | State preferences and objections; accept/decline work as permitted by the carrier agreement; report milestones and exceptions                                                                                                                                                         | Being treated as an employee or company-fleet equipment owner                                                                                                 |
-| Shipper / customer contact         | Its own freight request and instructions                                                                                                     | Submit requests; receive permitted status; request changes                                                                                                                                                                                                                            | Other customers' work or internal allocation decisions                                                                                                        |
-| Outside carrier                    | Its accepted transportation work                                                                                                             | Accept/decline tender; report agreed execution milestones                                                                                                                                                                                                                             | Company fleet or unrelated carrier/customer information                                                                                                       |
+| Grant                          | Scope        | Responsibility                                                                                                                   |
+| ------------------------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `tms_operations_administrator` | Company-wide | Inspect technical failures and prepare replay/reconciliation; execute recovery only after the owning business domain approves it |
 
-## Accountability rules
+This grant does not provide Identity administration or transportation
+authority. A replay that changes business state requires approval from the
+owning business domain; technical access alone cannot authorize a business
+transition.
 
-- The departure-area supervisor remains accountable for that load from
-  departure planning through operational resolution unless authority is
-  explicitly delegated under the absence/incident coverage rules below.
-- The chief supervisor is accountable for LA departures. Other area
-  supervisors retain accountability for their departures and report through
-  the chief supervisor.
-- The broker owns customer-facing commercial communication; dispatchers and
-  supervisors provide verified operational facts.
-- The dedicated outer-fleet broker supplements, but does not restrict, other
-  brokers' ability to source outside capacity. The role focuses on low-priority
-  loads and outer-capacity coverage across areas. Area brokers retain their
-  existing customer and sourcing responsibilities.
-- No dedicated outer-fleet supervisor is assumed initially. Until that role
-  is justified by scale, load accountability stays with the departure-area
-  supervisor and contractor coordination stays with the dedicated
-  contract-capacity dispatcher.
-- In-house fleet dispatchers are shared across supervisors. Load-specific
-  issues go to that load's accountable supervisor; general/workforce issues
-  go to the chief supervisor.
-- Contractor coordination follows the applicable agreement and is not an
-  employee reporting relationship. Contractors own their equipment and its
-  maintenance.
-- Permissions follow organization, assignment, and responsibility—not title
-  alone. Nominations and preferences inform the system decision but do not
-  reserve capacity or require routine approval. A strong avoid-preference or
-  explicit driver objection prevents automatic finalization and requires a
-  bounded, recorded human resolution. Human overrides require explicit
-  authority and a reason; stale facts the system failed to surface do not
-  make the wiser automatically at fault.
+## Accountability principles
 
-The actual legal entity, contracts, and permitted level of contractor
-direction must be validated before this model is used to operate a real
-business.
+- The departure-area supervisor is accountable for the operational outcome
+  and exceptions for that load.
+- The broker owns the commercial decision to book or decline and
+  customer-facing communication.
+- Routine matching and Assignment follow system policy; a supervisor
+  monitors and handles exceptions rather than approving every decision.
+- Local support, delegation, and absence coverage must be explicit. A role
+  grant alone does not establish operational ownership or authority over a
+  particular record.
+- Employee, owner-operator, contractor, and customer relationships must not
+  be conflated. Applicable law and agreements govern the actual authority.
 
-## Absence and continuity coverage
-
-```mermaid
-flowchart TD
-    Driver["Driver unavailable"] --> DriverRule["Do not assign new work;<br/>handle unexpected absence<br/>under the exception workflow"]
-    Dispatcher["Dispatcher unavailable"] --> DispatchRule["Available dispatcher<br/>with the least current workload<br/>covers both teams"]
-
-    LA["LA broker / chief broker"] -->|covers| WestB["West broker"]
-    WestB -->|covers| CentralB["Central broker"]
-    CentralB -->|covers| EastB["East broker"]
-    EastB -->|covers| LA
-    BrokerLeave["Planned broker leave"] --> Prebook["Prebook feasible known work;<br/>delegate customer support"]
-    Prebook --> BrokerChain["Temporary broker follows<br/>the coverage chain"]
-
-    Chief["Chief / LA supervisor"] -->|covers| West["West supervisor"]
-    West -->|covers| Central["Central supervisor"]
-    Central -->|covers| East["East supervisor"]
-    East -->|covers| Chief
-    Active["Active load / incident<br/>needs supervisory cover"] --> IncidentArea["Pickup or incident-area<br/>supervisor takes the lead"]
-    IncidentArea -->|unavailable| Chain["Continue around supervisor chain"]
-    Chain -->|chief unavailable| Executive["Transportation C-level"]
-```
-
-Coverage rules by role:
-
-- **Driver:** planned days off mean no new assignment. An unexpected absence
-  is handled according to its cause and the exception workflow; do not treat
-  the driver as available merely because their truck is.
-- **Dispatcher:** the working dispatcher with capacity covers both teams.
-  The covering dispatcher is the one whose drivers are least occupied with
-  active work or imminent pickups/deliveries. Schedule at least 7 of 10
-  dispatchers to work; this leaves roughly half the team available if two
-  additional dispatchers unexpectedly become unavailable. Routine weekly
-  days off may be covered remotely. The exact weekday/weekend roster is a
-  company scheduling decision, not an assignment-system rule.
-- **Broker:** planned leave should be preceded by feasible bookings for the
-  known absence period; customer support transfers to the temporary broker.
-  Coverage rotates **LA → West → Central → East → LA**, with the LA broker
-  as chief broker. When most brokers are unavailable for a prolonged period,
-  remaining brokers support existing, booked, and in-progress work and
-  accept only loads in their own area. Temporarily suspend the area-presence
-  percentage guardrail. Do not continue new bookings under ordinary
-  capacity-sourcing assumptions.
-- **Area supervisor:** planned leave rotates **Chief/LA → West → Central
-  → East → Chief/LA**. If multiple supervisors in the chain are away,
-  available supervisors absorb additional areas; if only one remains while
-  three are away, transportation C-level helps keep operations functioning.
-  For an active load, if the absence duration is known and does not extend
-  beyond the delivery date, authority is temporary. If the duration is
-  unknown or extends beyond delivery, transfer the load's responsibility to
-  the cover.
-- **Prolonged leadership shortage:** if more than roughly half (about
-  50–60%) of brokers or supervisors are unavailable for an unknown or
-  extended period, reduce the number and duration of trips until at least
-  half return. This is a business continuity policy, not an automatic
-  individual load transition.
-
-An absence does not silently remove an active load's accountable owner.
-The system records the cover and whether responsibility is temporary or
-transferred, based on expected absence duration relative to the load's
-delivery date. If business contraction reduces staffing without changing
-the driver-to-supervisor relationship, the operating rules need not
-change solely because headcount fell.
+This role model is a business authority baseline, not an implemented
+authentication or authorization system. The Identity and session baseline
+is recorded; detailed role-to-action permissions and resource-level
+enforcement remain open in [open decisions](OPEN_QUESTIONS.md). Customer and
+carrier office accounts are deferred. Privileged identity-grant changes
+require a second approver; the identity administrator grant does not confer
+access to transportation operations.

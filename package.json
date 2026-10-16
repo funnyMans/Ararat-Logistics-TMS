@@ -1,5 +1,5 @@
 {
-  "name": "trucking-tms-study",
+  "name": "tms-platform",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.25.0",
@@ -18,16 +18,13 @@
     "test": "pnpm run test:unit",
     "test:all": "vitest run",
     "test:unit": "vitest run --exclude '**/tests/integration/**' --exclude '**/tests/e2e/**'",
-    "test:integration": "vitest run services/users/tests/integration",
     "prepare": "husky",
-    "docker:up": "docker compose -f infra/docker-compose.dev.yml up -d --no-build",
+    "docker:up": "docker compose -f infra/docker-compose.dev.yml up -d --build",
     "docker:down": "docker compose -f infra/docker-compose.dev.yml down --remove-orphans",
     "docker:logs": "docker compose -f infra/docker-compose.dev.yml logs -f --tail=200",
     "docker:status": "docker compose -f infra/docker-compose.dev.yml ps --all",
     "docker:health": "curl -fsS http://localhost:8080/health && echo && curl -fsS http://localhost:3000/ready && echo",
-    "docker:service-contract": "node scripts/service-contract-check.mjs",
-    "docker:migrate:users": "docker compose -f infra/docker-compose.dev.yml exec -T users pnpm exec prisma migrate deploy --schema=services/users/prisma/schema.prisma",
-    "docker:migrate:auth": "docker compose -f infra/docker-compose.dev.yml exec -T auth-service sh -c 'cd services/auth-service && pnpm exec prisma migrate deploy'",
+    "docker:gateway-contract": "node scripts/gateway-contract-check.mjs",
     "docker:rebuild": "docker compose -f infra/docker-compose.dev.yml build --no-cache"
   },
   "lint-staged": {

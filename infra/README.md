@@ -1,71 +1,27 @@
-# Local TMS development environment
+# Local development environment
 
-The development stack runs the retained TMS foundation: PostgreSQL, the API
-gateway, authentication, account profiles, and local observability. Load,
-Dispatch Planning, Capacity Commitment (CC), Execution, Notification, and
-the other TMS business capabilities are not implemented yet. CC is a peer
-service in the target architecture, not part of Dispatch.
+The current Compose environment contains the API gateway and local
+observability services. It does not contain a database, the planned Identity
+service, or any TMS business services. The gateway currently serves health,
+readiness, and metrics only.
 
-## Start the stack
+See the [documentation guide](../docs/README.md) for the distinction between
+the product target and implemented repository capabilities.
+
+## Start and inspect
 
 From the repository root:
 
 ```sh
 cp -n .env.example .env
-pnpm install
+pnpm install --frozen-lockfile
 pnpm build
-pnpm docker:up
+docker compose -f infra/docker-compose.dev.yml up -d --build
 ```
 
-The gateway is available at `http://localhost:3000`; the optional local Nginx
-entry point is `http://localhost:8080`. Grafana is at `http://localhost:3005`
-and Prometheus at `http://localhost:9090`. Local database and observability
-ports bind to loopback.
-
-The first PostgreSQL initialization creates separate `users` and `auth`
-databases. The init script only runs for a new data directory. If database
-names change after initialization, create the databases explicitly rather
-than assuming the existing volume was reinitialized.
-
-Prisma migrations run when the corresponding application container starts.
-To apply them to already-running containers:
-
-```sh
-pnpm docker:migrate:users
-pnpm docker:migrate:auth
-```
-
-## Provision an account
-
-There is no public self-registration route. Create or update accounts through
-the trusted local operator command after the stack is healthy:
-
-The role-model migration invalidates pre-JWT sessions and does not infer TMS
-authority from prior account grants. Reprovision each existing account with
-its explicit TMS role grants before login.
-
-```sh
-read -r -p "Account email: " AUTH_PROVISION_EMAIL
-read -r -s -p "Account password: " AUTH_PROVISION_PASSWORD
-printf "\n"
-read -r -p "Role grants (comma-separated): " AUTH_PROVISION_ROLE_GRANTS
-export AUTH_PROVISION_EMAIL AUTH_PROVISION_PASSWORD AUTH_PROVISION_ROLE_GRANTS
-docker compose -f infra/docker-compose.dev.yml exec \
-  -e AUTH_PROVISION_EMAIL -e AUTH_PROVISION_PASSWORD -e AUTH_PROVISION_ROLE_GRANTS \
-  auth-service pnpm --filter auth-service provision:account
-unset AUTH_PROVISION_EMAIL AUTH_PROVISION_PASSWORD AUTH_PROVISION_ROLE_GRANTS
-```
-
-Use role identifiers from the
-[responsibility model](../docs/trucking/RESPONSIBILITIES.md). Add `:la`,
-`:west`, `:central`, or `:east` only for area-scoped grants, for example
-`chief_supervisor,area_supervisor:la`. Area supervisors and brokers require
-an area; fleet dispatchers may optionally have one. Other roles do not accept
-area scope, and role grants do not replace resource- or relationship-specific
-authorization. Reprovisioning an existing email replaces all its grants,
-resets its password, and revokes its active sessions.
-
-## Operate the stack
+The gateway is available at `http://localhost:3000`; the local Nginx entry
+point is `http://localhost:8080`. Grafana is at `http://localhost:3005` and
+Prometheus at `http://localhost:9090`. Published ports bind to loopback.
 
 ```sh
 pnpm docker:status
@@ -74,21 +30,21 @@ pnpm docker:logs
 pnpm docker:down
 ```
 
-`pnpm docker:down` preserves named volumes. Removing the local database and
-observability data is destructive; use `docker compose -f
-infra/docker-compose.dev.yml down --volumes` only when that reset is intended.
+`pnpm docker:down` preserves named observability volumes. Removing local
+observability data is destructive; use
+`docker compose -f infra/docker-compose.dev.yml down --volumes` only when
+that reset is intended.
 
-The checked-in credentials and token secrets are development defaults only.
-Set unique values in `.env` for local use, and never expose this stack or reuse
-these values in a deployed environment.
+## Boundaries
 
-## Current boundaries
-
-- PostgreSQL is the only application datastore and uses separate auth/profile
-  databases for local service ownership.
-- Access is through the gateway; the auth and profile services are internal.
-- Prometheus scrapes the HTTP services, while the OpenTelemetry Collector
-  exports traces to the local Tempo instance.
-- Grafana dashboards and data sources are provisioned from this repository.
+- There is no application datastore in the current stack. Introduce one with
+  an approved product workflow and explicit ownership.
+- The planned Identity service, authentication, account lifecycle, and
+  authorization are not implemented. The current environment has no account
+  provisioning operation.
+- Prometheus scrapes the gateway and local observability components;
+  OpenTelemetry exports traces to local Tempo.
 - Local observability is diagnostic, not durable business history or a
   production monitoring design.
+- Local configuration and credentials are for development only. Never
+  expose this stack or reuse local defaults in a deployed environment.
