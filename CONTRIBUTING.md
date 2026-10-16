@@ -1,9 +1,8 @@
 # Contributing
 
-This repository is a trucking TMS study project, not a customer-validated
-product or deployment template. The branch flow provides a safe way to study
-change promotion and preserve history; `main` is the stable reference line
-and is not a deployment target.
+This repository establishes an owner-led trucking TMS product. The branch
+flow supports controlled change promotion and preserves history; `main` is
+the stable product baseline and is not currently a deployment target.
 
 ## Branch flow
 
@@ -18,10 +17,10 @@ feature/*, fix/*, chore/* ── pull request ──> dev
 - Create normal feature, fix, and maintenance branches from `dev`. Open their
   pull requests against `dev`.
 - Promote a tested set of changes from `dev` to `stage` with a pull request.
-  Use `stage` to practice integration and stabilization; it is not a deployment
-  target.
+  Use `stage` for integration validation and stabilization; it is not a
+  deployment target.
 - Promote a verified candidate from `stage` to `main` with a pull request.
-  `main` is the stable reference snapshot of the learning lab.
+  `main` is the stable reference snapshot of the product baseline.
 - Merge ordinary feature/fix/maintenance PRs with squash. Merge promotion PRs
   (`dev` -> `stage`, `stage` -> `main`) with a merge commit so the source
   commits remain ancestors of the destination and later promotions contain
@@ -45,20 +44,20 @@ the repository has one maintainer.
 ## Pull request requirements
 
 - Use a concise Conventional Commit title, for example
-  `fix(auth): rotate refresh sessions atomically`.
+  `fix(load): preserve requirement revision history`.
 - Keep a pull request focused. Include the reason, behavior change, and
   verification evidence in its description.
 - Resolve every review conversation before merge.
 - For PRs targeting `dev`, run the relevant local checks and include their
   results; CI is temporarily not triggered for those PRs. PRs targeting
   `stage` or `main` must pass the required checks: workspace build, lint, unit
-  tests, Compose configuration, retained-service image builds, and the
-  retained-service contract probe.
-- Keep changes focused on a learning goal or on making the current system
-  more understandable, reliable, or verifiable. Explain the TMS problem, the
+  tests, and Compose configuration.
+- Keep changes focused on an agreed product outcome or on making the system
+  more understandable, reliable, secure, or verifiable. Explain the TMS problem, the
   chosen design, a simpler alternative, and how the result was verified.
-- Update directly affected operating guides, architecture diagrams, and
-  roadmap status in the same pull request.
+- Update directly affected operating guides and roadmap or implementation
+  status in the same pull request. Add or maintain diagrams when they clarify
+  a decision better than concise text.
 - Never include `.env` files, credentials, generated clients, caches, or
   machine-specific configuration.
 - Merge feature/fix/maintenance PRs with squash. Use a merge commit for
@@ -82,9 +81,9 @@ starts the local foundation, and probes health, readiness, tracing headers,
 and metrics. See [`infra/README.md`](infra/README.md) for the local operator
 procedure.
 
-## Deployment and future learning topics
+## Implementation scope
 
 There is no deployment or release target. Domain services and workflows are
-not implemented yet. Before adding a capability, document its owner, real
-operating rationale, simpler alternative, failure behavior, and evidence that
-will demonstrate the concept.
+not implemented yet. Before adding a capability, document its owner, business
+rationale, alternatives, failure behavior, and evidence that will demonstrate
+that it meets the intended product outcome.

@@ -13,42 +13,29 @@ describe('api gateway health routes', () => {
   function createServer() {
     const server = Fastify();
     servers.push(server);
-    registerHealthRoutes(server, {
-      usersServiceUrl: 'http://users',
-      authServiceUrl: 'http://auth',
-    });
+    registerHealthRoutes(server);
     return server;
   }
 
-  it('reports ready when the account and authentication services are ready', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(Response.json({ ready: true })))
-    );
+  it('reports the gateway as ready without downstream dependencies', async () => {
     const server = createServer();
 
     const response = await server.inject('/ready');
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ ready: true });
-    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('reports which dependency blocks readiness', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string | URL | Request) =>
-        Promise.resolve(Response.json({ ready: String(url).startsWith('http://users') }))
-      )
-    );
+  it('reports health without dependencies', async () => {
     const server = createServer();
 
-    const response = await server.inject('/ready');
+    const response = await server.inject('/health');
 
-    expect(response.statusCode).toBe(503);
-    expect(response.json()).toEqual({
-      ready: false,
-      details: { users: true, auth: false },
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      service: 'api-gateway',
+      status: 'ok',
+      dependencies: {},
     });
   });
 });

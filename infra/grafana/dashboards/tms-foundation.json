@@ -9,9 +9,21 @@
         "defaults": {
           "color": { "mode": "palette-classic" },
           "mappings": [
-            { "options": { "0": { "color": "red", "index": 0, "text": "Down" }, "1": { "color": "green", "index": 1, "text": "Up" } }, "type": "value" }
+            {
+              "options": {
+                "0": { "color": "red", "index": 0, "text": "Down" },
+                "1": { "color": "green", "index": 1, "text": "Up" }
+              },
+              "type": "value"
+            }
           ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
         },
         "overrides": []
       },
@@ -24,12 +36,12 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
-          "expr": "up{job=~\"api-gateway|users-service|auth-service\"}",
+          "expr": "up{job=\"api-gateway\"}",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
       ],
-      "title": "TMS foundation service availability",
+      "title": "TMS gateway availability",
       "type": "timeseries"
     },
     {
@@ -61,7 +73,7 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["tms", "study-project"],
+  "tags": ["tms", "development"],
   "time": { "from": "now-1h", "to": "now" },
   "title": "TMS Foundation",
   "uid": "tms-foundation",

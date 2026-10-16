@@ -27,10 +27,10 @@ describe('common health helpers', () => {
       .mockResolvedValueOnce(Response.json({ status: 'degraded' }))
       .mockResolvedValueOnce(Response.json({ ready: true }));
 
-    await expect(getHttpDependencyHealth('http://users')).resolves.toBe('degraded');
-    await expect(getHttpDependencyReadiness('http://users')).resolves.toBe(true);
-    expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://users/health');
-    expect(fetchMock).toHaveBeenNthCalledWith(2, 'http://users/ready');
+    await expect(getHttpDependencyHealth('http://dependency-a')).resolves.toBe('degraded');
+    await expect(getHttpDependencyReadiness('http://dependency-a')).resolves.toBe(true);
+    expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://dependency-a/health');
+    expect(fetchMock).toHaveBeenNthCalledWith(2, 'http://dependency-a/ready');
   });
 
   it('returns down or not-ready for unavailable HTTP dependencies', async () => {
@@ -38,23 +38,23 @@ describe('common health helpers', () => {
       .mockRejectedValueOnce(new Error('unavailable'))
       .mockResolvedValueOnce(new Response(null, { status: 503 }));
 
-    await expect(getHttpDependencyHealth('http://users')).resolves.toBe('down');
-    await expect(getHttpDependencyReadiness('http://users')).resolves.toBe(false);
+    await expect(getHttpDependencyHealth('http://dependency-a')).resolves.toBe('down');
+    await expect(getHttpDependencyReadiness('http://dependency-a')).resolves.toBe(false);
   });
 
   it('builds a degraded report when a dependency is unavailable or unknown', () => {
-    const report = buildHealthReport('users', {
+    const report = buildHealthReport('test-service', {
       database: 'ok',
-      auth: 'unknown',
-      profiles: 'error',
+      dependencyA: 'unknown',
+      dependencyB: 'error',
     });
-    expect(report.service).toBe('users');
+    expect(report.service).toBe('test-service');
     expect(report.dependencies.database).toBe('ok');
     expect(report.status).toBe('degraded');
   });
 
   it('builds a down report when any dependency is explicitly down', () => {
-    const report = buildHealthReport('api-gateway', { users: 'ok', auth: 'down' });
+    const report = buildHealthReport('api-gateway', { dependencyA: 'ok', dependencyB: 'down' });
     expect(report.status).toBe('down');
   });
 

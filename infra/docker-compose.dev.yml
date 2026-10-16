@@ -1,107 +1,15 @@
+name: tms-local
+
 services:
-  postgres:
-    restart: unless-stopped
-    image: postgres:15.19-bookworm@sha256:539ceaaae49b3a7c8a04467cf00cc6788d8e3f1675df41860d86eebc4c40524f
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-dev}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev}
-      POSTGRES_DB: app
-      POSTGRES_MULTIPLE_DATABASES: users,auth
-      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
-    ports:
-      - '127.0.0.1:5432:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-dev} -d app']
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-
-  users:
-    restart: unless-stopped
-    build:
-      context: ..
-      dockerfile: services/users/Dockerfile
-    command:
-      [
-        'sh',
-        '-c',
-        'cd services/users && ./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma && exec node dist/src/server.js',
-      ]
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      NODE_ENV: development
-      PORT: 3001
-      HOST: 0.0.0.0
-      DATABASE_URL: postgresql://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/users
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'node -e "require(''http'').get(''http://127.0.0.1:3001/ready'', res => { process.exit(res.statusCode >= 200 && res.statusCode < 400 ? 0 : 1); }).on(''error'', () => process.exit(1))"',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  auth-service:
-    restart: unless-stopped
-    build:
-      context: ..
-      dockerfile: services/auth-service/Dockerfile
-    command:
-      [
-        'sh',
-        '-c',
-        'cd services/auth-service && ./node_modules/.bin/prisma migrate deploy && exec node dist/server.js',
-      ]
-    depends_on:
-      postgres:
-        condition: service_healthy
-      users:
-        condition: service_healthy
-    environment:
-      NODE_ENV: development
-      PORT: 3002
-      HOST: 0.0.0.0
-      DATABASE_URL: postgresql://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/auth
-      USERS_SERVICE_URL: http://users:3001
-      AUTH_ACCESS_TOKEN_SECRET: ${AUTH_ACCESS_TOKEN_SECRET:-local-development-access-secret-change-me-32}
-      AUTH_REFRESH_TOKEN_SECRET: ${AUTH_REFRESH_TOKEN_SECRET:-local-development-refresh-secret-change-me-32}
-      AUTH_TOKEN_HASH_SECRET: ${AUTH_TOKEN_HASH_SECRET:-local-development-hash-secret-change-me-32}
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
-    healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'node -e "require(''http'').get(''http://127.0.0.1:3002/health'', res => { process.exit(res.statusCode >= 200 && res.statusCode < 400 ? 0 : 1); }).on(''error'', () => process.exit(1))"',
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api-gateway:
     restart: unless-stopped
     build:
       context: ..
       dockerfile: services/api-gateway/Dockerfile
-    depends_on:
-      users:
-        condition: service_healthy
-      auth-service:
-        condition: service_healthy
     environment:
       NODE_ENV: development
       PORT: 3000
       HOST: 0.0.0.0
-      USERS_SERVICE_URL: http://users:3001
-      AUTH_SERVICE_URL: http://auth-service:3002
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
     ports:
       - '127.0.0.1:3000:3000'
@@ -165,8 +73,6 @@ services:
       - prometheus-data:/prometheus
     depends_on:
       - api-gateway
-      - users
-      - auth-service
 
   grafana:
     restart: unless-stopped
@@ -185,7 +91,6 @@ services:
       - prometheus
 
 volumes:
-  pgdata:
   prometheus-data:
   grafana-data:
   tempo-data:

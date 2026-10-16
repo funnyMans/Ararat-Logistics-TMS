@@ -23,8 +23,6 @@ jobs:
     name: Lint, unit tests, and workspace build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      DATABASE_URL: 'postgresql://dev:dev@127.0.0.1:5432/app'
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -66,18 +64,13 @@ jobs:
       - name: Validate development Compose configuration
         run: docker compose -f infra/docker-compose.dev.yml config --quiet
 
-  compose-contracts:
-    name: Build and probe retained TMS foundation
+  compose-contract:
+    name: Build and probe API gateway
     needs:
       - validate-and-build
       - compose-validation
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    env:
-      POSTGRES_USER: ci
-      POSTGRES_PASSWORD: ci
-      AUTH_ACCESS_TOKEN_SECRET: ci-access-token-secret-change-me-32
-      AUTH_REFRESH_TOKEN_SECRET: ci-refresh-token-secret-change-me-32
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -96,14 +89,14 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build retained service images
-        run: docker compose -f infra/docker-compose.dev.yml build users auth-service api-gateway
+      - name: Build API gateway image
+        run: docker compose -f infra/docker-compose.dev.yml build api-gateway
 
-      - name: Start the retained service stack
-        run: docker compose -f infra/docker-compose.dev.yml up -d --no-build --wait --wait-timeout 600 api-gateway
+      - name: Start API gateway
+        run: docker compose -f infra/docker-compose.dev.yml up -d --no-build --wait --wait-timeout 300 api-gateway
 
-      - name: Probe service health, tracing headers, and metrics
-        run: pnpm docker:service-contract
+      - name: Probe health, tracing headers, and metrics
+        run: pnpm docker:gateway-contract
 
       - name: Collect Compose logs after failure
         if: failure()
