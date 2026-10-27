@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1030" style="height:auto" viewBox="0 0 1500 1030" role="img" aria-labelledby="title description">
+  <title id="title">Load technical lifecycle from booking through closeout</title>
+  <desc id="description">Load commits booking and publishes revision readiness. Dispatch plans against owner facts, Capacity Commitment atomically holds resources, Load guards its revision, CC confirms, Dispatch activates Assignment, Execution records actual movement and closeout, then Load marks the Load completed and hands off any minimal issue.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52677a"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526477; }
+      .card { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 14; }
+      .load { fill: #eaf3fb; stroke: #1769aa; }
+      .dispatch { fill: #fff3dc; stroke: #b87500; }
+      .exec { fill: #e8f5ee; stroke: #24804a; }
+      .coord { fill: #f0edfa; stroke: #6853a6; }
+      .exception { fill: #fff7f4; stroke: #b45039; stroke-width: 2; rx: 14; }
+      .card-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; fill: #42586c; }
+      .small { font-size: 13px; fill: #526477; }
+      .edge { fill: none; stroke: #52677a; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+      .label { font-size: 13px; font-weight: 700; fill: #40586c; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 16; }
+    </style>
+  </defs>
+  <rect width="1500" height="1030" fill="#fff"/>
+  <text class="title" x="48" y="58">Booking through closeout</text>
+  <text class="subtitle" x="48" y="86">Each handoff follows an owner-confirmed result; Assignment is not proof of movement.</text>
+
+  <rect class="band" x="35" y="120" width="1430" height="500"/>
+  <text class="label" x="62" y="155">NORMAL LOAD LIFECYCLE</text>
+
+  <rect class="card load" x="70" y="205" width="190" height="125"/>
+  <text class="card-title" x="92" y="240">1. Book</text>
+  <text class="body" x="92" y="270">Commit booking + revision</text>
+  <text class="body" x="92" y="292">and write the outbox</text>
+  <text class="small" x="92" y="314">No capacity implied</text>
+
+  <rect class="card load" x="305" y="205" width="190" height="125"/>
+  <text class="card-title" x="327" y="240">2. Ready</text>
+  <text class="body" x="327" y="270">Publish READY / HELD</text>
+  <text class="body" x="327" y="292">for the current revision</text>
+  <text class="small" x="327" y="314">Temporal signals workflow</text>
+
+  <rect class="card dispatch" x="540" y="205" width="190" height="125"/>
+  <text class="card-title" x="562" y="240">3. Plan</text>
+  <text class="body" x="562" y="270">Apply hard gates and ranking</text>
+  <text class="body" x="562" y="292">to current owner facts</text>
+  <text class="small" x="562" y="314">Honor binding Carrier + owner facts</text>
+
+  <rect class="card coord" x="775" y="205" width="190" height="125"/>
+  <text class="card-title" x="797" y="240">4. Hold</text>
+  <text class="body" x="797" y="270">CC reserves all resource</text>
+  <text class="body" x="797" y="292">windows or reserves none</text>
+  <text class="small" x="797" y="314">Temporary HELD claim</text>
+
+  <rect class="card load" x="1010" y="205" width="190" height="125"/>
+  <text class="card-title" x="1032" y="240">5. Finalize</text>
+  <text class="body" x="1032" y="270">Load guards revision;</text>
+  <text class="body" x="1032" y="292">CC confirms capacity</text>
+  <text class="small" x="1032" y="314">Dispatch rechecks gates</text>
+
+  <rect class="card dispatch" x="1245" y="205" width="190" height="125"/>
+  <text class="card-title" x="1267" y="240">6. Assign</text>
+  <text class="body" x="1267" y="270">Activate Assignment</text>
+  <text class="body" x="1267" y="292">after CC confirms</text>
+  <text class="small" x="1267" y="314">Execution handoff follows</text>
+
+  <path class="edge" d="M260 268 L305 268"/>
+  <path class="edge" d="M495 268 L540 268"/>
+  <path class="edge" d="M730 268 L775 268"/>
+  <path class="edge" d="M965 268 L1010 268"/>
+  <path class="edge" d="M1200 268 L1245 268"/>
+
+  <rect class="card exec" x="355" y="420" width="260" height="135"/>
+  <text class="card-title" x="380" y="455">7. Execute</text>
+  <text class="body" x="380" y="485">Execution creates planned records</text>
+  <text class="body" x="380" y="507">then records actual movement,</text>
+  <text class="body" x="380" y="529">milestones, and evidence</text>
+  <rect class="card exec" x="705" y="420" width="260" height="135"/>
+  <text class="card-title" x="730" y="455">8. Close transportation</text>
+  <text class="body" x="730" y="485">Execution records actual outcome,</text>
+  <text class="body" x="730" y="507">quantities, POD/evidence exception,</text>
+  <text class="body" x="730" y="529">and immutable closeout fact</text>
+  <rect class="card load" x="1055" y="420" width="260" height="135"/>
+  <text class="card-title" x="1080" y="455">9. Complete Load</text>
+  <text class="body" x="1080" y="485">Load consumes closeout and</text>
+  <text class="body" x="1080" y="507">marks its lifecycle COMPLETED</text>
+  <text class="small" x="1080" y="532">Issue resolution is separate</text>
+  <path class="edge" d="M1340 330 L1340 380 L485 380 L485 420"/>
+  <path class="edge" d="M615 487 L705 487"/>
+  <path class="edge" d="M965 487 L1055 487"/>
+
+  <rect class="band" x="35" y="660" width="1430" height="300"/>
+  <text class="label" x="62" y="695">ALTERNATE AND FEEDBACK PATHS</text>
+  <rect class="exception" x="80" y="735" width="390" height="145"/>
+  <text class="card-title" x="105" y="772">No feasible plan or hard gate</text>
+  <text class="body" x="105" y="802">Dispatch records unassigned/held reasons.</text>
+  <text class="body" x="105" y="826">Load stays booked; wait for relevant owner</text>
+  <text class="body" x="105" y="850">fact, ranking trigger, or durable deadline.</text>
+  <path class="edge dashed" d="M635 330 L635 635 L275 635 L275 735"/>
+
+  <rect class="exception" x="555" y="735" width="390" height="145"/>
+  <text class="card-title" x="580" y="772">Load issue handoff</text>
+  <text class="body" x="580" y="802">Load stores a minimal issue record and</text>
+  <text class="body" x="580" y="826">handoff state; the receiving service owns</text>
+  <text class="body" x="580" y="850">assignment and resolution.</text>
+  <path class="edge dashed" d="M1185 555 L1185 650 L750 650 L750 735"/>
+
+  <rect class="exception" x="1030" y="735" width="390" height="145"/>
+  <text class="card-title" x="1055" y="772">Early closeout → replan</text>
+  <text class="body" x="1055" y="802">Execution publishes actual location.</text>
+  <text class="body" x="1055" y="826">Dispatch revalidates the unstarted suffix</text>
+  <text class="body" x="1055" y="850">after owner facts confirm availability.</text>
+  <path class="edge dashed" d="M835 555 L835 640 L1225 640 L1225 735"/>
+  <path class="edge dashed" d="M1225 735 L1438 735 L1438 170 L635 170 L635 205"/>
+
+  <text class="small" x="60" y="990">RabbitMQ transports durable messages; Temporal coordinates and resumes owner commands without owning domain state.</text>
+</svg>

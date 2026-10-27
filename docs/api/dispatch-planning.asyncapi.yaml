@@ -1,0 +1,585 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Dispatch Planning Messages
+  version: 1.0.0
+  description: >-
+    Dispatch Planning-owned command, outcome, and fact schemas for the
+    message flows currently specified in docs/contracts.md. Message payloads
+    for commands are owned here as the receiving service; Dispatch facts are
+    owned here as their authoritative publisher.
+  externalDocs:
+    description: Shared semantic TMS service contracts
+    url: ../contracts.md
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  loadBooked:
+    address: load.booked.v1
+    messages:
+      LoadBooked:
+        $ref: ./load.asyncapi.yaml#/components/messages/LoadBooked
+  loadRevisionCreated:
+    address: load.revision.created.v1
+    messages:
+      LoadRevisionCreated:
+        $ref: ./load.asyncapi.yaml#/components/messages/LoadRevisionCreated
+  loadReadinessChanged:
+    address: load.planning.readiness.changed.v1
+    messages:
+      LoadReadinessChanged:
+        $ref: ./load.asyncapi.yaml#/components/messages/LoadReadinessChanged
+  planLoad:
+    address: dispatch.load.plan.v1
+    messages:
+      PlanLoad:
+        $ref: '#/components/messages/PlanLoad'
+  planLoadOutcome:
+    address: dispatch.load.plan.outcome.v1
+    messages:
+      PlanLoadOutcome:
+        $ref: '#/components/messages/PlanLoadOutcome'
+  loadUnassigned:
+    address: load.planning.unassigned.v1
+    messages:
+      LoadUnassigned:
+        $ref: '#/components/messages/LoadUnassigned'
+  assignmentActivated:
+    address: dispatch.assignment.activated.v1
+    messages:
+      AssignmentActivated:
+        $ref: '#/components/messages/AssignmentActivated'
+  assignmentActivationRejected:
+    address: dispatch.assignment.activation.rejected.v1
+    messages:
+      AssignmentActivationRejected:
+        $ref: '#/components/messages/AssignmentActivationRejected'
+  cancelLoad:
+    address: dispatch.load.cancel.v1
+    messages:
+      CancelLoad:
+        $ref: '#/components/messages/CancelLoad'
+  cancelLoadOutcome:
+    address: dispatch.load.cancel.outcome.v1
+    messages:
+      CancelLoadOutcome:
+        $ref: '#/components/messages/CancelLoadOutcome'
+  dispatchCancellationReleased:
+    address: dispatch.load.cancellation.released.v1
+    messages:
+      DispatchCancellationReleased:
+        $ref: '#/components/messages/DispatchCancellationReleased'
+  reserveCapacity:
+    address: capacity.reservation.reserve.v1
+    messages:
+      Reserve:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/Reserve
+  reserveCapacityOutcome:
+    address: capacity.reservation.reserve.outcome.v1
+    messages:
+      ReserveOutcome:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/ReserveOutcome
+  confirmCapacity:
+    address: capacity.reservation.confirm.v1
+    messages:
+      Confirm:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/Confirm
+  confirmCapacityOutcome:
+    address: capacity.reservation.confirm.outcome.v1
+    messages:
+      ConfirmOutcome:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/ConfirmOutcome
+  releaseCapacity:
+    address: capacity.reservation.release.v1
+    messages:
+      Release:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/Release
+  releaseCapacityOutcome:
+    address: capacity.reservation.release.outcome.v1
+    messages:
+      ReleaseOutcome:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/ReleaseOutcome
+  replaceCapacity:
+    address: capacity.reservation.replace.v1
+    messages:
+      Replace:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/Replace
+  replaceCapacityOutcome:
+    address: capacity.reservation.replace.outcome.v1
+    messages:
+      ReplaceOutcome:
+        $ref: ./capacity-commitment.asyncapi.yaml#/components/messages/ReplaceOutcome
+  cancellationRequestSnapshotGet:
+    address: load.cancellation-request.snapshot.get.v1
+    messages:
+      CancellationRequestSnapshotGet:
+        $ref: ./load.asyncapi.yaml#/components/messages/CancellationRequestSnapshotGet
+  cancellationRequestSnapshotResult:
+    address: load.cancellation-request.snapshot.result.v1
+    messages:
+      CancellationRequestSnapshotResult:
+        $ref: ./load.asyncapi.yaml#/components/messages/CancellationRequestSnapshotResult
+operations:
+  consumeLoadBooked:
+    action: receive
+    channel: { $ref: '#/channels/loadBooked' }
+  consumeLoadRevisionCreated:
+    action: receive
+    channel: { $ref: '#/channels/loadRevisionCreated' }
+  consumeLoadReadinessChanged:
+    action: receive
+    channel: { $ref: '#/channels/loadReadinessChanged' }
+  receivePlanLoad:
+    action: receive
+    channel: { $ref: '#/channels/planLoad' }
+  publishPlanLoadOutcome:
+    action: send
+    channel: { $ref: '#/channels/planLoadOutcome' }
+  publishLoadUnassigned:
+    action: send
+    channel: { $ref: '#/channels/loadUnassigned' }
+  publishAssignmentActivated:
+    action: send
+    channel: { $ref: '#/channels/assignmentActivated' }
+  publishAssignmentActivationRejected:
+    action: send
+    channel: { $ref: '#/channels/assignmentActivationRejected' }
+  receiveCancelLoad:
+    action: receive
+    channel: { $ref: '#/channels/cancelLoad' }
+  publishCancelLoadOutcome:
+    action: send
+    channel: { $ref: '#/channels/cancelLoadOutcome' }
+  publishDispatchCancellationReleased:
+    action: send
+    channel: { $ref: '#/channels/dispatchCancellationReleased' }
+  sendReserveCapacity:
+    action: send
+    channel: { $ref: '#/channels/reserveCapacity' }
+  receiveReserveCapacityOutcome:
+    action: receive
+    channel: { $ref: '#/channels/reserveCapacityOutcome' }
+  sendConfirmCapacity:
+    action: send
+    channel: { $ref: '#/channels/confirmCapacity' }
+  receiveConfirmCapacityOutcome:
+    action: receive
+    channel: { $ref: '#/channels/confirmCapacityOutcome' }
+  sendReleaseCapacity:
+    action: send
+    channel: { $ref: '#/channels/releaseCapacity' }
+  receiveReleaseCapacityOutcome:
+    action: receive
+    channel: { $ref: '#/channels/releaseCapacityOutcome' }
+  sendReplaceCapacity:
+    action: send
+    channel: { $ref: '#/channels/replaceCapacity' }
+  receiveReplaceCapacityOutcome:
+    action: receive
+    channel: { $ref: '#/channels/replaceCapacityOutcome' }
+  sendCancellationRequestSnapshotGet:
+    action: send
+    channel: { $ref: '#/channels/cancellationRequestSnapshotGet' }
+  receiveCancellationRequestSnapshotResult:
+    action: receive
+    channel: { $ref: '#/channels/cancellationRequestSnapshotResult' }
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    CommandEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          commandId,
+          idempotencyKey,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: load }
+        targetService: { type: string, const: dispatch-planning }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        idempotencyKey: { type: string, minLength: 1 }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: dispatch-planning }
+        targetService: { type: string, const: load }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    FactEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          occurredAt,
+          correlationId,
+          ownerRevision,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: dispatch-planning }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    PlanLoadPayload:
+      type: object
+      required: [loadId, loadRevisionId, loadRevisionNumber, expectedLoadOwnerRevision]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        expectedLoadOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    PlanLoadOutcomePayload:
+      type: object
+      required: [commandId, loadId, expectedLoadOwnerRevision, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        expectedLoadOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        outcome: { type: string, enum: [ACCEPTED, REJECTED] }
+        reasonCode: { type: string, enum: [STALE_LOAD_REVISION] }
+        message: { type: string }
+        details: { type: object }
+      oneOf:
+        - properties:
+            outcome: { const: ACCEPTED }
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+    LoadUnassignedPayload:
+      type: object
+      required:
+        [
+          loadId,
+          loadRevisionId,
+          loadRevisionNumber,
+          basedOnLoadOwnerRevision,
+          planningAttemptId,
+          reasons,
+        ]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        basedOnLoadOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        reasons:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [code, message]
+            properties:
+              code:
+                type: string
+                enum:
+                  [
+                    NO_CAPACITY_IN_TIME_WINDOW,
+                    INCOMPATIBLE_EQUIPMENT,
+                    NO_QUALIFIED_DRIVER_COVERAGE,
+                    NO_FEASIBLE_SEGMENT_COVERAGE,
+                    INSUFFICIENT_REPOSITIONING_TIME,
+                  ]
+              message: { type: string }
+    Segment:
+      type: object
+      required:
+        [
+          sequenceNumber,
+          startStopId,
+          endStopId,
+          timeWindow,
+          powerUnitId,
+          trailerId,
+          driverIds,
+          resourceReadinessRevisions,
+        ]
+      properties:
+        sequenceNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        startStopId: { $ref: '#/components/schemas/UuidV7' }
+        endStopId: { $ref: '#/components/schemas/UuidV7' }
+        timeWindow:
+          type: object
+          required: [startAt, endAt]
+          properties:
+            startAt: { type: string, format: date-time, pattern: 'Z$' }
+            endAt: { type: string, format: date-time, pattern: 'Z$' }
+        powerUnitId: { $ref: '#/components/schemas/UuidV7' }
+        trailerId: { $ref: '#/components/schemas/UuidV7' }
+        driverIds:
+          type: array
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/UuidV7' }
+        resourceReadinessRevisions:
+          type: array
+          minItems: 3
+          maxItems: 4
+          uniqueItems: true
+          items:
+            type: object
+            required: [resourceType, resourceId, ownerRevision]
+            properties:
+              resourceType: { type: string, enum: [POWER_UNIT, TRAILER, DRIVER] }
+              resourceId: { $ref: '#/components/schemas/UuidV7' }
+              ownerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    AssignmentActivatedPayload:
+      type: object
+      required:
+        [
+          assignmentId,
+          planningAttemptId,
+          loadId,
+          loadRevisionId,
+          loadRevisionNumber,
+          tripPlanId,
+          tripPlanRevision,
+          segments,
+          reservation,
+        ]
+      properties:
+        assignmentId: { $ref: '#/components/schemas/UuidV7' }
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        segments:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Segment' }
+        reservation:
+          type: object
+          required: [reservationId, reservationRevision, state]
+          properties:
+            reservationId: { $ref: '#/components/schemas/UuidV7' }
+            reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+            state: { type: string, const: CONFIRMED }
+    AssignmentActivationRejectedPayload:
+      type: object
+      required: [assignmentId, planningAttemptId, loadId, reasonCode, message]
+      properties:
+        assignmentId: { $ref: '#/components/schemas/UuidV7' }
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        reasonCode:
+          type: string
+          enum:
+            [
+              ASSIGNMENT_NOT_FOUND,
+              ASSIGNMENT_NOT_PENDING,
+              PLANNING_ATTEMPT_MISMATCH,
+              LOAD_FINALIZATION_GUARD_INVALID,
+              LOAD_REVISION_MISMATCH,
+              TRIP_PLAN_REVISION_MISMATCH,
+              RESERVATION_NOT_FOUND,
+              RESERVATION_NOT_CONFIRMED,
+              RESERVATION_REVISION_MISMATCH,
+            ]
+        message: { type: string }
+        details: { type: object }
+    CancelLoadPayload:
+      type: object
+      required:
+        [
+          cancellationRequestId,
+          loadId,
+          loadRevisionId,
+          loadRevisionNumber,
+          expectedLoadOwnerRevision,
+        ]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        expectedLoadOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    CancelLoadOutcomePayload:
+      type: object
+      required: [commandId, cancellationRequestId, loadId, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        outcome: { type: string, enum: [ACCEPTED, REJECTED] }
+        reasonCode:
+          {
+            type: string,
+            enum: [CANCELLATION_REQUEST_NOT_PENDING, CANCELLATION_NOT_ALLOWED_EXECUTION_STARTED],
+          }
+        message: { type: string }
+      oneOf:
+        - properties:
+            outcome: { const: ACCEPTED }
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+    DispatchCancellationReleasedPayload:
+      type: object
+      required: [cancellationRequestId, loadId, disposition]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        disposition:
+          {
+            type: string,
+            enum: [FULL_RELEASE, REMOVED_WITH_PLAN_REPLACEMENT, NO_ACTIVE_DISPATCH_WORK],
+          }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        oldReservationId: { $ref: '#/components/schemas/UuidV7' }
+        oldReservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        oldReservationState: { type: string, enum: [RELEASED, SUPERSEDED] }
+        newReservationId: { $ref: '#/components/schemas/UuidV7' }
+        newReservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        newReservationState: { type: string, enum: [HELD, CONFIRMED] }
+  messages:
+    PlanLoad:
+      name: dispatch.load.plan
+      title: Plan Load command
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.load.plan }
+              payload: { $ref: '#/components/schemas/PlanLoadPayload' }
+    PlanLoadOutcome:
+      name: dispatch.load.plan.outcome
+      title: Plan Load outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.load.plan.outcome }
+              payload: { $ref: '#/components/schemas/PlanLoadOutcomePayload' }
+    LoadUnassigned:
+      name: load.planning.unassigned
+      title: Load remains unassigned after planning
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.planning.unassigned }
+              payload: { $ref: '#/components/schemas/LoadUnassignedPayload' }
+    AssignmentActivated:
+      name: dispatch.assignment.activated
+      title: Assignment activated
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.assignment.activated }
+              payload: { $ref: '#/components/schemas/AssignmentActivatedPayload' }
+    AssignmentActivationRejected:
+      name: dispatch.assignment.activation.rejected
+      title: Assignment activation rejected
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.assignment.activation.rejected }
+              payload: { $ref: '#/components/schemas/AssignmentActivationRejectedPayload' }
+    CancelLoad:
+      name: dispatch.load.cancel
+      title: Cancel Load command
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.load.cancel }
+              payload: { $ref: '#/components/schemas/CancelLoadPayload' }
+    CancelLoadOutcome:
+      name: dispatch.load.cancel.outcome
+      title: Cancel Load outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.load.cancel.outcome }
+              payload: { $ref: '#/components/schemas/CancelLoadOutcomePayload' }
+    DispatchCancellationReleased:
+      name: dispatch.load.cancellation.released
+      title: Dispatch release work completed
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: dispatch.load.cancellation.released }
+              payload: { $ref: '#/components/schemas/DispatchCancellationReleasedPayload' }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    Additional Dispatch Planning messages, owner snapshot protocols, and
+    operation-specific failure/recovery outcomes remain open.

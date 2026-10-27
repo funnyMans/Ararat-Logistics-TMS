@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="900" style="height:auto" viewBox="0 0 1400 900" role="img" aria-labelledby="title description">
+  <title id="title">Dispatch rolling reservation and replanning map</title>
+  <desc id="description">Dispatch Planning evaluates eligible booked Loads only inside a 14-day horizon and reserves at most five future Loads per trio. Only the final Load may be reranked, a sixth cannot be added until a slot opens after the earliest reserved Load is assigned and actual pickup is recorded. Cancellation, infeasibility, and early closeout trigger suffix revalidation, with current resource facts required before reuse.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526477; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 14; }
+      .gate { fill: #eaf3fb; stroke: #1769aa; }
+      .plan { fill: #fff3dc; stroke: #b87500; }
+      .reserved { fill: #e8f5ee; stroke: #24804a; }
+      .slot { fill: #f2f5f8; stroke: #8494a3; stroke-width: 2; rx: 10; }
+      .last { fill: #fff0d6; stroke: #b87500; stroke-width: 2; rx: 10; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; fill: #42586c; }
+      .small { font-size: 13px; fill: #526477; }
+      .edge { fill: none; stroke: #536579; stroke-width: 2.4; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+      .label { font-size: 13px; font-weight: 700; fill: #40586c; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 16; }
+    </style>
+  </defs>
+  <rect width="1400" height="900" fill="#fff"/>
+  <text class="title" x="48" y="58">Rolling reservation and replanning</text>
+  <text class="subtitle" x="48" y="86">Bounded forward commitments; new decisions follow events, deadlines, and current owner facts.</text>
+
+  <rect class="band" x="35" y="120" width="1330" height="240"/>
+  <text class="label" x="60" y="153">ELIGIBILITY AND CAPACITY BOUNDARIES</text>
+  <rect class="box gate" x="80" y="190" width="280" height="115"/>
+  <text class="box-title" x="105" y="225">14-day horizon</text>
+  <text class="body" x="105" y="255">Pickup must be within horizon</text>
+  <text class="small" x="105" y="280">Only current READY Loads proceed</text>
+  <rect class="box gate" x="435" y="190" width="280" height="115"/>
+  <text class="box-title" x="460" y="225">Maximum five future Loads</text>
+  <text class="body" x="460" y="255">Per trio's sequential chain</text>
+  <text class="small" x="460" y="280">Distinct from CC's five-minute HELD</text>
+  <rect class="box plan" x="790" y="190" width="280" height="115"/>
+  <text class="box-title" x="815" y="225">Rank and plan</text>
+  <text class="body" x="815" y="255">Dispatcher ranks Loads;</text>
+  <text class="small" x="815" y="280">Dispatch ranks feasible resources</text>
+  <rect class="box reserved" x="1145" y="190" width="175" height="115"/>
+  <text class="box-title" x="1168" y="225">CC protects</text>
+  <text class="body" x="1168" y="255">Full resource</text>
+  <text class="body" x="1168" y="278">windows atomically</text>
+  <path class="edge" d="M360 248 L435 248"/>
+  <path class="edge" d="M715 248 L790 248"/>
+  <path class="edge" d="M1070 248 L1145 248"/>
+
+  <rect class="band" x="35" y="390" width="1330" height="220"/>
+  <text class="label" x="60" y="423">RESERVATION CHAIN FOR ONE TRIO</text>
+  <rect class="slot" x="90" y="465" width="180" height="88"/>
+  <text class="box-title" x="145" y="500">Load 1</text>
+  <text class="small" x="120" y="527">earliest reserved</text>
+  <rect class="slot" x="325" y="465" width="180" height="88"/>
+  <text class="box-title" x="380" y="500">Load 2</text>
+  <text class="small" x="366" y="527">future work</text>
+  <rect class="slot" x="560" y="465" width="180" height="88"/>
+  <text class="box-title" x="615" y="500">Load 3</text>
+  <text class="small" x="601" y="527">future work</text>
+  <rect class="slot" x="795" y="465" width="180" height="88"/>
+  <text class="box-title" x="850" y="500">Load 4</text>
+  <text class="small" x="836" y="527">future work</text>
+  <rect class="last" x="1030" y="465" width="180" height="88"/>
+  <text class="box-title" x="1085" y="500">Load 5</text>
+  <text class="small" x="1053" y="527">final; may rerank</text>
+  <rect class="slot" x="1240" y="465" width="95" height="88" stroke-dasharray="6 5"/>
+  <text class="box-title" x="1259" y="500">6</text>
+  <text class="small" x="1249" y="527">blocked</text>
+  <path class="edge" d="M270 510 L325 510"/>
+  <path class="edge" d="M505 510 L560 510"/>
+  <path class="edge" d="M740 510 L795 510"/>
+  <path class="edge" d="M975 510 L1030 510"/>
+  <text class="label" x="1222" y="450">No sixth until a slot opens</text>
+  <text class="small" x="90" y="583">A new slot opens only after Load 1 is assigned and Execution records its actual pickup.</text>
+
+  <rect class="band" x="35" y="640" width="1330" height="220"/>
+  <text class="label" x="60" y="673">EVENT-DRIVEN REPLANNING</text>
+  <rect class="box" x="80" y="710" width="330" height="105"/>
+  <text class="box-title" x="105" y="745">Trigger</text>
+  <text class="body" x="105" y="775">Owner fact, cancellation, infeasibility,</text>
+  <text class="body" x="105" y="798">ranking cycle, or early closeout</text>
+  <rect class="box plan" x="535" y="710" width="330" height="105"/>
+  <text class="box-title" x="560" y="745">Review affected suffix</text>
+  <text class="body" x="560" y="775">Preserve valid prefix; revalidate from</text>
+  <text class="body" x="560" y="798">actual location where applicable</text>
+  <rect class="box gate" x="990" y="710" width="330" height="105"/>
+  <text class="box-title" x="1015" y="745">Use only confirmed capacity</text>
+  <text class="body" x="1015" y="775">CC controls claims; current resource</text>
+  <text class="body" x="1015" y="798">facts must prove availability</text>
+  <path class="edge" d="M410 763 L535 763"/>
+  <path class="edge" d="M865 763 L990 763"/>
+  <path class="edge dashed" d="M1155 815 L1155 840 L60 840 L60 763 L80 763"/>
+</svg>

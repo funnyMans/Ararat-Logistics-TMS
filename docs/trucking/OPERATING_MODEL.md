@@ -33,6 +33,24 @@ history. Keep these concepts separate:
   offer. The decision does not require a supervisor capacity review.
 - A booked Load records one positive total Customer rate in USD in the
   initial scope; the TMS does not convert currencies.
+- Booking-critical requirements must be valid before the booking batch can
+  commit. Invalid optional or later-stage information is omitted from the
+  authoritative Load record and tracked for correction; only workflow stages
+  that require the missing valid fact are held.
+- Only an `ACTIVE` Customer may be booked. A later transition to
+  `SUSPENDED` or `CLOSED` blocks future bookings but does not automatically
+  hold, amend, or cancel existing Loads; those require a separate authorized
+  Load workflow.
+- Fleet Readiness owns versioned Carrier eligibility facts and verification
+  evidence used by planning gates. Initial verification is manual; live
+  external-source integrations are not assumed. Counterparty Registry owns
+  Carrier identity and lifecycle status, not qualification. Eligibility
+  facts must be evidence-based; the TMS does not interpret law or manage
+  compliance cases. Carrier agreements remain external legal records; the
+  TMS retains only verified operational facts and agreement references
+  required by its gates. When an eligibility fact becomes invalid, expires,
+  or is superseded, notify the responsible verifier and affected planning
+  owner immediately; hold only the planning actions gated by that fact.
 - The TMS supports manual tenders to existing approved Carrier profiles and
   records acceptance or rejection. The `contract_capacity_dispatcher` owns
   sending tenders and tracking Carrier responses. Load-board marketplace
@@ -62,14 +80,41 @@ history. Keep these concepts separate:
   reference or supporting attachment, but not a copied message body.
   Indicative USD totals are rounded half up to the nearest cent. Exact tender
   payload remains open. If either party misses a round deadline, the entire
-  tender expires and a late response cannot reopen it. The dispatcher cannot
-  withdraw an open tender; it remains active until acceptance, rejection, or
-  expiry. If the Load is canceled, the TMS cancels its open tenders, notifies
-  the responsible dispatcher, who contacts the Carrier through the external
+  tender expires and a late response cannot reopen it. Before a tender is
+  selected as binding for the Load, the responsible
+  `contract_capacity_dispatcher` may withdraw it at any time, including after
+  Carrier acceptance; the dispatcher records the withdrawal and informs the
+  Carrier through the external channel. Preserve the negotiation history.
+  If one or more Carriers accept tenders for the same Load, the responsible
+  dispatcher explicitly selects exactly one accepted tender as binding and
+  closes competing open and accepted tenders externally, recording their
+  disposition in the TMS. Dispatch Planning may consider only the Carrier on
+  the selected binding tender. Carrier acceptance or binding selection is
+  not capacity protection: the Load remains unsecured until Dispatch Planning
+  and Capacity Commitment complete their normal confirmation workflow. If
+  the selected Carrier cannot pass readiness or capacity checks, keep the
+  Load unassigned. Before an Assignment becomes active, the dispatcher may
+  auditably supersede the binding selection and select another accepted
+  tender only after reconfirming that Carrier's acceptance through the
+  external channel, or issue a replacement tender. After Assignment activation,
+  a Carrier change must use the Load amendment/replanning or cancellation
+  workflow and coordinated Assignment and Capacity Commitment handling.
+  A Load amendment before Assignment activation does not automatically clear
+  the binding Carrier; Dispatch Planning revalidates the exact amended
+  revision against that Carrier and leaves the Load unassigned if required
+  checks fail. An amendment does not rewrite historical tender terms;
+  whether changed requirements require a new rate or renewed Carrier
+  acceptance remains open. Only an `ACTIVE` Carrier may be selected for a
+  new binding tender or have a pending Assignment activated. A later
+  transition to `SUSPENDED` or `CLOSED` blocks pending activation and
+  preserves its Assignment and reservation for explicit dispatcher action;
+  if no Assignment has been proposed, the Load remains unassigned. It does
+  not automatically alter an active Assignment or Execution; any change to
+  existing active work requires the authorized reassignment or cancellation
+  workflow.
+  If the Load is canceled, the TMS cancels its open tenders, notifies the
+  responsible dispatcher, who contacts the Carrier through the external
   channel; the TMS preserves negotiation history.
-  Carrier acceptance is not capacity protection: the Load remains unsecured
-  until Dispatch Planning and Capacity Commitment complete their normal
-  confirmation workflow.
 - Customer instructions, appointment coordination/changes, and customer
   status communication are tracked as Load-linked internal follow-up owned
   by the broker. Customer portals and standalone CRM/contact-center case
@@ -118,30 +163,14 @@ history. Keep these concepts separate:
   the proposal to the requester for added information and resubmission as a
   new immutable revision under the same proposal ID, preserving prior
   revisions and review history. Further review rules remain open.
-- Post-delivery claims, including damage, shortage, loss, and customer or
-  carrier disputes, are tracked as operational cases linked to the relevant
-  Load and, where applicable, Execution. Each case has a designated owner
-  accountable for coordinating it through resolution, regardless of
-  department. Cases record supporting evidence, status, and resolution;
-  they use the `OPEN`, `IN_PROGRESS`, and `RESOLVED` lifecycle, and reopening
-  a resolved case requires an audited transition and reason. Cases support
-  internal operational follow-up and referral; formal insurance handling,
-  legal adjudication, and financial settlement remain outside the TMS. A case
-  may be resolved after operational follow-up or documented referral; the
-  TMS does not track the referred claim to external completion. Closure
-  outcomes are `OPERATIONALLY_RESOLVED`, `DENIED`, `WITHDRAWN`, `DUPLICATE`,
-  or `REFERRED_OUTSIDE_TMS`, with a required reason. `DENIED` is only an
-  internal operational disposition. A referral records its destination,
-  date/time, available external reference, and supporting evidence. The
-  Load's area supervisor assigns and may reassign the designated owner from
-  staff with explicit claim-owner permission, regardless of department.
-  When the owner cannot progress or needs a decision, the case escalates first
-  to the Load's area supervisor, who may escalate through the supervisory
-  chain. The owner may escalate whenever the case is blocked or needs a
-  decision beyond their authority; no time-based automatic escalation applies.
-  The designated owner may resolve a case after recording its outcome and
-  reason; all state and outcome transitions are audited, without blanket
-  supervisor approval.
+- Post-delivery claims, delivery variances, remaining freight, and other
+  operational issues are recorded as minimal issue records linked to the
+  Load. The receiving out-of-scope service owns issue assignment, status, and
+  resolution; the TMS retains only the issue facts and handoff status. Never
+  send the detailed Load record or full Load snapshot as an issue handoff.
+  Issue types, type-specific minimum data, recipient services, and message
+  contracts remain to be defined. Formal insurance handling, legal
+  adjudication, and financial settlement remain outside the TMS.
 - Booking creates a commercial commitment and starts capacity planning; it
   does not itself secure capacity or create an Assignment.
 - Before actual execution starts, an approved change to the booking creates
@@ -152,15 +181,24 @@ history. Keep these concepts separate:
   request is not final until downstream planning and capacity commitments
   are released; once accepted, it cannot be withdrawn. After execution
   starts, resolve the situation through the operational-exception process.
-- A Load is complete only after Execution confirms its required closeout;
-  each delivery stop needs proof or a reasoned exception approved by the
-  accountable area supervisor (or documented supervisory coverage), and an
-  individual delivery report alone does not complete the Load. A partial or
-  uncompleted delivery creates an operational exception case that blocks
-  closeout until an authorized supervisor resolves it.
-- Routine planning, reservation, and Assignment proceed automatically when
-  current facts and policy allow a valid decision. Human oversight addresses
-  exceptions and policy-authorized judgment, not routine approval.
+- Execution and Load become `COMPLETED` when the transportation attempt
+  ends and every planned stop has a final outcome. Each actual unload needs
+  POD or an authorized evidence exception. Own-fleet POD is accepted on
+  receipt; contractor and
+  outer-Carrier POD requires dispatcher review. Record actual quantities and
+  locations. Shortfalls, overages, omitted stops, changed unload locations,
+  and remaining freight are linked issues for handoff, not reasons to keep
+  the Load or Execution open. A shared trailer need not be physically empty;
+  determine completion from the freight for the specific Load. Terminal
+  status does not establish customer satisfaction or commercial settlement.
+  Trip completion remains independent of per-Load closeout.
+- `CANCELLED` and `COMPLETED` are terminal Load outcomes. Linked issue records
+  and handoffs remain separate; creating or updating one does not reverse a
+  terminal status.
+- Routine planning, reservation, and Assignment proceed automatically under
+  the rolling horizon, dispatcher-ranking, reallocation, and recovery rules in
+  D-511, when current facts and policy allow a valid decision. Human oversight
+  addresses exceptions and policy-authorized judgment, not routine approval.
 - Dispatch Planning must not treat a nomination as a reservation or let a
   missed nomination hide otherwise eligible capacity from its planning.
 - Eligibility, availability, preference, and willingness are distinct.
@@ -219,9 +257,17 @@ history. Keep these concepts separate:
 
 ## Outside the approved baseline
 
-Exact deadlines and timezone behavior, trip-profile thresholds, allocation
-weights, readiness and availability sources, detailed sourcing policy, and
-regulatory or contractual rules are not settled here. Do not infer them from
-the reference company's size or geography. Track decisions in
-[open decisions](OPEN_QUESTIONS.md) and validate legal or regulatory
-requirements from authoritative sources before implementation.
+The initial 12-hour operational trip classification, driver-specific
+return-home classification, hard-gate categories, and lexicographic
+resource-candidate ranking are defined in D-499. Dispatcher Load ranking,
+the four directional/duration profiles, rolling reservation limits, safe
+reallocation, and chain-tail recovery are defined in D-511 and the
+[planning contract](../contracts.md#initial-dispatch-planning-policy).
+D-500 defines provider-neutral route-estimate provenance, the 15-minute
+review acknowledgement/escalation rule, and a fail-closed boundary for
+unapproved legal or safety gates. Exact route-estimate sources and
+stop-service-time values, the Fleet Readiness fact catalogue and its evidence
+rules, measurable product-wide operational acceptance profiles, and
+authoritative legal or contractual requirements remain open. Do not infer
+them from the reference company's size or geography. Validate legal or
+regulatory requirements from authoritative sources before implementation.

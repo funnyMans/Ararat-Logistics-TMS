@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1230" style="height:auto" viewBox="0 0 1600 1230" role="img" aria-labelledby="title description">
+  <title id="title">Target TMS runtime and data isolation</title>
+  <desc id="description">The target logical deployment has external clients reaching an ingress and API Gateway, nine independently deployable owner workloads with nine isolated PostgreSQL clusters, shared RabbitMQ, Temporal, NATS and observability clusters. Nginx is local-only, Apollo Router is a future option, and production orchestration and infrastructure sizing are not selected.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 18; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 1.8; rx: 12; }
+      .owner { fill: #eaf3fb; stroke: #1769aa; }
+      .store { fill: #eef4fa; stroke: #386e9a; }
+      .platform { fill: #f0edfa; stroke: #6853a6; }
+      .external { fill: #fff7f4; stroke: #b45039; }
+      .edge { fill: #fff3dc; stroke: #b87500; }
+      .box-title { font-size: 15px; font-weight: 700; }
+      .body { font-size: 12px; fill: #42586c; }
+      .small { font-size: 11px; fill: #526477; }
+      .label { font-size: 12px; font-weight: 700; fill: #40586c; }
+      .arrow { fill: none; stroke: #536579; stroke-width: 2; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 7 6; }
+    </style>
+  </defs>
+  <rect width="1600" height="1230" fill="#fff"/>
+  <text class="title" x="42" y="55">Target runtime and data isolation</text>
+  <text class="subtitle" x="42" y="82">Logical deployment responsibilities; not a selected production orchestrator, pod count, cloud provider, or ingress.</text>
+
+  <rect class="band" x="30" y="110" width="1540" height="145"/>
+  <text class="label" x="55" y="139">CLIENTS AND EXTERNAL PARTIES</text>
+  <rect class="box external" x="60" y="160" width="255" height="70"/>
+  <text class="box-title" x="82" y="188">Broker / staff clients</text>
+  <text class="small" x="82" y="211">Client app packaging open</text>
+  <rect class="box external" x="350" y="160" width="255" height="70"/>
+  <text class="box-title" x="372" y="188">Driver / Carrier client</text>
+  <text class="small" x="372" y="211">Milestones and evidence</text>
+  <rect class="box external" x="640" y="160" width="255" height="70"/>
+  <text class="box-title" x="662" y="188">Customer / shipper site</text>
+  <text class="small" x="662" y="211">Counterparty / physical world</text>
+  <rect class="box external" x="930" y="160" width="590" height="70"/>
+  <text class="box-title" x="952" y="188">Outside-TMS systems and recipients</text>
+  <text class="small" x="952" y="211">Issue receiving owner, route provider, other integrations — specific contracts open</text>
+
+  <rect class="band" x="30" y="280" width="1540" height="155"/>
+  <text class="label" x="55" y="309">PUBLIC EDGE — PRODUCTION INGRESS IS OPEN</text>
+  <rect class="box edge" x="145" y="335" width="340" height="75"/>
+  <text class="box-title" x="170" y="365">Ingress / edge proxy</text>
+  <text class="body" x="170" y="391">Nginx exists locally; production choice TBD</text>
+  <rect class="box edge" x="670" y="335" width="360" height="75"/>
+  <text class="box-title" x="695" y="365">API Gateway</text>
+  <text class="body" x="695" y="391">Validate token, route, apply edge limits</text>
+  <rect class="box edge" x="1150" y="335" width="350" height="75"/>
+  <text class="box-title" x="1175" y="365">Possible Apollo Router</text>
+  <text class="body" x="1175" y="391">Federation proposal only; not approved</text>
+  <path class="arrow" d="M188 230 L188 335"/>
+  <path class="arrow" d="M478 230 L478 300 L350 300 L350 335"/>
+  <path class="arrow" d="M485 372 L670 372"/>
+  <path class="arrow dashed" d="M1030 372 L1150 372"/>
+  <text class="small" x="1050" y="356">optional future client edge</text>
+  <text class="small" x="500" y="451">OIDC tokens come from Identity; Gateway routes defined APIs; domain owners authorize each resource action.</text>
+
+  <rect class="band" x="30" y="475" width="1540" height="425"/>
+  <text class="label" x="55" y="505">NINE INDEPENDENT DOMAIN WORKLOADS — EACH HAS ITS OWN DATABASE AND MIGRATIONS</text>
+
+  <rect class="box owner" x="60" y="530" width="265" height="78"/>
+  <text class="box-title" x="80" y="558">Identity</text>
+  <text class="small" x="80" y="584">Auth API / workers in containers or pods</text>
+  <rect class="box store" x="350" y="530" width="205" height="78"/>
+  <text class="box-title" x="370" y="558">Identity PostgreSQL</text>
+  <text class="small" x="370" y="584">Private owner cluster</text>
+  <path class="arrow" d="M325 569 L350 569"/>
+
+  <rect class="box owner" x="580" y="530" width="265" height="78"/>
+  <text class="box-title" x="600" y="558">Counterparty Registry</text>
+  <text class="small" x="600" y="584">API / workers in containers or pods</text>
+  <rect class="box store" x="870" y="530" width="205" height="78"/>
+  <text class="box-title" x="890" y="558">Registry PostgreSQL</text>
+  <text class="small" x="890" y="584">Private owner cluster</text>
+  <path class="arrow" d="M845 569 L870 569"/>
+
+  <rect class="box owner" x="1100" y="530" width="265" height="78"/>
+  <text class="box-title" x="1120" y="558">Fleet Readiness</text>
+  <text class="small" x="1120" y="584">API / workers in containers or pods</text>
+  <rect class="box store" x="1390" y="530" width="150" height="78"/>
+  <text class="box-title" x="1405" y="558">Fleet PG</text>
+  <text class="small" x="1405" y="584">Private cluster</text>
+  <path class="arrow" d="M1365 569 L1390 569"/>
+
+  <rect class="box owner" x="60" y="640" width="265" height="78"/>
+  <text class="box-title" x="80" y="668">Load</text>
+  <text class="small" x="80" y="694">API / outbox / workflow workers</text>
+  <rect class="box store" x="350" y="640" width="205" height="78"/>
+  <text class="box-title" x="370" y="668">Load PostgreSQL</text>
+  <text class="small" x="370" y="694">Private owner cluster</text>
+  <path class="arrow" d="M325 679 L350 679"/>
+
+  <rect class="box owner" x="580" y="640" width="265" height="78"/>
+  <text class="box-title" x="600" y="668">Dispatch Planning</text>
+  <text class="small" x="600" y="694">Planner / projection workers</text>
+  <rect class="box store" x="870" y="640" width="205" height="78"/>
+  <text class="box-title" x="890" y="668">Dispatch PostgreSQL</text>
+  <text class="small" x="890" y="694">Private owner cluster</text>
+  <path class="arrow" d="M845 679 L870 679"/>
+
+  <rect class="box owner" x="1100" y="640" width="265" height="78"/>
+  <text class="box-title" x="1120" y="668">Capacity Commitment</text>
+  <text class="small" x="1120" y="694">Reservation API / workers</text>
+  <rect class="box store" x="1390" y="640" width="150" height="78"/>
+  <text class="box-title" x="1405" y="668">CC PG</text>
+  <text class="small" x="1405" y="694">Private cluster</text>
+  <path class="arrow" d="M1365 679 L1390 679"/>
+
+  <rect class="box owner" x="60" y="750" width="265" height="78"/>
+  <text class="box-title" x="80" y="778">Execution</text>
+  <text class="small" x="80" y="804">Execution / evidence workers</text>
+  <rect class="box store" x="350" y="750" width="205" height="78"/>
+  <text class="box-title" x="370" y="778">Execution PostgreSQL</text>
+  <text class="small" x="370" y="804">Private owner cluster</text>
+  <path class="arrow" d="M325 789 L350 789"/>
+
+  <rect class="box owner" x="580" y="750" width="265" height="78"/>
+  <text class="box-title" x="600" y="778">Notification</text>
+  <text class="small" x="600" y="804">Delivery / inbox workers</text>
+  <rect class="box store" x="870" y="750" width="205" height="78"/>
+  <text class="box-title" x="890" y="778">Notification PostgreSQL</text>
+  <text class="small" x="890" y="804">Private owner cluster</text>
+  <path class="arrow" d="M845 789 L870 789"/>
+
+  <rect class="box owner" x="1100" y="750" width="265" height="78"/>
+  <text class="box-title" x="1120" y="778">Operations View</text>
+  <text class="small" x="1120" y="804">Read-only projection workers</text>
+  <rect class="box store" x="1390" y="750" width="150" height="78"/>
+  <text class="box-title" x="1405" y="778">View PG</text>
+  <text class="small" x="1405" y="804">Private cluster</text>
+  <path class="arrow" d="M1365 789 L1390 789"/>
+  <text class="small" x="60" y="866">Outbox, inbox, idempotency, domain records, and migrations stay in each owning service's database; no cross-service database reads or joins.</text>
+
+  <rect class="band" x="30" y="920" width="1540" height="210"/>
+  <text class="label" x="55" y="950">SHARED PLATFORM CLUSTERS AND OBSERVABILITY — NOT DOMAIN SERVICES</text>
+  <rect class="box platform" x="65" y="980" width="315" height="95"/>
+  <text class="box-title" x="88" y="1015">RabbitMQ</text>
+  <text class="body" x="88" y="1043">Durable owner commands and facts</text>
+  <rect class="box platform" x="435" y="980" width="315" height="95"/>
+  <text class="box-title" x="458" y="1015">Temporal</text>
+  <text class="body" x="458" y="1043">Workflow history and durable timers</text>
+  <rect class="box platform" x="805" y="980" width="315" height="95"/>
+  <text class="box-title" x="828" y="1015">NATS</text>
+  <text class="body" x="828" y="1043">Secondary realtime fan-out</text>
+  <rect class="box platform" x="1175" y="980" width="340" height="95"/>
+  <text class="box-title" x="1198" y="1015">Observability</text>
+  <text class="body" x="1198" y="1043">Logs, metrics, traces</text>
+  <text class="small" x="65" y="1105">Provider, high availability, network policy, sizing, replica counts, and production ingress remain qualification decisions. Local Nginx is not the selected production edge.</text>
+</svg>

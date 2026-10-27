@@ -1,0 +1,449 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Load Service Messages
+  version: 1.0.0
+  description: >-
+    Load-owned durable facts and messages sent or received by the Load
+    boundary. This specification covers the Load message shapes currently
+    defined in docs/contracts.md; unlisted routes and message inventories
+    remain capability-specific contract work.
+  externalDocs:
+    description: Shared semantic TMS service contracts
+    url: ../contracts.md
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  loadBooked:
+    address: load.booked.v1
+    messages:
+      LoadBooked:
+        $ref: '#/components/messages/LoadBooked'
+  loadRevisionCreated:
+    address: load.revision.created.v1
+    messages:
+      LoadRevisionCreated:
+        $ref: '#/components/messages/LoadRevisionCreated'
+  loadReadinessChanged:
+    address: load.planning.readiness.changed.v1
+    messages:
+      LoadReadinessChanged:
+        $ref: '#/components/messages/LoadReadinessChanged'
+  planLoad:
+    address: dispatch.load.plan.v1
+    messages:
+      PlanLoad:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/PlanLoad
+  planLoadOutcome:
+    address: dispatch.load.plan.outcome.v1
+    messages:
+      PlanLoadOutcome:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/PlanLoadOutcome
+  loadUnassigned:
+    address: load.planning.unassigned.v1
+    messages:
+      LoadUnassigned:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/LoadUnassigned
+  cancelLoad:
+    address: dispatch.load.cancel.v1
+    messages:
+      CancelLoad:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/CancelLoad
+  cancelLoadOutcome:
+    address: dispatch.load.cancel.outcome.v1
+    messages:
+      CancelLoadOutcome:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/CancelLoadOutcome
+  dispatchCancellationReleased:
+    address: dispatch.load.cancellation.released.v1
+    messages:
+      DispatchCancellationReleased:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/DispatchCancellationReleased
+  cancelPlannedExecution:
+    address: execution.load.cancel-planned.v1
+    messages:
+      CancelPlannedExecution:
+        $ref: ./execution.asyncapi.yaml#/components/messages/CancelPlannedExecution
+  cancelPlannedExecutionOutcome:
+    address: execution.load.cancel-planned.outcome.v1
+    messages:
+      CancelPlannedExecutionOutcome:
+        $ref: ./execution.asyncapi.yaml#/components/messages/CancelPlannedExecutionOutcome
+  loadCancellationCompleted:
+    address: load.cancellation.completed.v1
+    messages:
+      LoadCancellationCompleted:
+        $ref: '#/components/messages/LoadCancellationCompleted'
+  cancellationRequestSnapshotGet:
+    address: load.cancellation-request.snapshot.get.v1
+    messages:
+      CancellationRequestSnapshotGet:
+        $ref: '#/components/messages/CancellationRequestSnapshotGet'
+  cancellationRequestSnapshotResult:
+    address: load.cancellation-request.snapshot.result.v1
+    messages:
+      CancellationRequestSnapshotResult:
+        $ref: '#/components/messages/CancellationRequestSnapshotResult'
+operations:
+  publishLoadBooked:
+    action: send
+    channel:
+      $ref: '#/channels/loadBooked'
+    messages:
+      - $ref: '#/channels/loadBooked/messages/LoadBooked'
+  publishLoadRevisionCreated:
+    action: send
+    channel:
+      $ref: '#/channels/loadRevisionCreated'
+    messages:
+      - $ref: '#/channels/loadRevisionCreated/messages/LoadRevisionCreated'
+  publishLoadReadinessChanged:
+    action: send
+    channel:
+      $ref: '#/channels/loadReadinessChanged'
+    messages:
+      - $ref: '#/channels/loadReadinessChanged/messages/LoadReadinessChanged'
+  sendPlanLoad:
+    action: send
+    channel:
+      $ref: '#/channels/planLoad'
+    messages:
+      - $ref: '#/channels/planLoad/messages/PlanLoad'
+  receivePlanLoadOutcome:
+    action: receive
+    channel:
+      $ref: '#/channels/planLoadOutcome'
+    messages:
+      - $ref: '#/channels/planLoadOutcome/messages/PlanLoadOutcome'
+  receiveLoadUnassigned:
+    action: receive
+    channel:
+      $ref: '#/channels/loadUnassigned'
+    messages:
+      - $ref: '#/channels/loadUnassigned/messages/LoadUnassigned'
+  sendCancelLoad:
+    action: send
+    channel:
+      $ref: '#/channels/cancelLoad'
+    messages:
+      - $ref: '#/channels/cancelLoad/messages/CancelLoad'
+  receiveCancelLoadOutcome:
+    action: receive
+    channel:
+      $ref: '#/channels/cancelLoadOutcome'
+    messages:
+      - $ref: '#/channels/cancelLoadOutcome/messages/CancelLoadOutcome'
+  receiveDispatchCancellationReleased:
+    action: receive
+    channel:
+      $ref: '#/channels/dispatchCancellationReleased'
+    messages:
+      - $ref: '#/channels/dispatchCancellationReleased/messages/DispatchCancellationReleased'
+  sendCancelPlannedExecution:
+    action: send
+    channel:
+      $ref: '#/channels/cancelPlannedExecution'
+    messages:
+      - $ref: '#/channels/cancelPlannedExecution/messages/CancelPlannedExecution'
+  receiveCancelPlannedExecutionOutcome:
+    action: receive
+    channel:
+      $ref: '#/channels/cancelPlannedExecutionOutcome'
+    messages:
+      - $ref: '#/channels/cancelPlannedExecutionOutcome/messages/CancelPlannedExecutionOutcome'
+  publishLoadCancellationCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/loadCancellationCompleted'
+    messages:
+      - $ref: '#/channels/loadCancellationCompleted/messages/LoadCancellationCompleted'
+  receiveCancellationRequestSnapshotGet:
+    action: receive
+    channel:
+      $ref: '#/channels/cancellationRequestSnapshotGet'
+    messages:
+      - $ref: '#/channels/cancellationRequestSnapshotGet/messages/CancellationRequestSnapshotGet'
+  sendCancellationRequestSnapshotResult:
+    action: send
+    channel:
+      $ref: '#/channels/cancellationRequestSnapshotResult'
+    messages:
+      - $ref: '#/channels/cancellationRequestSnapshotResult/messages/CancellationRequestSnapshotResult'
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    FactEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          occurredAt,
+          correlationId,
+          ownerRevision,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    CommandEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          commandId,
+          idempotencyKey,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        idempotencyKey: { type: string, minLength: 1 }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    SnapshotRequestEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        payload: { type: object }
+    LoadBookedPayload:
+      type: object
+      required:
+        [loadId, loadReference, bookingSubmissionId, sourceRowNumber, lifecycleStatus, loadRevision]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadReference: { type: string, pattern: '^LD-[0-9]+$' }
+        bookingSubmissionId: { $ref: '#/components/schemas/UuidV7' }
+        sourceRowNumber: { type: integer, minimum: 1 }
+        lifecycleStatus: { type: string, const: BOOKED }
+        loadRevision:
+          $ref: ./load.openapi.yaml#/components/schemas/LoadRevision
+    LoadRevisionCreatedPayload:
+      type: object
+      required: [loadId, loadReference, loadRevision]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadReference: { type: string }
+        loadRevision:
+          $ref: ./load.openapi.yaml#/components/schemas/LoadRevision
+    LoadReadinessChangedPayload:
+      type: object
+      required: [loadId, loadRevisionId, loadRevisionNumber, state, blockingIssues]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        state: { type: string, enum: [READY, HELD] }
+        blockingIssues:
+          type: array
+          items:
+            type: object
+            required: [code, fieldPath]
+            properties:
+              code: { type: string }
+              fieldPath: { type: string }
+              message: { type: string }
+    LoadCancellationCompletedPayload:
+      type: object
+      required:
+        [
+          loadId,
+          loadReference,
+          loadRevisionId,
+          loadRevisionNumber,
+          cancellationRequestId,
+          state,
+          completedAt,
+        ]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadReference: { type: string }
+        loadRevisionId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        state: { type: string, const: CANCELLED }
+        completedAt: { type: string, format: date-time }
+    CancellationRequestSnapshotGetPayload:
+      type: object
+      required: [cancellationRequestId, lastAppliedOwnerRevision, observedOwnerRevision]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        lastAppliedOwnerRevision: { type: integer, minimum: 0, maximum: 9007199254740991 }
+        observedOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    CancellationRequestSnapshotResultPayload:
+      type: object
+      required: [cancellationRequestId, result]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        state: { type: string }
+        result: { type: string, enum: [FOUND, NOT_FOUND] }
+  messages:
+    LoadBooked:
+      name: load.booked
+      title: Load booked
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.booked }
+              sourceService: { const: load }
+              payload: { $ref: '#/components/schemas/LoadBookedPayload' }
+    LoadRevisionCreated:
+      name: load.revision.created
+      title: Load revision created
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.revision.created }
+              sourceService: { const: load }
+              payload: { $ref: '#/components/schemas/LoadRevisionCreatedPayload' }
+    LoadReadinessChanged:
+      name: load.planning.readiness.changed
+      title: Load planning readiness changed
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.planning.readiness.changed }
+              sourceService: { const: load }
+              payload: { $ref: '#/components/schemas/LoadReadinessChangedPayload' }
+    LoadCancellationCompleted:
+      name: load.cancellation.completed
+      title: Load cancellation completed
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.cancellation.completed }
+              sourceService: { const: load }
+              payload: { $ref: '#/components/schemas/LoadCancellationCompletedPayload' }
+    CancellationRequestSnapshotGet:
+      name: load.cancellation-request.snapshot.get
+      title: Cancellation request snapshot request
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/SnapshotRequestEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.cancellation-request.snapshot.get }
+              sourceService: { const: dispatch-planning }
+              targetService: { const: load }
+              payload: { $ref: '#/components/schemas/CancellationRequestSnapshotGetPayload' }
+    CancellationRequestSnapshotResult:
+      name: load.cancellation-request.snapshot.result
+      title: Cancellation request snapshot result
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: load.cancellation-request.snapshot.result }
+              sourceService: { const: load }
+              targetService: { const: dispatch-planning }
+              payload: { $ref: '#/components/schemas/CancellationRequestSnapshotResultPayload' }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    Additional durable message inventories and payload details remain open in
+    OPEN_QUESTIONS.md items 17 and 18.
+  - >-
+    General owner-revision-gap snapshot request/result messages are not yet
+    specified; the current snapshot exchange covers cancellation requests only.

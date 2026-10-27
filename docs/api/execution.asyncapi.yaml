@@ -1,0 +1,172 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Execution Messages
+  version: 1.0.0
+  description: >-
+    Execution-owned message schemas for the planned-Execution cancellation
+    exchange currently specified in docs/contracts.md. Other Execution facts
+    and message inventories remain open.
+  externalDocs:
+    description: Shared semantic TMS service contracts
+    url: ../contracts.md
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  assignmentActivated:
+    address: dispatch.assignment.activated.v1
+    messages:
+      AssignmentActivated:
+        $ref: ./dispatch-planning.asyncapi.yaml#/components/messages/AssignmentActivated
+  cancelPlannedExecution:
+    address: execution.load.cancel-planned.v1
+    messages:
+      CancelPlannedExecution:
+        $ref: '#/components/messages/CancelPlannedExecution'
+  cancelPlannedExecutionOutcome:
+    address: execution.load.cancel-planned.outcome.v1
+    messages:
+      CancelPlannedExecutionOutcome:
+        $ref: '#/components/messages/CancelPlannedExecutionOutcome'
+operations:
+  receiveAssignmentActivated:
+    action: receive
+    channel: { $ref: '#/channels/assignmentActivated' }
+  receiveCancelPlannedExecution:
+    action: receive
+    channel: { $ref: '#/channels/cancelPlannedExecution' }
+  publishCancelPlannedExecutionOutcome:
+    action: send
+    channel: { $ref: '#/channels/cancelPlannedExecutionOutcome' }
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    CommandEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          commandId,
+          idempotencyKey,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: load }
+        targetService: { type: string, const: execution }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        idempotencyKey: { type: string, minLength: 1 }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: execution }
+        targetService: { type: string, const: load }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    CancelPlannedExecutionPayload:
+      type: object
+      required:
+        [cancellationRequestId, loadId, assignmentId, executionId, expectedExecutionOwnerRevision]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        assignmentId: { $ref: '#/components/schemas/UuidV7' }
+        executionId: { $ref: '#/components/schemas/UuidV7' }
+        expectedExecutionOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    CancelPlannedExecutionOutcomePayload:
+      type: object
+      required: [commandId, cancellationRequestId, loadId, assignmentId, executionId, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        assignmentId: { $ref: '#/components/schemas/UuidV7' }
+        executionId: { $ref: '#/components/schemas/UuidV7' }
+        outcome: { type: string, enum: [CANCELLED, REJECTED] }
+        executionState: { type: string, const: VOIDED }
+        executionOwnerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        reasonCode:
+          type: string
+          enum:
+            [
+              EXECUTION_NOT_FOUND,
+              ASSIGNMENT_MISMATCH,
+              EXECUTION_OWNER_REVISION_MISMATCH,
+              CANCELLATION_NOT_ALLOWED_EXECUTION_STARTED,
+              EXECUTION_NOT_PLANNED,
+            ]
+        message: { type: string }
+      oneOf:
+        - properties:
+            outcome: { const: CANCELLED }
+          required: [executionState, executionOwnerRevision]
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+  messages:
+    CancelPlannedExecution:
+      name: execution.load.cancel-planned
+      title: Cancel planned Execution command
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: execution.load.cancel-planned }
+              payload: { $ref: '#/components/schemas/CancelPlannedExecutionPayload' }
+    CancelPlannedExecutionOutcome:
+      name: execution.load.cancel-planned.outcome
+      title: Cancel planned Execution outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: execution.load.cancel-planned.outcome }
+              payload: { $ref: '#/components/schemas/CancelPlannedExecutionOutcomePayload' }
+x-contract-status: partial
+x-unresolved-contracts:
+  - Execution progress, exceptions, evidence, completion, and correction messages are not yet fully inventoried.

@@ -28,14 +28,20 @@ and does not itself secure capacity.
 **Reason:** The commercial commitment and the operational capacity decision
 are distinct responsibilities and records.
 
-### D-03 — Define the whole target before selecting a small implementation
+### D-03 — Define the coherent target before business implementation
 
-**Decision:** Establish and approve the complete TMS scope, domain ownership
-and relationships, system boundaries, infrastructure shape, internal
-contracts, role responsibilities, and failure boundaries before
-implementation. Define detailed role procedures and permission enforcement
-after the domain boundaries and contracts are stable. This does not require
-implementing every approved capability at once.
+**Decision:** Establish the coherent intended TMS target, minimum identified
+scope, domain ownership and relationships, system boundaries, internal
+contracts, role responsibilities, and capability-specific failure boundaries
+before implementing domain-owned business workflows. The maximum scope may
+remain explicitly open. Define detailed role procedures and permission
+enforcement after the relevant domain boundaries and contracts are stable.
+This does not require implementing every approved capability at once.
+
+D-504 refines the sequencing rule: the approved, bounded platform-foundation
+phase may precede completion of all business-capability documentation, but it
+must not introduce business behavior or establish domain policy by
+implementation.
 
 **Reason:** A slice should test a deliberate part of a coherent system rather
 than establish accidental architecture through the first feature built.
@@ -79,8 +85,9 @@ return-home work, and short and long trips, must not be forced through
 identical decision logic.
 
 **Reason:** Shared ownership and lifecycle invariants can coexist with
-different operational policies. Exact profile thresholds and policy
-parameters remain open.
+different operational policies. D-499 defines the initial short/long and
+driver-home-area classifications; D-511 defines the four operational
+direction/duration profiles and rolling ranking/reservation policy.
 
 ### D-08 — Automate routine matching and Assignment within explicit constraints
 
@@ -121,13 +128,14 @@ design remain open.
 details, and lifecycle remain open; business-resource authorization belongs
 to each owning domain.
 
-### D-11 — Complete TMS documentation before implementation
+### D-11 — Complete capability documentation before business implementation
 
-**Decision:** Do not begin implementation of TMS capabilities until the TMS
+**Decision:** Do not begin a domain-owned TMS business capability until its
 business scope, domain model, architecture, internal contracts, role
-responsibilities, MVP scope, and verification requirements are documented
-consistently and approved. Product implementation begins only from that
-settled baseline.
+responsibilities, and verification requirements are documented consistently
+and approved. D-504 separately approves platform-foundation work, bounded by
+the system blueprint's explicit scope and acceptance criteria. This exception
+does not authorize business APIs, operational records, or workflow behavior.
 
 **Reason:** The product boundary and its responsibilities must be deliberate
 before technical work can safely establish them by accident.
@@ -1096,6 +1104,8 @@ changed.
 
 ### D-84 — Hold closeout for partial or failed delivery
 
+**Status:** Superseded by D-512.
+
 **Decision:** A `PARTIAL` or `NOT_COMPLETED` delivery outcome creates an
 operational exception case and blocks Load closeout until an authorized
 supervisor resolves the case and the delivery stop has its proof of delivery
@@ -1559,6 +1569,8 @@ history while preserving the boundary against accounting and settlement.
 
 ### D-127 — Track post-delivery claims as operational Load-linked cases
 
+**Status:** Superseded by D-512.
+
 **Decision:** The TMS tracks post-delivery claims, including damage,
 shortage, loss, and customer/carrier disputes, as cases linked to the
 relevant Load and, where applicable, Execution. Cases record an accountable
@@ -1571,6 +1583,8 @@ evidence after delivery without expanding the TMS into a financial system.
 
 ### D-128 — Assign a designated owner to each post-delivery claim
 
+**Status:** Superseded by D-512.
+
 **Decision:** Each post-delivery claim case has a designated owner who is
 accountable for coordinating it through resolution, regardless of the
 owner's department. This establishes case accountability, not a new
@@ -1582,6 +1596,8 @@ unowned while allowing the company to assign responsibility flexibly.
 
 ### D-129 — Reuse the established case lifecycle for post-delivery claims
 
+**Status:** Superseded by D-512.
+
 **Decision:** Post-delivery claim cases use the established `OPEN`,
 `IN_PROGRESS`, and `RESOLVED` lifecycle. Reopening a resolved claim requires
 a reason and an audited transition. Claim-specific actions, outcomes, and
@@ -1591,6 +1607,8 @@ escalation remain to be defined.
 without forcing claims into the Execution exception workflow or data store.
 
 ### D-130 — Limit claim cases to operational follow-up and referral
+
+**Status:** Superseded by D-512.
 
 **Decision:** Claim cases support internal operational follow-up and referral,
 recording facts, evidence, ownership, status, and outcome. The TMS does not
@@ -1855,6 +1873,8 @@ expiry enforcement without requiring the TMS to manage maintenance documents.
 
 ### D-156 — Close claim cases when referral is documented
 
+**Status:** Superseded by D-512.
+
 **Decision:** A post-delivery claim case may be marked `RESOLVED` when its
 operational follow-up is complete or when its referral outside the TMS is
 documented. The TMS does not track the referred claim through the external
@@ -1866,6 +1886,8 @@ extending the TMS into external insurance or legal claim management.
 
 ### D-157 — Record controlled claim closure outcomes
 
+**Status:** Superseded by D-512.
+
 **Decision:** Claim closure records one of `OPERATIONALLY_RESOLVED`,
 `DENIED`, `WITHDRAWN`, `DUPLICATE`, or `REFERRED_OUTSIDE_TMS`, with a
 required reason. `DENIED` is an internal operational disposition only; it
@@ -1875,6 +1897,8 @@ does not assert legal liability or an insurer's claim decision.
 legal and insurance determinations outside the TMS.
 
 ### D-158 — Record claim referral details
+
+**Status:** Superseded by D-512.
 
 **Decision:** A referred claim records the referral destination and date/time,
 any available external reference, and supporting evidence. Recording these
@@ -1886,6 +1910,8 @@ while keeping external claim handling outside the TMS.
 
 ### D-159 — Let the designated claim owner resolve the case
 
+**Status:** Superseded by D-512.
+
 **Decision:** The designated owner may transition a claim case to `RESOLVED`
 after recording a permitted closure outcome and required reason. Audit all
 outcome and state transitions; no blanket supervisor approval is required.
@@ -1895,6 +1921,8 @@ preserving reviewable decision history without adding routine supervisory
 approval.
 
 ### D-160 — Assign claim owners through the Load's area supervisor
+
+**Status:** Superseded by D-512.
 
 **Decision:** The Load's area supervisor assigns and may reassign the
 designated owner of a post-delivery claim from eligible staff. Escalation
@@ -1906,6 +1934,8 @@ coordinate the specific claim.
 
 ### D-161 — Require explicit claim-owner permission
 
+**Status:** Superseded by D-512.
+
 **Decision:** An area supervisor may assign a post-delivery claim to any staff
 member with explicit claim-owner permission, regardless of department.
 
@@ -1914,6 +1944,8 @@ authority through department membership alone or creating a dedicated claims
 role.
 
 ### D-162 — Escalate claim cases through the Load's area supervisor
+
+**Status:** Superseded by D-512.
 
 **Decision:** When the claim owner needs a decision or cannot progress the
 case, escalation goes first to the Load's area supervisor. The supervisor may
@@ -1924,6 +1956,8 @@ outcome while retaining the existing supervisory path for issues beyond that
 authority.
 
 ### D-163 — Make claim escalation owner-initiated
+
+**Status:** Superseded by D-512.
 
 **Decision:** The claim owner may escalate whenever the case is blocked or
 requires a decision beyond the owner's authority. Escalation is not triggered
@@ -2526,6 +2560,3820 @@ reminders while a proposal is awaiting review.
 
 **Reason:** The reviewer queue remains the source for outstanding work; the
 initial scope avoids adding reminder timing and escalation behavior.
+
+### D-228 — Use OpenAPI 3.1 as the canonical HTTP contract
+
+**Decision:** Specify TMS HTTP APIs canonically in OpenAPI 3.1. Keep shared
+transport rules in the service-contract guide and business meaning in the
+owning domain documentation.
+
+**Reason:** A machine-readable contract makes request, response, and error
+schemas precise without duplicating business policy.
+
+### D-229 — Keep OpenAPI contracts service-owned
+
+**Decision:** Maintain one OpenAPI document per API-owning TMS service.
+
+**Reason:** Service-owned specifications preserve API ownership and allow
+each boundary to evolve without making a workflow-wide contract document the
+owner of routes from multiple services.
+
+### D-230 — Reject unknown HTTP request properties
+
+**Decision:** HTTP request schemas reject properties not defined by the
+operation's contract version. API consumers must tolerate unrecognized
+response properties.
+
+**Reason:** Strict request validation catches misspelled or unsupported
+input, while tolerant response parsing permits additive evolution.
+
+### D-231 — Persist unknown booking fields as rejected attempts
+
+**Decision:** An unknown property in a booking row is a booking-rule issue,
+not a transport error. Reject the entire submitted batch, persist the
+submission, and return the row and JSON Pointer field path with code
+`UNKNOWN_FIELD`; create no Loads.
+
+**Reason:** Durable row-level feedback preserves the booking correction and
+audit flow while maintaining all-or-nothing batch acceptance.
+
+### D-232 — Store OpenAPI documents under the documentation tree
+
+**Decision:** Store canonical service-owned OpenAPI documents under
+`docs/api/`, with one named document per API-owning service.
+
+**Reason:** Keeping contracts in the documentation tree makes them available
+before service implementation while preserving ownership boundaries.
+
+### D-233 — Structure HTTP validation error details
+
+**Decision:** Each HTTP `error.details` validation entry contains a stable
+`code`, an RFC 6901 `fieldPath` when the issue is field-specific, and a safe
+`message`. Never echo submitted field values.
+
+**Reason:** Structured, value-safe issues support consistent client
+correction without exposing submitted data in error responses.
+
+### D-234 — Use AsyncAPI 3.0 for service message contracts
+
+**Decision:** Specify durable cross-service commands and facts in
+service-owned AsyncAPI 3.0 documents with versioned message and payload
+schemas.
+
+**Reason:** A machine-readable message contract complements OpenAPI while
+preserving service ownership and explicit payload validation.
+
+### D-235 — Encode command initiators without duplicating the source service
+
+**Decision:** A command's `sourceService` identifies its issuing service.
+User-originated commands additionally include `initiatingPrincipalId`;
+service-originated commands omit that field.
+
+**Reason:** The envelope retains both user accountability and service
+provenance without duplicating the service identifier.
+
+### D-236 — Version message schemas semantically
+
+**Decision:** Represent `schemaVersion` as a semantic version string.
+Increment `MINOR` for backward-compatible additions, `PATCH` for corrections
+that do not change contract shape or meaning, and `MAJOR` for breaking
+changes.
+
+**Reason:** A uniform semantic version communicates compatibility and
+distinguishes payload evolution from unrelated message delivery attempts.
+
+### D-237 — Assign message schemas to domain owners
+
+**Decision:** The receiving domain service owns the schema for commands it
+accepts. The publishing domain service owns the schema for facts it
+publishes.
+
+**Reason:** The service responsible for validating a requested transition or
+asserting an authoritative fact controls that contract's meaning.
+
+### D-238 — Return asynchronous command outcomes as messages
+
+**Decision:** The receiving service reports a durable command's business
+acceptance or rejection in a typed, versioned outcome message correlated by
+`commandId`. Technical delivery failures are not business outcomes.
+
+**Reason:** A correlated outcome makes the owner's decision observable
+without synchronous service-to-service calls or conflating transport failure
+with business rejection.
+
+### D-239 — Define command acceptance as durable queueing
+
+**Decision:** `ACCEPTED` means the receiver durably recorded the command for
+processing. Any later business completion is reported through domain facts.
+`REJECTED` is a final business refusal of the command.
+
+**Reason:** Separating durable intake from workflow completion makes
+asynchronous progress explicit without repeated mutable outcome messages.
+
+### D-240 — Use forward-only service-owned database migrations
+
+**Decision:** Each service owns ordered, forward-only database migrations.
+Use expand/contract for compatible rollout. Correct an applied migration
+through a new migration rather than rolling the schema backward.
+
+**Reason:** Forward-only evolution supports independently deployed services
+and avoids relying on destructive rollback across application versions.
+
+### D-241 — Run migrations as a lock-protected deployment job
+
+**Decision:** Run each service's migrations in a single, lock-protected
+deployment job before promoting the new service version. Application
+instances do not run migrations at startup.
+
+**Reason:** A distinct migration step avoids startup races and makes schema
+changes a visible release gate.
+
+### D-242 — Block promotion when a migration fails
+
+**Decision:** A failed migration blocks service-version promotion. Preserve
+the failure details and retain the currently running application version
+when the database schema remains compatible. Repair forward with a new
+migration; do not automatically roll back the database.
+
+**Reason:** A visible release gate and forward repair avoid concealing
+partial schema changes or compounding them with automatic rollback.
+
+### D-243 — Separate schema expansion from contract cleanup
+
+**Decision:** Run additive expansion migrations before promoting the new
+application version. Run destructive contract-cleanup migrations separately
+only after all old application instances have been drained.
+
+**Reason:** The sequence preserves compatibility for old and new application
+versions during rollout.
+
+### D-244 — Bound and audit outbound notification delivery
+
+**Decision:** Retry transient outbound email and push delivery failures for
+eight total attempts, including the initial attempt, using exponential
+backoff with full jitter from a one-second base and a five-minute cap. After
+exhaustion, mark that channel delivery failed without removing the durable
+in-app notification. Retain each delivery-attempt record for one year from
+its attempt timestamp, including channel, attempt number and timestamps,
+outcome, provider reference, and sanitized error code. Do not retain rendered
+email or push bodies in attempt logs.
+
+**Reason:** Bounded retries make provider failure recoverable without
+allowing unbounded work, while durable inbox state and limited delivery
+evidence preserve visibility without duplicating message content.
+
+### D-245 — Retain in-app notifications through acknowledgement
+
+**Decision:** Retain in-app notification records for one year from creation.
+Do not purge an urgent acknowledgement notification before it is
+acknowledged; after acknowledgement, retain it for one year.
+
+**Reason:** A fixed retention period supports routine review, while urgent
+notifications remain available until their required receipt is recorded.
+
+### D-246 — Audit operator recovery of failed notification delivery
+
+**Decision:** After automatic delivery retries are exhausted, the
+`tms_operations_administrator` may requeue the failed channel delivery for
+the existing notification, preserving its identity and recipient. Audit the
+operator, reason, and result of the requeue.
+
+**Reason:** Technical operations can recover provider delivery without
+changing notification ownership or creating a duplicate inbox record.
+
+### D-247 — Generate internal record identifiers as UUIDv7
+
+**Decision:** Each owning service generates UUIDv7 identifiers for its
+internal records. Keep these identifiers opaque in user-facing business
+references and use them for cross-service references through contracts.
+
+**Reason:** Time-ordered identifiers improve index locality while retaining
+the stable, non-business identity required for distributed service
+references.
+
+### D-248 — Store operational instants in UTC
+
+**Decision:** Store event instants and deadlines in PostgreSQL `timestamptz`
+and exchange them as RFC 3339 UTC timestamps. Where a local schedule's
+meaning must be preserved, store its IANA timezone identifier separately.
+
+**Reason:** A single instant representation supports reliable ordering and
+cross-service comparison while preserving the local-time rules needed for
+operational schedules.
+
+### D-249 — Author migrations as service-local SQL
+
+**Decision:** Each service owns ordered SQL migration files and an applied-
+migration ledger with checksum verification. Execute migrations only in the
+lock-protected deployment migration job; do not run them at application
+startup.
+
+**Reason:** SQL-first, service-local ownership keeps database evolution
+explicit and reviewable without coupling services to a shared ORM or
+migration changelog.
+
+### D-250 — Constrain lifecycle values with named checks
+
+**Decision:** Store finite lifecycle and status values in `TEXT` columns and
+enforce each allowed value set with a named PostgreSQL `CHECK` constraint.
+
+**Reason:** Database-enforced values prevent invalid states while keeping
+forward migration of evolving workflows straightforward.
+
+### D-251 — Index declared references and operational query paths
+
+**Decision:** Retain primary-key and unique constraints, index foreign-key
+columns and documented operational query paths, and avoid speculative
+indexes until workload measurement justifies them.
+
+**Reason:** This baseline supports referential lookups and known operational
+queries without imposing unmeasured write and storage costs.
+
+### D-252 — Separate technical replay from business approval
+
+**Decision:** A business-state replay requires an owning-domain approver
+distinct from the `tms_operations_administrator` who operates the replay.
+Replay the original work unchanged. Audit the request, operator, approver,
+reason, and result.
+
+**Reason:** Technical recovery must not grant technical operators authority
+to change business outcomes, and distinct approval preserves accountability.
+
+### D-253 — Park unreconciled owner-revision gaps
+
+**Decision:** When an owner-revision gap requires a snapshot, retry transient
+snapshot lookup failures for eight attempts using the shared bounded-backoff
+policy. Then park an inspectable failure, keep the projection stale, and
+block later revisions until reconciliation succeeds.
+
+**Reason:** A projection must not silently skip authoritative facts or
+present incomplete state as current; parked failures make recovery explicit.
+
+### D-254 — Verify recovery with fault-injected integration tests
+
+**Decision:** Verify cross-service recovery scenarios with automated
+integration tests using disposable real PostgreSQL, RabbitMQ, and Temporal
+dependencies, deterministic fault injection, and persisted-state assertions.
+Verify RPO/RTO through separate backup and restore drills.
+
+**Reason:** Real dependency behavior and durable state must be exercised to
+demonstrate recovery; mocks alone cannot establish persistence or redelivery
+behavior.
+
+### D-255 — Enforce relational integrity within service databases
+
+**Decision:** Enforce same-service relational invariants with PostgreSQL
+foreign-key, `UNIQUE`, and `CHECK` constraints. Represent cross-service
+relationships through versioned contracts and stable identifiers, never
+cross-database foreign keys.
+
+**Reason:** Database constraints protect each service's authoritative
+records, while service boundaries remain independent and asynchronously
+integrated.
+
+### D-256 — Make OpenAPI the HTTP contract source of truth
+
+**Decision:** Treat each service-owned OpenAPI 3.1 document as the source of
+truth for its HTTP API. Validate requests against the contract at runtime,
+generate types and clients where practical, and check compatibility in CI.
+
+**Reason:** A canonical contract with runtime enforcement and compatibility
+checks limits drift between documentation, client code, and service behavior.
+
+### D-257 — Make AsyncAPI the durable message contract source of truth
+
+**Decision:** Treat each service-owned AsyncAPI 3.0 document as the source
+of truth for its durable message channels and versioned payload schemas.
+Validate messages at runtime and check compatibility in CI.
+
+**Reason:** Canonical message contracts expose incompatible producer and
+consumer changes before deployment and prevent undocumented runtime shapes.
+
+### D-258 — Preserve initiating-principal provenance across handoffs
+
+**Decision:** Propagate the original `initiatingPrincipalId` through
+causally linked commands and outcomes. `sourceService` continues to identify
+the immediate publisher. Autonomous work without a user initiator omits
+`initiatingPrincipalId`.
+
+**Reason:** Preserving the initiating principal supports end-to-end
+accountability without confusing user attribution with service identity.
+
+### D-259 — Use domain-owned asynchronous rejection codes
+
+**Decision:** An asynchronous business rejection includes a stable,
+domain-owned `reasonCode`, a safe human-readable message, and optional
+structured details. Publish the code catalogue with its versioned schema;
+never echo secrets or raw submitted values.
+
+**Reason:** Stable domain codes support reliable client behavior while safe
+messages and structured context make refusals understandable without
+exposing sensitive input.
+
+### D-260 — Quarantine invalid messages without rewriting them
+
+**Decision:** Quarantine permanently invalid or unsupported-version
+messages unchanged with their failure reason. Alert the
+`tms_operations_administrator` and owning service. Permit audited replay
+only after the consumer or contract is repaired; business-state changes
+still require owning-domain approval.
+
+**Reason:** Preserving the original message supports investigation and safe
+recovery without silently modifying producer data or bypassing business
+authority.
+
+### D-261 — Retain delivery metadata through workflow completion
+
+**Decision:** Retain cross-service business-message outbox/inbox metadata
+and consumer deduplication records until the related workflow is terminal
+and for one year afterward. This excludes Notification provider
+delivery-attempt logs, which follow D-244. Do not replay after expiry unless
+the owning domain authorizes a new command.
+
+**Reason:** Keeping deduplication evidence through the supported recovery
+window prevents duplicate effects while bounding technical-record retention.
+
+### D-262 — Keep notifications concise and authorization-aware
+
+**Decision:** Use versioned event-specific notification templates with a
+concise, safe summary, an opaque resource deep link, and the required action
+or deadline. Do not duplicate sensitive business payloads. Recheck
+authorization when the user opens the owning service.
+
+**Reason:** Notifications make work actionable without becoming a second
+source of business data or bypassing the owning service's access controls.
+
+### D-263 — Deploy message consumers before breaking producers
+
+**Decision:** For a breaking MAJOR message-schema change, deploy consumer
+support before producers emit the new version. Retain old-version support
+until old producers and queued messages are drained; remove it only through
+a separate verified cleanup.
+
+**Reason:** Consumer-first rollout preserves message processing across
+independent deployments and avoids discarding queued work during incompatible
+contract changes.
+
+### D-264 — Use synchronous database failover for acknowledged bookings
+
+**Decision:** Run the Load service's booking-critical PostgreSQL cluster as
+a single-region HA deployment with a synchronous standby and automatic
+failover, plus continuous point-in-time backups and tested restore drills.
+The acknowledged-booking RPO 0 target includes the submission result,
+Load/revision records, and outbox facts in the committed transaction.
+
+**Reason:** Synchronous replication supports the no-loss booking target,
+while backups and restore drills address corruption and broader recovery
+scenarios.
+
+### D-265 — Require reviewed retention schedules before production
+
+**Decision:** Do not invent universal retention periods for business, audit,
+or evidence data. Require a reviewed, data-class-specific retention schedule
+before production and keep automated deletion disabled until that schedule
+is approved.
+
+**Reason:** Retention obligations vary by data class and applicable
+jurisdiction; unsupported assumptions could cause premature deletion or
+unjustified retention.
+
+### D-266 — Version breaking HTTP contracts in the URL
+
+**Decision:** Introduce a new major URL version for breaking HTTP contract
+changes. Retain the old version while clients migrate, then remove it only
+after a separately verified deprecation and cleanup.
+
+**Reason:** Explicit parallel versions support independently deployed
+clients and services without silently changing an existing contract.
+
+### D-267 — Restrict deletion of authoritative parent records
+
+**Decision:** Use `ON DELETE RESTRICT` by default for same-service
+authoritative records. Permit cascading only for explicitly disposable
+subordinate data; approved retention jobs handle intentional deletion.
+
+**Reason:** Restrictive references protect business and audit history from
+accidental deletion while preserving a controlled path for approved data
+retention.
+
+### D-268 — Run migrations transactionally by default
+
+**Decision:** Run each SQL migration in a transaction by default. Isolate
+non-transactional PostgreSQL operations explicitly, with recovery steps and
+deployment gates.
+
+**Reason:** Transactional migrations limit partial schema changes; explicit
+handling makes unavoidable non-transactional work reviewable and recoverable.
+
+### D-269 — Assign immutable company-wide Load references
+
+**Decision:** Assign each committed Load a company-wide, monotonically
+increasing human-readable reference with the fixed `LD-` prefix, separate
+from its UUID. The Load service formats it from a PostgreSQL sequence and
+stores it as part of the successful Load commit. Gaps are acceptable;
+references are immutable and never reused.
+
+**Reason:** A stable sequence is easy to communicate and search while
+keeping internal identity separate from a business-facing reference.
+
+### D-270 — Number Load revisions consecutively per Load
+
+**Decision:** Start each Load's revision numbering at 1 and increment by
+exactly one for each committed revision. In one transaction, lock the Load
+head, create the next revision, and advance the head to that revision.
+Enforce unique `(load_id, revision_number)` and same-Load head linkage;
+failed transactions consume no revision number.
+
+**Reason:** Consecutive per-Load numbering makes the immutable history
+unambiguous while transactional head updates prevent concurrent amendments
+from creating competing successors.
+
+### D-271 — Link accepted Loads to their submission rows
+
+**Decision:** Keep each immutable normalized booking batch input and exact
+result in the `booking_submissions` JSONB snapshots. For every accepted row,
+store `booking_submission_id` and its 1-based source row number on the Load,
+with a foreign key to the submission and a unique constraint on
+`(booking_submission_id, source_row_number)`.
+
+**Reason:** Durable snapshots support exact response replay, while a
+relational row link preserves the accepted Load's source without duplicating
+the authoritative booking data.
+
+### D-272 — Use contiguous 1-based revision row ordering
+
+**Decision:** Store each Load revision stop and freight line with a
+positive, 1-based `sequence_number`, unique within its revision and guarded
+by a database `CHECK`. Require accepted snapshots to contain contiguous
+sequence numbers from 1 through the row count; Load validates contiguity
+before committing a revision.
+
+**Reason:** Explicit stable ordering preserves the submitted and planned
+sequence while making gaps or duplicates invalid rather than ambiguous.
+
+### D-273 — Protect Load revision rows with database permissions
+
+**Decision:** Grant the runtime database role `SELECT` and `INSERT` on Load
+revision and revision-child tables, with column-scoped `UPDATE` on the
+revision construction state only. Deny general `UPDATE` and `DELETE`.
+Database triggers reject revision/child mutations except the one-way
+`BUILDING` to `COMMITTED` state transition. Reserve other mutation
+privileges for separate migration and approved retention roles.
+
+**Reason:** Least-privilege grants make ordinary application writes
+append-only, while database triggers provide a second barrier against
+accidental history changes and permit only the controlled revision
+finalization transition.
+
+### D-274 — Finalize Load revisions before transaction commit
+
+**Decision:** A new Load revision is `BUILDING` only inside its creation
+transaction. Allow stop and freight child inserts only while their parent
+revision is `BUILDING`. Finalize it through a one-way transition to
+`COMMITTED` before the transaction commits; triggers reject later child
+inserts and prevent reversing the final state. No other transaction can
+observe a `BUILDING` revision.
+
+**Reason:** A database-enforced construction boundary prevents later
+additions from silently changing a committed immutable snapshot.
+
+### D-275 — Record Load lifecycle transitions append-only
+
+**Decision:** Keep the current lifecycle state on `loads` and append one
+typed `load_lifecycle_transitions` row for every accepted state change in
+the same transaction. Record prior and new state, timestamp, actor or source,
+reason code, and correlation reference. Protect transition rows from update
+and deletion.
+
+**Reason:** A current-state field supports efficient reads, while
+transactional append-only transitions preserve a complete, auditable state
+history.
+
+### D-276 — Reject command-ID reuse with changed content
+
+**Decision:** Deduplicate commands by issuing service and `commandId`.
+Persist a normalized content hash and outcome in the receiver's inbox.
+Redelivery with matching content returns the stored outcome; changed content
+under the same key is quarantined as an ID-reuse contract violation and
+applies no business effect.
+
+**Reason:** A stable command identity must denote one immutable request;
+rejecting altered retries prevents duplicate or ambiguous business outcomes.
+
+### D-277 — Record initial Load state in lifecycle history
+
+**Decision:** Insert an initial `NULL` to `BOOKED` row in
+`load_lifecycle_transitions` in the booking transaction. Permit a null prior
+state only for this initial transition; subsequent transitions record both
+the prior and new state.
+
+**Reason:** A complete lifecycle history must explain the Load's initial
+state as well as every later change.
+
+### D-278 — Enforce same-Load revision heads with a composite foreign key
+
+**Decision:** Give `load_revisions` a unique `(load_id, revision_id)` key
+and make `(loads.id, loads.current_revision_id)` reference it as a
+deferrable foreign key. Defer the circular Load/revision references until
+the booking transaction commits, so a Load and its initial revision are
+created atomically without a nullable head pointer.
+
+**Reason:** The composite constraint makes cross-Load head pointers
+impossible at the database boundary while supporting atomic initial
+creation.
+
+### D-279 — Route durable messages through domain-owned exchanges
+
+**Decision:** Use a durable RabbitMQ topic exchange owned by each domain
+service. Route commands to the receiving service's durable queue; publish
+facts on the owning service's exchange and let consumers bind their own
+queues to the required fact routes.
+
+**Reason:** Domain ownership remains visible in the broker topology, while
+receiver-owned queues provide durable command intake and independent fact
+consumption.
+
+### D-280 — Schedule consumer retries from the durable inbox
+
+**Decision:** Persist each received message to the consumer's local inbox
+and acknowledge it to RabbitMQ only after that transaction commits. A
+consumer worker retries transient processing failures from the inbox using
+the shared eight-attempt jittered schedule. After exhaustion, park the inbox
+record with its failure reason for authorized recovery; do not use broker
+redelivery as the processing retry scheduler.
+
+**Reason:** Durable receipt separates broker availability from domain
+processing and makes retry timing, attempt evidence, and exhausted work
+explicitly recoverable.
+
+### D-281 — Version RabbitMQ routes by message major version
+
+**Decision:** Use lower-case, dot-separated domain/type/action routing keys
+with the message schema's MAJOR version as a suffix, for example
+`load.booking.accepted.v1`. Keep MINOR and PATCH versions in the message
+envelope so compatible versions share the route.
+
+**Reason:** Major-version routing lets consumers bind explicitly to supported
+breaking contracts without multiplying routes for compatible changes.
+
+### D-282 — Park confirmed but unroutable outbox messages
+
+**Decision:** Publish with RabbitMQ `mandatory` routing and publisher
+confirms. If no durable queue is bound, park the outbox record immediately
+with a topology error and alert the publisher owner and
+`tms_operations_administrator`. After bindings are repaired, requeue with an
+audit record of the operator, reason, and result, preserving the original
+message ID.
+
+**Reason:** An unroutable publish indicates a deterministic topology defect,
+not a transient delivery failure; immediate visibility prevents silent loss
+and retry noise.
+
+### D-283 — Do not expire durable business messages by default
+
+**Decision:** Set no default RabbitMQ TTL on durable business commands or
+facts. Encode business deadlines in the command/workflow and validate them
+at the owner; keep delayed messages recoverable rather than discarding them.
+
+**Reason:** Broker availability must not silently erase business obligations;
+the owning domain, not transport retention, determines whether a delayed
+command is still valid.
+
+### D-284 — Coordinate planning with one Temporal workflow per Load
+
+**Decision:** Start one durable Temporal planning workflow for each accepted
+Load, linked to its booking submission but independently progressing,
+retrying, and escalating. Use a stable workflow ID derived from the Load ID
+so duplicate outbox delivery cannot start duplicate planning workflows.
+
+**Reason:** Per-Load workflow ownership matches independent Load progression
+within a batch and isolates one Load's planning failure from its siblings.
+
+### D-285 — Resume planning workflows from owner facts and durable timers
+
+**Decision:** Resume a per-Load Temporal workflow from consumed, versioned
+owner facts delivered as workflow signals. Use durable timers for explicit
+freshness and operational deadlines; do not run continuous polling loops.
+Signals carry the owner resource ID and revision; the workflow ignores
+duplicate or stale revisions. Mark the consumer inbox item processed only
+after Temporal confirms signal acceptance.
+
+**Reason:** Event-driven wakeups react to authoritative changes promptly,
+while durable timers handle time-based decisions without repeated queries.
+
+### D-286 — Bound Temporal activity retries
+
+**Decision:** Retry transient Temporal activity failures for eight total
+attempts, including the initial attempt, using exponential full jitter from
+a one-second base capped at five minutes. On exhaustion, park the workflow
+for authorized inspection and recovery without changing business state.
+
+**Reason:** Bounded activity retries recover transient faults without
+allowing indefinitely running attempts to hide a durable workflow failure.
+
+### D-287 — Preserve Temporal workflow history compatibility
+
+**Decision:** Require deterministic history-replay compatibility tests for
+Temporal workflow code changes. Use Temporal workflow version markers for
+incompatible behavior changes and retain the old worker version until
+affected executions have drained.
+
+**Reason:** Existing workflow histories must replay deterministically across
+deployments; explicit version markers and worker retention protect
+long-running work from incompatible code changes.
+
+### D-288 — Coordinate each Load through its terminal outcome
+
+**Decision:** Keep the per-Load Temporal workflow active from accepted
+booking through cancellation or Execution-confirmed closeout. It coordinates
+saga steps only; each domain remains authoritative for its own state and
+facts.
+
+**Reason:** A Load-scoped workflow preserves recovery context across the
+full operational lifecycle without transferring business authority to
+Temporal.
+
+### D-289 — Bound long-running workflow history with Continue-As-New
+
+**Decision:** Use Temporal Continue-As-New when a workflow reaches a
+configurable history threshold, initially 10,000 history events. Carry
+forward current orchestration state, last-applied owner revisions, and
+active deadlines; verify continuation behavior with replay tests.
+
+**Reason:** A Load-scoped workflow may remain open for an extended period;
+bounded histories support reliable replay and worker processing.
+
+### D-290 — Restrict RabbitMQ permissions per service identity
+
+**Decision:** Give each service a unique TLS-authenticated RabbitMQ identity.
+Grant write access only to its own fact exchange and explicitly approved
+receiver exchanges for commands, and read access only to its own queues.
+Runtime identities have no topology-management permissions; a separate
+deployment identity provisions exchanges, queues, and bindings.
+
+**Reason:** Per-service least privilege limits message forgery and
+cross-domain access while keeping broker topology under controlled
+deployment ownership.
+
+### D-291 — Provision RabbitMQ topology through deployment
+
+**Decision:** Keep exchange, queue, and binding declarations
+version-controlled with service contracts. Apply them through a dedicated
+deployment job before service rollout and verify topology in CI/release
+checks. Applications do not create or modify broker topology at startup.
+
+**Reason:** Versioned, ordered topology changes prevent runtime identities
+from silently changing message routing and make compatibility checks
+repeatable.
+
+### D-292 — Publish one booking fact per accepted Load
+
+**Decision:** After an accepted booking transaction commits, Load publishes
+one `LoadBooked` fact for each created Load. The fact identifies the
+immutable initial Load revision and its originating booking submission;
+each Load proceeds independently. Use message type `load.booked`, routing
+key `load.booked.v1`, and schema version `1.0.0`.
+
+**Reason:** Per-Load facts preserve independent progression and recovery
+while linking each Load back to the broker's accepted batch submission.
+
+### D-293 — Order Load facts with a dedicated owner revision
+
+**Decision:** A Load fact carries a per-Load monotonically increasing
+`ownerRevision`, separate from the immutable `loadRevisionNumber`. Advance
+it for each published Load fact; consumers use it for ordering,
+deduplication, and gap detection.
+
+**Reason:** Content-revision numbers do not order lifecycle-only facts.
+A dedicated fact-stream revision provides one sequence across all facts
+about a Load.
+
+### D-294 — Include the immutable revision in the booking fact
+
+**Decision:** The `LoadBooked` payload contains the complete immutable
+initial Load revision snapshot needed by consumers. Consumers project it
+without a synchronous Load read; later corrections are published as
+separate revision facts.
+
+**Reason:** Dispatch can begin from durable facts without adding a
+synchronous cross-service dependency to the booking-to-planning workflow.
+
+### D-295 — Correlate sibling booking facts by submission
+
+**Decision:** Set `correlationId` on each per-Load `load.booked` fact to the
+accepted `bookingSubmissionId`, shared by all Loads created from that batch.
+Omit `causationId` because the root cause is an HTTP request, not a durable
+message; later facts set it when caused by a specific message or command.
+
+**Reason:** A shared submission correlation supports batch-level tracing
+without inventing a message cause for an HTTP-originated operation.
+
+### D-296 — Include explicit booking state in the booking fact
+
+**Decision:** Include `lifecycleStatus: "BOOKED"` explicitly in the
+`load.booked` payload alongside its full initial revision snapshot.
+
+**Reason:** An explicit state makes the authoritative initial lifecycle
+fact unambiguous to consumers and projections.
+
+### D-297 — Give the booking fact a fixed payload shape
+
+**Decision:** The `load.booked` payload has top-level `loadId`,
+`loadReference`, `bookingSubmissionId`, `sourceRowNumber`,
+`lifecycleStatus`, and `loadRevision` fields. `loadRevision` contains
+`revisionId`, `revisionNumber`, `createdAt`, and the canonical complete
+revision data.
+
+**Reason:** A stable outer shape separates Load identity and booking
+provenance from the immutable business snapshot consumers need to project.
+
+### D-298 — Generate revision row IDs in Load
+
+**Decision:** Load generates UUIDv7 `stopId` and `freightLineId` values when
+committing each revision. Clients submit ordered rows without IDs; each
+amended revision receives new row IDs.
+
+**Reason:** Owner-assigned revision-scoped identities allow downstream
+milestones and evidence to reference the exact committed rows without
+accepting client-controlled identifiers.
+
+### D-299 — Carry user attribution in the message envelope
+
+**Decision:** Place `initiatingPrincipalId` as an optional top-level message
+envelope field. Include it when the message descends from a user action and
+preserve it through causal handoffs; omit it for autonomous work.
+
+**Reason:** Envelope-level attribution is consistent across message types
+and does not mix security provenance into domain payloads.
+
+### D-300 — Issue planning requests from the Load workflow activity
+
+**Decision:** After Load reports the exact current revision as planning
+`READY`, a Temporal activity hosted by Load publishes the planning command
+to Dispatch Planning. Use message type
+`dispatch.load.plan`, routing key `dispatch.load.plan.v1`, and schema
+version `1.0.0`. Identify `sourceService: "load"` and
+`targetService: "dispatch-planning"`; set `causationId` to the `messageId`
+of the current `load.planning.readiness.changed` fact that authorized it.
+
+**Reason:** Load initiates planning as a consequence of its committed
+booking while Dispatch Planning retains authority over planning decisions.
+
+### D-301 — Treat planning-command acceptance as durable receipt
+
+**Decision:** The response to `dispatch.load.plan` reports only durable
+command acceptance or final business rejection. `ACCEPTED` means Dispatch
+has recorded the command for processing, not that planning is complete;
+subsequent planning progress and Assignment decisions are reported through
+separate facts.
+
+**Reason:** Durable intake and planning completion are distinct outcomes in
+an asynchronous workflow and must not be conflated.
+
+### D-302 — Reference the event-built Load projection in planning requests
+
+**Decision:** The `dispatch.load.plan` payload contains `loadId`,
+`loadRevisionId`, `loadRevisionNumber`, and `expectedLoadOwnerRevision`.
+Dispatch Planning validates these references against its projection built
+from the `load.booked` fact; the command does not repeat the revision
+snapshot.
+
+**Reason:** A compact command avoids duplicating the complete immutable
+snapshot while ensuring planning uses the exact booked Load version.
+
+### D-303 — Scope planning-command idempotency to one intent
+
+**Decision:** `commandId` identifies and correlates one durable command.
+`idempotencyKey` is opaque and scoped to source service, message type, and
+Load; reuse both IDs/keys for redelivery or retry of that intent. A deliberate
+new planning intent gets new IDs and a new key, even when it references the
+same Load revision.
+
+**Reason:** Stable retry identity prevents duplicate planning effects while
+allowing a later, deliberate replan of an unchanged Load.
+
+### D-304 — Reject planning commands for superseded Load revisions
+
+**Decision:** If Dispatch's current Load projection is newer than the
+`expectedLoadOwnerRevision`, return final `REJECTED` with
+`STALE_LOAD_REVISION` and make no planning decision. Temporal issues a new
+command for the latest projected revision. If Dispatch has not yet applied
+the expected revision, durably accept the command but defer planning until
+the exact revision is available.
+
+**Reason:** Dispatch must never plan from stale requirements or silently
+substitute a newer snapshot than the command requested.
+
+### D-305 — Publish a typed planning-command outcome
+
+**Decision:** Report the durable outcome of `dispatch.load.plan` in
+`dispatch.load.plan.outcome`, routed on
+`dispatch.load.plan.outcome.v1` with schema version `1.0.0`.
+
+**Reason:** A command-specific outcome gives the issuing workflow a
+versioned, typed receipt without conflating command intake with later
+planning facts.
+
+### D-306 — Define the planning-command outcome payload
+
+**Decision:** The outcome payload includes `commandId`, `loadId`,
+`expectedLoadOwnerRevision`, and `outcome` (`ACCEPTED` or `REJECTED`). A
+rejection additionally includes stable `reasonCode`, safe `message`, and
+optional structured `details`. The envelope `occurredAt` records when the
+outcome was produced.
+
+**Reason:** A compact outcome is sufficient for correlation and retry
+decisions while keeping detailed business state in its owning fact stream.
+
+### D-307 — Publish owner-authored planning readiness per revision
+
+**Decision:** For every committed Load revision, publish
+`load.planning.readiness.changed` with state `READY` or `HELD` and reason
+codes for blocking missing planning information. Only `READY` authorizes
+the workflow to issue `dispatch.load.plan`; `HELD` keeps it waiting for a
+later revision/readiness fact.
+
+**Reason:** Load owns stage completeness. Explicit readiness facts prevent
+Dispatch from interpreting incomplete data or inferring readiness from
+absence of a hold.
+
+### D-308 — Publish amended revisions as complete facts
+
+**Decision:** For every committed amendment, Load publishes
+`load.revision.created` with the complete immutable revision snapshot,
+separate from the per-revision `load.planning.readiness.changed` fact. The
+initial revision remains represented by `load.booked`.
+
+**Reason:** Consumers need the authoritative new snapshot independently of
+whether the amendment changes planning readiness.
+
+### D-309 — Explain planning holds with field-addressed issues
+
+**Decision:** `load.planning.readiness.changed` includes `blockingIssues`.
+Each issue has a stable `code`, RFC 6901 `fieldPath`, and optional safe
+`message`; `READY` carries an empty array.
+
+**Reason:** Field-addressed blockers let operators correct incomplete
+planning requirements without exposing submitted values or forcing consumers
+to infer Load rules.
+
+### D-310 — Identify planning attempts
+
+**Decision:** Dispatch assigns a UUIDv7 `planningAttemptId` to every
+planning attempt and includes it in that attempt's result facts.
+
+**Reason:** A stable attempt identity distinguishes repeated outcomes for
+the same Load revision and supports correlation across planning progress and
+results.
+
+### D-311 — Keep unassigned diagnostics safe and actionable
+
+**Decision:** An `UNASSIGNED` planning result contains stable reason codes
+and safe explanatory messages. It does not disclose candidate identities or
+internal scoring.
+
+**Reason:** Operations needs actionable reasons without exposing other
+resources' details or Dispatch's internal ranking data.
+
+### D-312 — Report all applicable unassigned reasons
+
+**Decision:** An `UNASSIGNED` planning result reports every applicable
+stable reason code, each with a safe message, deduplicated within that
+attempt.
+
+**Reason:** Multiple independent constraints may prevent assignment; a
+complete, deduplicated reason set avoids concealing actionable blockers.
+
+### D-313 — Use actionable capacity constraint categories
+
+**Decision:** The initial `load.planning.unassigned` reason catalogue
+contains `NO_CAPACITY_IN_TIME_WINDOW`, `INCOMPATIBLE_EQUIPMENT`,
+`NO_QUALIFIED_DRIVER_COVERAGE`, `NO_FEASIBLE_SEGMENT_COVERAGE`, and
+`INSUFFICIENT_REPOSITIONING_TIME`. These codes describe constraint
+categories, never individual candidates.
+
+**Reason:** Constraint-level reasons give operations useful next actions
+without revealing candidate identities or internal scoring.
+
+### D-314 — Trigger unassigned re-planning from durable changes
+
+**Decision:** After an `UNASSIGNED` result, start another planning attempt
+only when the current Load revision becomes `READY`, an owner fact can change
+resource eligibility or capacity, or an explicit durable deadline fires.
+Do not use general polling.
+
+**Reason:** Durable, causally relevant triggers avoid wasted repeated work
+while ensuring changed requirements or capacity can be reconsidered.
+
+### D-315 — Keep planning progress internal
+
+**Decision:** Do not publish a separate planning-started or phase-progress
+fact. The durable `ACCEPTED` command receipt confirms processing intake;
+consumers receive terminal business outcomes, including the unassigned
+result or active Assignment.
+
+**Reason:** The additional progress facts duplicate internal workflow state
+without changing business decisions or ownership.
+
+### D-316 — Publish successful Assignment activation
+
+**Decision:** After CC confirms the reservation and Load finalization
+succeeds, Dispatch Planning publishes `dispatch.assignment.activated`,
+routing key `dispatch.assignment.activated.v1`, schema version `1.0.0`.
+The fact means the Assignment is operationally active.
+
+**Reason:** The named terminal fact distinguishes an active Assignment from
+a merely created or pending record and gives Execution an authoritative
+handoff point.
+
+### D-317 — Publish an immutable Assignment snapshot
+
+**Decision:** `dispatch.assignment.activated` carries the immutable
+Assignment snapshot: `assignmentId`, `planningAttemptId`, Load and Trip Plan
+revision references, ordered assigned segments and resources, and the
+confirmed reservation. It does not duplicate the complete Load snapshot.
+
+**Reason:** Consumers can process the activation idempotently from one
+authoritative fact while using owner revision references rather than
+duplicating Load-owned data.
+
+### D-318 — Preserve Fleet Readiness provenance in Assignments
+
+**Decision:** The activated Assignment includes the Fleet Readiness owner
+revision used to validate each assigned driver, power unit, and trailer.
+
+**Reason:** Recording the source revision makes the eligibility decision
+auditable and lets consumers distinguish the assignment-time validation
+from later readiness changes.
+
+### D-319 — Use ordered reservation segments in Assignments
+
+**Decision:** Each Assignment uses the complete CC reservation segment
+shape: one-based contiguous `sequenceNumber`, start/end stop IDs, UTC time
+window, power unit, trailer, one or two drivers, and the Fleet Readiness
+owner revision for each assigned resource.
+
+**Reason:** Reusing the reserved segment set ensures the active Assignment
+describes precisely the capacity CC confirmed.
+
+### D-320 — Represent segment windows as UTC intervals
+
+**Decision:** Each CC reservation and activated Assignment segment
+represents its interval as `timeWindow: {startAt, endAt}`. Both values are
+RFC 3339 UTC timestamps ending in `Z`.
+
+**Reason:** One unambiguous UTC interval shape avoids local-time and daylight
+saving interpretation differences between services.
+
+### D-321 — Pair resource IDs with readiness revisions
+
+**Decision:** Each segment carries `resourceReadinessRevisions[]` entries
+with `resourceType`, `resourceId`, and the Fleet Readiness `ownerRevision`.
+There is exactly one entry for each assigned driver, power unit, and
+trailer.
+
+**Reason:** Explicit resource/revision pairs make the validated source
+version unambiguous, including for segments with multiple drivers.
+
+### D-322 — Reference the confirmed reservation version
+
+**Decision:** `dispatch.assignment.activated` includes the confirmed
+reservation's `reservationId`, current `reservationRevision`, and explicit
+`state: CONFIRMED`; it does not include a temporary expiry.
+
+**Reason:** Consumers can identify the exact CC decision without duplicating
+the reservation's complete claim record.
+
+### D-323 — Version reservation state transitions
+
+**Decision:** CC starts `reservationRevision` at 1 when it creates a
+`HELD` reservation and increments it once for every committed state
+transition. An atomic replacement creates a new reservation ID with
+revision 1; the superseded reservation advances its own revision.
+
+**Reason:** A reservation-specific revision distinguishes the exact
+confirmed or terminal state, while a new identity preserves the immutable
+history of replaced claims.
+
+### D-324 — Command Dispatch Assignment activation
+
+**Decision:** After CC confirms the reservation and Load finalization
+succeeds, orchestration sends Dispatch Planning the durable
+`dispatch.assignment.activate` command using routing key
+`dispatch.assignment.activate.v1` and schema version `1.0.0`. Dispatch
+validates and commits activation before publishing
+`dispatch.assignment.activated`.
+
+**Reason:** Explicit owner-validated command handling keeps the Assignment
+lifecycle in Dispatch Planning and makes activation idempotent and
+recoverable.
+
+### D-325 — Identify Load as the Assignment activation producer
+
+**Decision:** The `dispatch.assignment.activate` command is emitted by the
+per-Load orchestration activity hosted by Load, with
+`sourceService: "load"` and `targetService: "dispatch-planning"`.
+
+**Reason:** This preserves the established orchestration and envelope
+identity used by `dispatch.load.plan`.
+
+### D-326 — Link activation to its final prerequisite
+
+**Decision:** The `causationId` on `dispatch.assignment.activate` points to
+the CC reservation-confirmation outcome, the final prerequisite before
+activation. The command separately references the successful Load
+finalization guard.
+
+**Reason:** The shared envelope retains one causal parent, while the command
+payload preserves the other required authorization evidence.
+
+### D-327 — Activate from authoritative references
+
+**Decision:** `dispatch.assignment.activate` carries `assignmentId`,
+`planningAttemptId`, exact Load and Trip Plan revisions, the confirmed
+reservation ID/revision, and the Load finalization-guard reference. It does
+not repeat the Assignment snapshot; Dispatch validates these references
+against its pending Assignment.
+
+**Reason:** Dispatch remains authoritative for its pending record, while
+the command identifies the exact prerequisites required for safe activation.
+
+### D-328 — Return activation as a terminal business result
+
+**Decision:** Successful activation is reported by
+`dispatch.assignment.activated`. A business refusal is reported by a
+separate durable rejection fact; do not publish a separate `ACCEPTED`
+receipt for this transactional command.
+
+**Reason:** The active Assignment fact is already the required durable
+success handoff. An additional receipt would duplicate success without
+changing workflow behavior.
+
+### D-329 — Name Assignment activation rejections
+
+**Decision:** Dispatch Planning reports a business refusal using
+`dispatch.assignment.activation.rejected`, routing key
+`dispatch.assignment.activation.rejected.v1`, schema version `1.0.0`.
+
+**Reason:** A separately named rejection fact makes the non-activation
+outcome explicit without conflating it with successful activation.
+
+### D-330 — Reconcile rejected activation before compensation
+
+**Decision:** Following activation rejection after CC confirmation, do not
+retry the rejected command or release capacity blindly. Reconcile Dispatch,
+the Load finalization guard, and CC. If activation is no longer valid,
+explicitly release the confirmed reservation and replan. If the original
+intent remains valid, recovery requires an audited, owner-approved new
+command.
+
+**Reason:** Reconciliation prevents both orphaned confirmed capacity and
+unsafe compensation after an ambiguous cross-service outcome.
+
+### D-331 — Report one primary activation-rejection reason
+
+**Decision:** `dispatch.assignment.activation.rejected` contains one stable
+`reasonCode` for the primary failed validation gate, a safe message, and
+optional structured details. Dispatch documents the validation order used
+to select that primary reason.
+
+**Reason:** A deterministic primary reason keeps rejection responses
+actionable and stable when more than one prerequisite is invalid.
+
+### D-332 — Order Assignment activation validation
+
+**Decision:** Dispatch checks activation in this order: pending Assignment
+and planning-attempt identity; Load finalization guard and exact Load
+revision; Trip Plan revision; then the confirmed CC reservation ID and
+revision.
+
+**Reason:** A fixed order makes the single primary rejection reason
+deterministic and checks Dispatch-owned intent before its external gates.
+
+### D-333 — Use cause-specific activation rejection codes
+
+**Decision:** The activation rejection catalogue is
+`ASSIGNMENT_NOT_FOUND`, `ASSIGNMENT_NOT_PENDING`,
+`PLANNING_ATTEMPT_MISMATCH`, `LOAD_FINALIZATION_GUARD_INVALID`,
+`LOAD_REVISION_MISMATCH`, `TRIP_PLAN_REVISION_MISMATCH`,
+`RESERVATION_NOT_FOUND`, `RESERVATION_NOT_CONFIRMED`, and
+`RESERVATION_REVISION_MISMATCH`. Within each gate, check existence before
+state and version consistency.
+
+**Reason:** Stable cause-specific codes tell operators which owner
+precondition failed without exposing internal resource candidates.
+
+### D-334 — Name the complete-capacity reservation command
+
+**Decision:** Dispatch Planning requests a temporary full-plan capacity
+claim with `capacity.reservation.reserve`, routing key
+`capacity.reservation.reserve.v1`, schema version `1.0.0`. Acceptance creates
+a five-minute `HELD` reservation.
+
+**Reason:** The command name expresses the reservation operation while the
+result state makes its temporary nature explicit.
+
+### D-335 — Assign the planning saga to Dispatch Planning
+
+**Decision:** After durable acceptance of `dispatch.load.plan`, a
+Dispatch-Planning-hosted Temporal workflow owns capacity reservation, Load
+finalization, final eligibility checks, reservation confirmation, and
+Assignment activation. The Load-hosted workflow waits for terminal facts.
+
+**Reason:** Dispatch owns the proposed plan and pending Assignment, so it
+can coordinate their completion without publishing a proposal-progress
+message that duplicates its internal workflow state.
+
+### D-336 — Keep Assignment activation inside Dispatch Planning
+
+**Decision:** In the booking-to-planning path, the Load-hosted workflow
+publishes `dispatch.load.plan` and waits for terminal planning results.
+After durable acceptance, a Dispatch Planning Temporal workflow owns
+capacity reservation, Load finalization, final eligibility checks,
+reservation confirmation, and Assignment activation. Activation is an
+idempotent Dispatch-owned transaction, not a self-directed bus command.
+Commit the active Assignment and `dispatch.assignment.activated` outbox
+fact atomically. Preserve `dispatch.assignment.activation.rejected` as the
+durable business-refusal fact; its `causationId` references the CC
+reservation-confirmation outcome. This supersedes the separate
+activation-command design in D-324–D-327 and the command-receipt framing in
+D-328. The terminal fact names and rejection validation/recovery rules in
+D-316 and D-329–D-333 remain in effect.
+
+**Reason:** Dispatch owns the proposed plan and pending Assignment, so its
+workflow can complete the saga without a proposal-progress message or a
+self-directed command. The Load workflow retains its durable booking and
+readiness responsibilities while awaiting the terminal result.
+
+### D-337 — Name the CC reservation outcome
+
+**Decision:** Capacity Commitment responds to
+`capacity.reservation.reserve` with
+`capacity.reservation.reserve.outcome`, routing key
+`capacity.reservation.reserve.outcome.v1`, schema version `1.0.0`, and
+`outcome: RESERVED` or `REJECTED`.
+
+**Reason:** A durable, command-specific response lets the Dispatch Planning
+workflow distinguish an acquired temporary hold from a business refusal.
+
+### D-338 — Define the CC reservation outcome payload
+
+**Decision:** Every `capacity.reservation.reserve.outcome` contains
+`commandId`, `planningAttemptId`, `tripPlanId`, `tripPlanRevision`, and
+`outcome`. `RESERVED` adds `reservationId`, `reservationRevision: 1`,
+`state: HELD`, and `expiresAt`. `REJECTED` adds a stable `reasonCode`, safe
+`message`, affected segment/resource IDs, and `replanMayResolve`.
+
+**Reason:** Dispatch can match the response to its exact plan and make the
+appropriate next decision without exposing unrelated reservation details.
+
+### D-339 — Limit reservation rejection diagnostics to submitted resources
+
+**Decision:** A `REJECTED` outcome includes `affectedSegments[]`. Each entry
+identifies a submitted segment by `sequenceNumber` and may identify only the
+submitted resource that failed validation by `resourceType` and
+`resourceId`. Do not include alternative candidates or other customers'
+reservation details.
+
+**Reason:** Dispatch receives actionable references to its own request
+without learning unrelated capacity or claims.
+
+### D-340 — Scope reservation idempotency to a planning attempt
+
+**Decision:** Scope a `capacity.reservation.reserve` idempotency key to
+`sourceService`, message type, and `planningAttemptId`. Delivery retries
+reuse the same `commandId` and key; a new planning attempt receives new
+values.
+
+**Reason:** A single attempt cannot create duplicate reservation claims,
+while re-planning the same Load remains a distinct business intent.
+
+### D-341 — Define reservation replan guidance
+
+**Decision:** Set `replanMayResolve: true` for `RESOURCE_UNAVAILABLE`,
+`SEGMENT_TIME_CONFLICT`, and `INCOMPATIBLE_RESOURCE`. Set it to `false` for
+`STALE_READINESS_REVISION` and `TRIP_PLAN_REVISION_STALE` until Dispatch
+refreshes its readiness facts or creates a current Trip Plan revision.
+
+**Reason:** A replan signal should distinguish a fresh plan that may resolve
+a resource conflict from a repeated request that still uses stale inputs.
+
+### D-342 — Name reservation confirmation command
+
+**Decision:** Dispatch Planning requests transition of a temporary hold to
+confirmed capacity with `capacity.reservation.confirm`, routing key
+`capacity.reservation.confirm.v1`, schema version `1.0.0`.
+
+**Reason:** A separate confirmation command makes the transition from
+temporary planning hold to committed capacity explicit and owner-controlled.
+
+### D-343 — Name reservation confirmation outcome
+
+**Decision:** Capacity Commitment responds to
+`capacity.reservation.confirm` with
+`capacity.reservation.confirm.outcome`, routing key
+`capacity.reservation.confirm.outcome.v1`, schema version `1.0.0`, and
+`outcome: CONFIRMED` or `REJECTED`.
+
+**Reason:** A command-specific durable result lets Dispatch distinguish
+committed capacity from a failed or stale confirmation request.
+
+### D-344 — Define reservation confirmation payloads
+
+**Decision:** The confirmation command contains `commandId`,
+`idempotencyKey`, `reservationId`, expected `reservationRevision`,
+`tripPlanId`, and `tripPlanRevision`. Its outcome echoes `commandId`,
+reservation and Trip Plan references, `outcome`, and the current
+`reservationRevision` when the reservation exists. `CONFIRMED` adds
+`state: CONFIRMED`; `REJECTED` adds a stable `reasonCode` and safe `message`.
+
+**Reason:** Versioned references make confirmation conditional on the exact
+hold and Trip Plan without retransmitting reservation claims.
+
+### D-345 — Link reservation confirmation to Load finalization
+
+**Decision:** `capacity.reservation.confirm` sets `causationId` to the
+successful Load finalization-guard outcome that authorized confirmation.
+The command's reservation ID and expected revision identify the prior CC
+hold without using it as the causal parent.
+
+**Reason:** The Load guard is the final business authorization for moving a
+temporary hold into committed capacity; the reservation identity remains
+explicit in the command payload.
+
+### D-346 — Scope reservation confirmation idempotency
+
+**Decision:** Scope a `capacity.reservation.confirm` idempotency key to
+`sourceService`, message type, and `reservationId`. Redelivery/retry of the
+same confirmation intent reuses its `commandId` and key; a new reservation
+uses a new key.
+
+**Reason:** A reservation may transition to `CONFIRMED` only once, and
+retrying its confirmation must not create another transition or outcome.
+
+### D-347 — Define reservation confirmation rejection codes
+
+**Decision:** The confirmation rejection catalogue is
+`RESERVATION_NOT_FOUND`, `RESERVATION_NOT_HELD`,
+`RESERVATION_REVISION_MISMATCH`, and `TRIP_PLAN_REVISION_MISMATCH`, in that
+validation order. Within the reservation checks, verify existence, state,
+then revision.
+
+**Reason:** Cause-specific codes identify stale or invalid confirmation
+references without exposing other reservation claims.
+
+### D-348 — Separate reservation release and replacement
+
+**Decision:** Capacity Commitment exposes separate commands:
+`capacity.reservation.release` to release a complete reservation and
+`capacity.reservation.replace` to atomically replace a reservation with a
+complete feasible remainder. Each command uses its matching `.v1` routing
+key and schema version `1.0.0`.
+
+**Reason:** Distinct command types make full release and all-or-none claim
+replacement explicit, avoiding ambiguous partial-release behavior.
+
+### D-349 — Require exact reservation references for release operations
+
+**Decision:** Both release and replacement commands identify
+`commandId`, `idempotencyKey`, current `reservationId`,
+`reservationRevision`, `tripPlanId`, and `tripPlanRevision`. Release has no
+segment payload. Replacement carries the complete ordered feasible
+remaining segment set using the established reservation segment shape.
+
+**Reason:** Expected revisions prevent stale release or replacement, and a
+complete replacement payload allows CC to validate and swap claims
+atomically.
+
+### D-350 — Give release operations command-specific outcomes
+
+**Decision:** CC responds to release and replacement with
+`capacity.reservation.release.outcome` and
+`capacity.reservation.replace.outcome`, respectively. Each uses its matching
+`.v1` routing key and schema version `1.0.0`.
+
+**Reason:** Separate outcomes preserve command identity and let the workflow
+correlate completion without interpreting a generic reservation mutation.
+
+### D-351 — Report release and replacement state transitions
+
+**Decision:** Successful release and replacement outcomes echo
+`commandId`, `tripPlanId`, `tripPlanRevision`, and `outcome`. Release reports
+the released reservation ID, incremented revision, and `state: RELEASED`.
+Replacement reports the old reservation ID/revision as `SUPERSEDED` and the
+new reservation ID at revision 1 as `HELD`, with `expiresAt`.
+
+**Reason:** The command result identifies both committed state transitions
+and the new hold without requiring a follow-up read to continue the saga.
+
+### D-352 — Report reservation mutation rejections without implying effects
+
+**Decision:** Rejected release/replacement outcomes echo `commandId` and Trip
+Plan references, and include one stable `reasonCode`, a safe `message`, and
+the current reservation ID, revision, and state when known. A rejection
+must not imply a partial release or replacement.
+
+**Reason:** Dispatch can reconcile against CC's authoritative current state
+without mistaking a refusal for a committed capacity change.
+
+### D-353 — Preserve reservation commitment state during replacement
+
+**Decision:** An atomic replacement preserves the old reservation's
+commitment state. Replacing `HELD` creates a new `HELD` reservation with a
+five-minute expiry; replacing `CONFIRMED` creates a new `CONFIRMED`
+reservation without a temporary expiry. This supersedes D-351's
+unconditional `HELD` state for replacement outcomes.
+
+**Reason:** Cancellation of one Load from a confirmed multi-Load Trip Plan
+must not downgrade the remaining committed capacity to a temporary hold.
+
+### D-354 — Scope reservation mutation idempotency
+
+**Decision:** Scope release and replacement idempotency separately by
+`sourceService`, message type, and the old `reservationId`. Retries reuse the
+same `commandId` and key; a subsequent mutation uses the newly created
+reservation ID.
+
+**Reason:** Distinct command types remain independent, and reservation
+identity provides a natural concurrency boundary for each complete claim set.
+
+### D-355 — Reuse capacity codes for reservation mutations
+
+**Decision:** Release and replacement share the guard rejection codes
+`RESERVATION_NOT_FOUND`, `RESERVATION_NOT_ACTIVE`,
+`RESERVATION_REVISION_MISMATCH`, and `TRIP_PLAN_REVISION_MISMATCH`.
+Replacement may additionally return
+`RESOURCE_UNAVAILABLE`, `STALE_READINESS_REVISION`,
+`SEGMENT_TIME_CONFLICT`, or `INCOMPATIBLE_RESOURCE`.
+
+**Reason:** Common guard codes keep mutation errors consistent; replacement
+reuses established capacity feasibility reasons instead of creating a
+parallel vocabulary.
+
+### D-356 — Order reservation mutation validation
+
+**Decision:** CC checks mutation commands in this order: reservation
+existence; active state (`HELD` or `CONFIRMED`); reservation revision; Trip
+Plan identity and revision; then replacement-segment feasibility when
+applicable.
+
+**Reason:** Deterministic ordering makes the primary rejection reason
+stable and avoids assessing replacement capacity against a stale or
+terminal reservation.
+
+### D-357 — Link reservation mutation to its authorizing result
+
+**Decision:** Release/replacement commands set `causationId` to the
+immediate durable business result that authorizes the mutation, such as a
+failed Load guard for planning release or an approved cancellation event for
+Trip Plan replacement. Preserve the saga's `correlationId`.
+
+**Reason:** The causal chain points to the event that actually made the
+mutation necessary, while the correlation ties it to the larger workflow.
+
+### D-358 — Centralize reservation mutations in Dispatch Planning
+
+**Decision:** Dispatch Planning publishes all reservation release and
+replacement commands to Capacity Commitment. A Load/cancellation workflow
+sends durable cancellation intent to Dispatch Planning, which reconciles
+its Trip Plan before releasing or replacing capacity.
+
+**Reason:** Dispatch Planning owns the Trip Plan and Assignment lifecycle;
+centralizing mutations there prevents Load or other workflows from changing
+capacity claims without reconciling affected plans.
+
+### D-359 — Name the Load-to-Dispatch cancellation command
+
+**Decision:** After committing a cancellation request, Load sends
+`dispatch.load.cancel` to Dispatch Planning, using routing key
+`dispatch.load.cancel.v1` and schema version `1.0.0`.
+
+**Reason:** A durable command gives Dispatch Planning an explicit request to
+reconcile its owned plan and assignments while Load remains the owner of the
+cancellation request and Load lifecycle.
+
+### D-360 — Reference the committed cancellation and Load revision
+
+**Decision:** `dispatch.load.cancel` contains `cancellationRequestId`,
+`loadId`, exact `loadRevisionId` and `loadRevisionNumber`, and
+`expectedLoadOwnerRevision`. Dispatch uses its Load projection; Load retains
+the cancellation reason, note, and requesting-principal details.
+
+**Reason:** The command identifies the exact durable request and Load
+version without duplicating Load-owned request data or requiring a
+synchronous lookup.
+
+### D-361 — Correlate the cancellation command to its HTTP request
+
+**Decision:** Set `dispatch.load.cancel`'s `correlationId` to
+`cancellationRequestId`. Omit `causationId` because the root request
+originates directly from HTTP, and propagate the authenticated actor as
+`initiatingPrincipalId`.
+
+**Reason:** The request ID gives cancellation its own workflow correlation,
+while principal attribution and root-cause semantics follow the shared
+envelope rules.
+
+### D-362 — Separate cancellation receipt from release completion
+
+**Decision:** Dispatch Planning responds to `dispatch.load.cancel` with a
+durable `ACCEPTED` or `REJECTED` command outcome. After its planning and CC
+release work completes, it publishes a separate terminal release fact.
+Receipt acceptance does not mean that the Load is cancelled.
+
+**Reason:** Durable command intake and downstream release completion are
+distinct milestones in the asynchronous cancellation workflow.
+
+### D-363 — Name the cancellation command outcome
+
+**Decision:** Dispatch Planning responds with
+`dispatch.load.cancel.outcome`, routing key
+`dispatch.load.cancel.outcome.v1`, schema version `1.0.0`.
+
+**Reason:** A command-specific outcome lets Load correlate durable receipt
+or refusal to the committed cancellation request.
+
+### D-364 — Define cancellation command receipt payload
+
+**Decision:** `dispatch.load.cancel.outcome` always contains `commandId`,
+`cancellationRequestId`, `loadId`, and `outcome`. `REJECTED` adds one
+stable domain-owned `reasonCode` and a safe `message`.
+
+**Reason:** Load can update the exact cancellation request without a lookup
+or a duplicated Dispatch snapshot.
+
+### D-365 — Publish Dispatch/CC cancellation release separately
+
+**Decision:** When Dispatch Planning and CC have completed their applicable
+release work for a cancellation request, Dispatch publishes
+`dispatch.load.cancellation.released`, routing key
+`dispatch.load.cancellation.released.v1`, schema version `1.0.0`. This fact
+confirms only Dispatch/CC release; Execution's release confirmation and
+Load's final `CANCELLED` transition remain separate.
+
+**Reason:** The message records a domain-owned release milestone without
+claiming that every downstream owner has completed cancellation.
+
+### D-366 — Identify the cancelled Load and affected Trip Plan
+
+**Decision:** `dispatch.load.cancellation.released` contains
+`cancellationRequestId`, `loadId`, `disposition` (`FULL_RELEASE`,
+`REMOVED_WITH_PLAN_REPLACEMENT`, or `NO_ACTIVE_DISPATCH_WORK`), and the
+affected `tripPlanId` and revision when one exists. Replacement outcomes
+also identify the old and new reservation IDs, revisions, and states.
+
+**Reason:** Load can complete its Dispatch/CC cancellation checklist and
+retain concise evidence of the exact plan change without receiving full
+segment claims.
+
+### D-367 — Link Dispatch cancellation completion to its final result
+
+**Decision:** `dispatch.load.cancellation.released` uses the final CC
+release/replacement outcome as `causationId` when one occurred. If no CC
+command was needed, it uses the accepted `dispatch.load.cancel` command.
+Always set `correlationId` to `cancellationRequestId`.
+
+**Reason:** The fact records the terminal Dispatch/CC step when present
+without inventing a missing CC cause for Loads with no active reservation.
+
+### D-368 — Scope cancellation-command idempotency
+
+**Decision:** Scope `dispatch.load.cancel` idempotency to
+`sourceService`, message type, and `cancellationRequestId`. Redelivery/retry
+reuses the same `commandId` and `idempotencyKey`; each new committed
+cancellation request uses new values.
+
+**Reason:** Each cancellation request is one durable business intent, and
+retries must not create duplicate Dispatch cancellation work.
+
+### D-369 — Defer cancellation until its Load projection is current
+
+**Decision:** If Dispatch's Load projection has not reached the command's
+`expectedLoadOwnerRevision`, durably retain the command and defer processing
+until that exact revision is applied. Do not fetch Load synchronously.
+
+**Reason:** Event-built projections preserve the service boundary while
+ensuring cancellation acts on the Load state that authorized the request.
+
+### D-370 — Reconcile a newer Load projection before cancellation
+
+**Decision:** If Dispatch has already applied a revision newer than the
+command's expected owner revision, reconcile with the current Load snapshot.
+Process only if the exact `cancellationRequestId` remains pending and the
+Load is still cancellable; otherwise return a stable business rejection.
+
+**Reason:** A newer projection may contain the committed cancellation state
+or may show that the request is no longer applicable; Dispatch must verify
+the current owner state rather than act on stale intent.
+
+### D-371 — Reject cancellation when execution has started
+
+**Decision:** The initial cancellation-receipt rejection codes are
+`CANCELLATION_REQUEST_NOT_PENDING` and
+`CANCELLATION_NOT_ALLOWED_EXECUTION_STARTED`, checked in that order. The
+second code is used only when the current Execution owner confirms actual
+execution has begun.
+
+**Reason:** The request must still be active and the Load must remain before
+actual execution for automatic cancellation release to proceed.
+
+### D-372 — Keep a raced execution-start cancellation visible
+
+**Decision:** If the Load cancellation request was already accepted but
+Execution confirms that actual execution started before release completed,
+keep the request in `REQUIRES_RECONCILIATION`. Do not mark it `CANCELLED` or
+discard it; route it to operational-exception/review handling.
+
+**Reason:** The accepted request and the started execution are both durable
+business facts; visible reconciliation preserves both without falsely
+claiming cancellation or automatically stopping active work.
+
+### D-373 — Command cancellation of a planned Execution
+
+**Decision:** When a planned per-Load Execution exists and actual execution
+has not started, the Load cancellation workflow sends
+`execution.load.cancel-planned`, routing key
+`execution.load.cancel-planned.v1`, schema version `1.0.0`. Execution
+validates the not-started gate and owns removing or voiding its record.
+
+**Reason:** Execution remains authoritative for its records and start
+milestones; Load cancellation cannot delete or assume release of them.
+
+### D-374 — Identify the exact planned Execution for cancellation
+
+**Decision:** `execution.load.cancel-planned` contains
+`cancellationRequestId`, `loadId`, `assignmentId`, `executionId`, and
+`expectedExecutionOwnerRevision`. Execution validates these references
+against its owner record and actual-start state.
+
+**Reason:** Exact record and owner-revision references make the cancellation
+conditional on the intended planned execution without repeating Assignment
+data.
+
+### D-375 — Return a terminal result for planned Execution cancellation
+
+**Decision:** Execution responds to `execution.load.cancel-planned` with
+`execution.load.cancel-planned.outcome`, routing key
+`execution.load.cancel-planned.outcome.v1`, schema version `1.0.0`, and
+`outcome: CANCELLED` or `REJECTED`. `CANCELLED` confirms that the planned
+record was removed or voided.
+
+**Reason:** The cancellation workflow needs Execution-owner confirmation
+before Load can complete cancellation; a separate intake receipt adds no
+business value for this transactional operation.
+
+### D-376 — Report the voided Execution revision
+
+**Decision:** `execution.load.cancel-planned.outcome` always contains
+`commandId`, `cancellationRequestId`, `loadId`, `assignmentId`,
+`executionId`, and `outcome`. `CANCELLED` adds `executionState: VOIDED` and
+the resulting Execution owner revision. `REJECTED` adds one stable
+`reasonCode` and a safe `message`.
+
+**Reason:** Load receives authoritative evidence that the exact planned
+record was voided, or a safe, actionable refusal tied to its request.
+
+### D-377 — Scope Execution cancellation idempotency
+
+**Decision:** Scope `execution.load.cancel-planned` idempotency to
+`sourceService`, message type, and `cancellationRequestId`. Delivery retries
+reuse the same `commandId` and `idempotencyKey`; apply the resulting
+Execution owner revision once.
+
+**Reason:** A single cancellation request must not void the planned
+Execution more than once or create duplicate lifecycle history.
+
+### D-378 — Prioritize started Execution in cancellation rejection
+
+**Decision:** Execution validates a planned-cancellation command in order:
+record existence, Assignment match, owner revision, started state, then
+other non-`PLANNED` states. Return
+`CANCELLATION_NOT_ALLOWED_EXECUTION_STARTED` for `IN_PROGRESS` and
+`EXECUTION_NOT_PLANNED` for other states that are not `PLANNED`.
+
+**Reason:** The specific started-state reason ensures Load routes a raced
+execution start to visible reconciliation rather than treating it as a
+generic state conflict.
+
+### D-379 — Publish the completed Load cancellation fact
+
+**Decision:** When Load commits the final `CANCELLED` transition after all
+applicable release confirmations, it publishes
+`load.cancellation.completed`, routing key
+`load.cancellation.completed.v1`, schema version `1.0.0`. The fact
+identifies the cancelled Load and its `cancellationRequestId`.
+
+**Reason:** Consumers need an owner-published terminal Load fact rather
+than inferring completion from a command receipt or polling a status API.
+
+### D-380 — Include the final Load cancellation snapshot
+
+**Decision:** `load.cancellation.completed` contains `loadId`,
+`loadReference`, exact `loadRevisionId` and `loadRevisionNumber`,
+`cancellationRequestId`, `state: CANCELLED`, and `completedAt`. The
+individual downstream confirmations remain in Load's audit record.
+
+**Reason:** Consumers receive the exact cancelled Load version and
+completion time without embedding other services' records in the Load fact.
+
+### D-381 — Link Load cancellation completion to its final confirmation
+
+**Decision:** `load.cancellation.completed` uses the last applicable
+durable release confirmation from Dispatch/CC or Execution as
+`causationId`. Omit `causationId` only when no downstream work existed and
+Load completed directly from the root HTTP request. Set `correlationId` to
+`cancellationRequestId` and preserve `initiatingPrincipalId`.
+
+**Reason:** The fact's causal parent is the final release that enabled the
+Load transition, while its correlation remains the cancellation request.
+
+### D-382 — Reconcile snapshots through RabbitMQ request/reply
+
+**Decision:** When an owner snapshot is required to repair a message
+revision gap, consumers request it from the owner through RabbitMQ
+request/reply. Do not query another service's database or make a synchronous
+service-to-service HTTP call for this recovery.
+
+**Reason:** The authoritative owner remains the sole source of the current
+record while reconciliation uses the established asynchronous service
+boundary.
+
+### D-383 — Use typed owner snapshot messages
+
+**Decision:** Define snapshot request/reply messages per owning service and
+resource type, using that owner's versioned domain schema (for example,
+`load.snapshot.get` and `load.snapshot.result`), rather than a polymorphic
+generic snapshot payload.
+
+**Reason:** Owner-specific schemas keep reconciliation responses
+type-safe and avoid an unbounded generic resource contract.
+
+### D-384 — Identify the revision gap in snapshot requests
+
+**Decision:** A typed snapshot request contains the resource ID,
+`lastAppliedOwnerRevision`, and incoming `observedOwnerRevision`. The owner
+replies with the resource ID, current `ownerRevision`, and the complete
+current owner snapshot.
+
+**Reason:** The owner can return an authoritative repair point, and the
+consumer can audit which gap triggered reconciliation.
+
+### D-385 — Keep missing snapshot resources visibly unreconciled
+
+**Decision:** If the requested resource does not exist, the owner returns
+an explicit `NOT_FOUND` result with the resource ID and a stable owner
+reason. The consumer keeps its projection stale, parks reconciliation
+visibly, and does not apply later facts for that resource until repaired.
+
+**Reason:** A missing owner record is an integrity/reconciliation failure,
+not an empty snapshot or permission to advance past the gap.
+
+### D-386 — Name typed snapshot request/reply pairs
+
+**Decision:** Name owner/resource-specific snapshot messages with paired
+`*.snapshot.get` request and `*.snapshot.result` reply message types and
+matching `.v1` routes, for example `load.snapshot.get.v1` and
+`load.snapshot.result.v1`.
+
+**Reason:** Matching request/result names make the recovery protocol
+discoverable while preserving owner-specific typed payloads.
+
+### D-387 — Reject snapshots older than the observed fact
+
+**Decision:** If a snapshot reply's `ownerRevision` is lower than the
+incoming fact's `observedOwnerRevision`, treat it as an owner consistency
+failure. Keep the projection stale, retry reconciliation with bounded
+backoff, and do not advance or apply later facts until the owner returns a
+snapshot at least as new as the observed fact. Park visibly after retries
+are exhausted.
+
+**Reason:** A stale snapshot cannot repair a known gap and must not permit
+the consumer to skip or misorder committed owner facts.
+
+### D-388 — Persist reconciliation evidence
+
+**Decision:** Persist a reconciliation record with consumer/resource IDs,
+last-applied and observed revisions, request/message IDs, attempt count,
+timestamps, returned snapshot revision or `NOT_FOUND`, and final
+`REPAIRED` or `PARKED` status. Retain the repaired projection rather than a
+duplicate full snapshot.
+
+**Reason:** Durable evidence supports recovery audit and operations without
+duplicating authoritative domain data.
+
+### D-389 — Correlate each snapshot-reconciliation exchange
+
+**Decision:** Assign a UUIDv7 `reconciliationId` to each
+consumer/resource-gap reconciliation and use it as `correlationId`. The
+reply references the request `messageId` as `causationId`; delivery retries
+reuse the same request identity.
+
+**Reason:** Reconciliation has its own durable lifecycle and must remain
+correlatable independently of the business workflow that exposed the gap.
+
+### D-390 — Use positive integer owner revisions
+
+**Decision:** Serialize `ownerRevision` and `reservationRevision` as
+positive JSON integers beginning at 1 and store them as PostgreSQL `BIGINT`.
+Reject zero, negative, and fractional values.
+
+**Reason:** Numeric monotonic revisions support explicit ordering and
+efficient indexed projection/reconciliation checks.
+
+### D-391 — Bound JSON revision integers to safe precision
+
+**Decision:** Limit serialized owner and reservation revisions to positive
+safe integers no greater than `Number.MAX_SAFE_INTEGER`
+(`9,007,199,254,740,991`); store only that bounded range in PostgreSQL.
+
+**Reason:** JavaScript services can compare and serialize the agreed numeric
+revision representation without precision loss.
+
+### D-392 — Use the same numeric format for business revisions
+
+**Decision:** Serialize immutable business revision numbers, including
+`loadRevisionNumber` and `tripPlanRevision`, as positive safe JSON integers
+starting at 1, stored within the bounded PostgreSQL `BIGINT` range.
+
+**Reason:** A common numeric format simplifies validation and comparisons
+across resource revisions and owner fact streams.
+
+### D-393 — Fix the Assignment segment wire shape
+
+**Decision:** Each immutable Assignment segment contains positive contiguous
+one-based `sequenceNumber`, UUIDv7 `startStopId` and `endStopId`,
+`timeWindow: {startAt, endAt}` as RFC 3339 UTC strings ending in `Z`,
+UUIDv7 `powerUnitId`, UUIDv7 `trailerId`, one or two distinct UUIDv7
+`driverIds`, and one `resourceReadinessRevisions` entry per assigned
+resource. Each resource-revision entry contains `resourceType`
+(`POWER_UNIT`, `TRAILER`, or `DRIVER`), UUIDv7 `resourceId`, and positive
+safe-integer `ownerRevision`.
+
+**Reason:** Exact typed segment fields ensure the Assignment describes the
+same ordered capacity claims CC confirmed and preserves readiness provenance.
+
+### D-394 — Run independent cancellation releases in parallel
+
+**Decision:** After Load commits `CANCELLATION_PENDING`, it requests
+Dispatch Planning/CC release and planned Execution voiding in parallel when
+both work records exist. Load commits `CANCELLED` only after every applicable
+owner confirmation is durably recorded.
+
+**Reason:** Dispatch/CC and Execution release are independent owner actions;
+parallel requests reduce delay without weakening the all-confirmations
+completion gate.
+
+### D-395 — Reconcile cancellation-request state separately
+
+**Decision:** When Dispatch Planning reconciles a newer Load projection
+before processing `dispatch.load.cancel`, it also requests the exact
+cancellation-request resource from Load using
+`load.cancellation-request.snapshot.get` and
+`load.cancellation-request.snapshot.result`, with matching `.v1` routes and
+schema version `1.0.0`. The request identifies `cancellationRequestId`; the
+reply identifies that request, its `loadId`, current request-resource
+`ownerRevision`, and state, or returns explicit `NOT_FOUND`. Do not return
+the cancellation reason, note, or requesting-principal details in this
+snapshot response. Dispatch proceeds only when the request belongs to the
+command's Load, remains `PENDING_RELEASE`, and the current Load remains
+cancellable. If the request exists but is no longer pending or belongs to a
+different Load, Dispatch returns the applicable stable business rejection.
+An explicit `NOT_FOUND` is an integrity/reconciliation mismatch, not a
+business rejection; keep the projection stale and park reconciliation under
+D-385.
+
+**Reason:** Load lifecycle and cancellation-request state are separate
+resources; reconciling one must not be treated as proof of the other's
+current state, and Dispatch needs only the minimum request data required to
+validate its durable command.
+
+### D-396 — Park exhausted cancellation work for audited recovery
+
+**Decision:** When an applicable cancellation release or voiding step
+exhausts the shared automated retry budget, Load keeps the Load in
+`CANCELLATION_PENDING`, moves the request to `REQUIRES_RECONCILIATION`, and
+retains the latest stable failure code and time. The request is not terminal,
+and no automated completion occurs while it is parked. After the underlying
+issue is repaired and current owner state permits cancellation, an authorized
+operator may resume the same workflow through an audited action; the request
+returns to `PENDING_RELEASE`, retaining its original identity and history.
+Actual execution having started remains subject to D-372's operational
+review and is not automatically resumed as a cancellation.
+
+**Reason:** A parked workflow must be visible and recoverable without
+misrepresenting failure as completion or creating a second cancellation
+intent.
+
+### D-397 — Release the full reservation when cancellation replacement is infeasible
+
+**Decision:** When CC definitively rejects a cancellation-driven atomic
+replacement because the revalidated remaining Trip Plan is infeasible, the
+old reservation remains unchanged under the no-partial-effect rule. Dispatch
+Planning then issues a full release for that old reservation, caused by the
+durable replacement rejection. After CC confirms the release, Dispatch
+reports cancellation release completion; the remaining Loads have no active
+reservation and re-enter event-driven planning. A stale revision or other
+guard rejection is not an infeasibility result and must be reconciled before
+choosing this fallback. `STALE_READINESS_REVISION` also requires readiness
+refresh and replacement re-evaluation; this fallback applies only to a
+definitive `RESOURCE_UNAVAILABLE`, `SEGMENT_TIME_CONFLICT`, or
+`INCOMPATIBLE_RESOURCE` rejection after the required current-state checks.
+
+**Reason:** Full release prevents the cancelled Load from remaining in an
+active claim set while preserving CC's atomic replacement guarantee; the
+remaining Loads can be replanned through existing durable triggers without
+relying on a rejected partial reservation.
+
+### D-398 — Define freshness per owner fact
+
+**Decision:** Each owning service defines freshness and validity by fact
+type; there is no universal time-to-live for all planning inputs. Include
+observation and validity/expiry metadata where applicable. A missing or
+expired hard-gate fact is unknown and ineligible, not approval. Existing
+fact-specific thresholds remain in force, including the 15-minute
+planning-current window for driver and equipment availability.
+
+**Reason:** Different operational facts have different sources and validity
+periods; owner-defined rules avoid both unsafe reuse of expired data and
+unnecessary expiry of durable facts.
+
+### D-399 — Preserve accepted owner work during Temporal outages
+
+**Decision:** If Temporal becomes unavailable after a saga starts, owning
+services may complete commands they have durably accepted, applying their
+normal idempotency rules and publishing outcomes through their outboxes.
+Pause further orchestration decisions while Temporal is unavailable; when it
+recovers, resume from durable workflow state and recorded owner outcomes.
+Do not discard accepted work, repeat its business effect, or compensate
+solely because Temporal was unavailable.
+
+**Reason:** Workflow-engine availability must not invalidate domain work
+that an owning service has already accepted durably.
+
+### D-400 — Fail closed when current Customer status is unavailable
+
+**Decision:** Load may validate booking against a current, valid Customer
+status fact. If that fact is missing or expired and Load cannot establish
+current status because Counterparty Registry is unavailable, do not commit a
+submission or any Loads. Return a retryable `503 Service Unavailable`; the
+client may retry the unchanged request with the same idempotency key after
+recovery. A known inactive Customer remains a normal durable business
+rejection, not a service-unavailability error.
+
+**Reason:** Booking requires an active Customer, and stale or unavailable
+owner data cannot safely authorize a new commercial commitment.
+
+### D-401 — Name the unavailable Customer-status error
+
+**Decision:** The retryable `503 Service Unavailable` defined in D-400 uses
+`error.code: CUSTOMER_STATUS_UNAVAILABLE` in the shared HTTP error envelope.
+
+**Reason:** A stable, domain-specific code lets clients distinguish a
+temporarily unverifiable Customer from a known inactive Customer without
+depending on internal service details.
+
+### D-402 — Keep Customer status current until superseded
+
+**Decision:** A Customer lifecycle-status fact used for booking has no
+wall-clock TTL; the latest applied owner revision remains valid until
+superseded by a newer revision. Monitor projection lag. Once Load detects a
+revision gap, keep the Customer projection stale and reconcile it with
+Counterparty Registry before booking against that status. If the projection
+is missing or known stale and the owner cannot be reached, apply D-400 and
+return `503` without committing a submission.
+
+**Reason:** Customer lifecycle status changes through explicit owner
+transitions, while revision-gap handling prevents booking against a known
+incomplete projection without imposing periodic owner lookups.
+
+### D-403 — Apply projection-freshness targets to hard-gate consumers
+
+**Decision:** Event-fed projections, including Operations View and service
+projections used for hard-gate decisions, target owner-fact application lag
+at p95 of no more than five seconds. Mark a projection stale when a required
+owner update remains unapplied for 30 seconds. Do not use stale projections
+to authorize a booking, planning, or other hard-gate decision; block the
+decision until the required update or reconciliation is applied. These are
+projection-lag targets, not time-to-live values for owner facts.
+
+**Reason:** A shared, measurable lag objective makes stale operational state
+visible and prevents a projection known to be behind from authorizing work.
+
+### D-404 — Set an internal critical-service availability objective
+
+**Decision:** The initial operational release targets 99.5% monthly
+availability for critical TMS APIs and workflows. This is an internal
+engineering objective, not a customer-facing service-level agreement.
+
+**Reason:** A measurable initial target informs reliability work without
+making an external commitment before operating evidence and service-specific
+measurement boundaries are established.
+
+### D-405 — Defer availability maintenance exclusions
+
+**Decision:** Defer whether planned maintenance is excluded from the 99.5%
+monthly availability calculation until the SLO measurement specification is
+defined. Do not imply an exclusion in the meantime.
+
+**Reason:** The target is an internal reliability objective; its measurement
+boundaries should be explicit before maintenance treatment is assumed.
+
+### D-406 — Omit absent optional Load revision fields
+
+**Decision:** In the canonical immutable `loadRevision` snapshot, omit
+optional fields when they have no value. Use `null` only where the field's
+contract explicitly defines a meaningful nullable value. Apply this rule
+consistently to `load.booked`, `load.revision.created`, and owner snapshot
+responses carrying a Load revision.
+
+**Reason:** Distinguishing absence from an explicitly represented null keeps
+the immutable snapshot unambiguous and avoids serializing unused fields as
+empty data.
+
+### D-407 — Normalize appointment timestamps to UTC
+
+**Decision:** Booking input supplies RFC 3339 `startAt` and `endAt` values
+with explicit UTC offsets and a valid IANA `timeZone`. Load verifies that
+each supplied offset matches the named zone at that instant. The canonical
+immutable Load revision stores both instants normalized to UTC strings
+ending in `Z` and retains the supplied IANA zone. A mismatch is a durable
+booking-rule rejection with `STOP_TIME_ZONE_OFFSET_MISMATCH` at the affected
+`startAt` or `endAt` field; it creates no Loads.
+
+**Reason:** UTC instants give services an unambiguous ordering basis while
+the IANA zone preserves the local operational context and daylight-saving
+rules.
+
+### D-408 — Snapshot the Customer legal name on each Load revision
+
+**Decision:** `customerNameSnapshot` stores the Customer's legal name as
+resolved by Counterparty Registry when Load creates the immutable revision.
+Do not substitute the optional display name or include it in this snapshot
+field. A later Customer name change does not rewrite an existing Load
+revision.
+
+**Reason:** The legal name gives the commercial record a stable
+counterparty identity while preserving the exact value in force when that
+revision was created.
+
+### D-409 — Represent reefer temperature as a typed range
+
+**Decision:** Represent reefer requirements as
+`temperatureRange: {minimum, maximum, unit}` in the Load request and
+canonical revision. `minimum` and `maximum` are decimal strings with at most
+two fractional digits, persistable as signed `NUMERIC(5,2)` values; `unit` is
+one shared `F` or `C`. Require the range before planning a reefer Load, and
+require `minimum <= maximum`. Omit `temperatureRange` when absent; do not
+use `null` as a missing-value marker.
+
+**Reason:** A single typed range keeps endpoints and their unit together,
+prevents mismatched units, and supports exact decimal parsing without
+floating-point loss.
+
+### D-410 — Hold invalid reefer ranges without rejecting the booking
+
+**Decision:** A malformed or internally invalid optional
+`temperatureRange` does not reject an otherwise valid booking. Do not store
+the invalid range as an authoritative Load fact. Accept the Load, omit the
+invalid `temperatureRange` from its canonical revision, and return the
+planning-blocking follow-up code `REEFER_TEMPERATURE_RANGE_INVALID` at
+`/temperatureRange`. Planning remains held until the broker supplies a valid
+range; the existing `REEFER_TEMPERATURE_REQUIRED` applies when no valid range
+is present for a reefer Load.
+
+**Reason:** The temperature range is a planning-stage requirement, so
+invalid optional secondary data should create visible corrective work
+without undoing a valid commercial booking.
+
+### D-411 — Store flatbed dimensions per freight line
+
+**Decision:** Represent flatbed freight dimensions on each freight line as
+an optional `dimensions: {length, width, height, unit}` object. All three
+measurements are positive decimal strings with at most two fractional
+digits, persistable as `NUMERIC(10,2)`, and share one `IN` or `CM` unit.
+Require complete dimensions for every freight line before planning a
+flatbed Load; omit the object when absent.
+
+**Reason:** Dimensions describe individual freight lines, and grouping each
+line's measurements with their common unit prevents partial or mixed-unit
+interpretation.
+
+### D-412 — Hold invalid flatbed dimensions without rejecting the booking
+
+**Decision:** If supplied flatbed dimensions are partial, malformed,
+non-positive, out of range, or use an unsupported unit, do not treat them as
+an authoritative Load fact and do not reject an otherwise valid booking.
+Omit the invalid dimensions from the canonical revision and return the
+planning-blocking follow-up `FLATBED_DIMENSIONS_INVALID` at the affected
+`/freightLines/{index}/dimensions` path. Planning remains held until every
+freight line has complete valid dimensions.
+
+**Reason:** Dimensions are required for the later planning stage, not for
+booking acceptance; the broker can correct them without losing a valid
+commercial commitment.
+
+### D-413 — Require an explicit boolean tarp decision for flatbed
+
+**Decision:** Represent the flatbed tarp requirement as optional boolean
+`tarpRequired` in the booking request and canonical revision. A valid
+`true` or `false` is required before flatbed planning; absence does not mean
+`false` and returns the existing `FLATBED_TARP_REQUIREMENT_REQUIRED`
+planning-blocking follow-up. If a value is supplied with a non-boolean type,
+omit it from the canonical revision and return
+`FLATBED_TARP_REQUIREMENT_INVALID` as a planning-blocking follow-up rather
+than rejecting an otherwise valid booking.
+
+**Reason:** An explicit affirmative or negative value prevents an omitted
+tarp decision from being interpreted as approval to plan.
+
+### D-414 — Use a dedicated planning-readiness blocker catalogue
+
+**Decision:** The `load.planning.readiness.changed` fact uses readiness-
+specific blocker codes, distinct from booking `followUpItem` codes. Its
+initial catalogue prefixes every code with `READINESS_`: `READINESS_EQUIPMENT_PROFILE_MISSING`,
+`READINESS_EQUIPMENT_PROFILE_UNSUPPORTED`,
+`READINESS_GROSS_WEIGHT_MISSING`,
+`READINESS_REEFER_TEMPERATURE_RANGE_MISSING`,
+`READINESS_REEFER_TEMPERATURE_RANGE_INVALID`,
+`READINESS_FLATBED_DIMENSIONS_MISSING`,
+`READINESS_FLATBED_DIMENSIONS_INVALID`,
+`READINESS_FLATBED_TARP_REQUIREMENT_MISSING`,
+`READINESS_FLATBED_TARP_REQUIREMENT_INVALID`, and
+`READINESS_SPECIAL_HANDLING_UNSUPPORTED`. Every blocker includes the exact
+RFC 6901 field path defined in the service contract. An invalid optional
+planning fact is omitted from the Load revision and produces its
+corresponding readiness blocker; it is not a booking rejection. `READY` has
+no blockers.
+
+**Reason:** A dedicated catalogue lets booking follow-up presentation and
+planning readiness evolve independently while retaining precise field-level
+repair guidance.
+
+### D-415 — Represent gross weight as a value-and-unit object
+
+**Decision:** Represent Load total gross weight in the request and canonical
+revision as `totalGrossWeight: {value, unit}`. `value` is a positive decimal
+string with at most three fractional digits, persistable as `NUMERIC(12,3)`;
+`unit` is `LB` or `KG`. The object is optional at booking and required
+before planning. Omit it when absent.
+
+**Reason:** Keeping the measurement and unit together prevents ambiguous or
+unitless gross-weight values while preserving exact decimal input.
+
+### D-416 — Reject malformed supplied gross weight at booking
+
+**Decision:** If `totalGrossWeight` is supplied at booking but its value is
+malformed, non-positive, exceeds three fractional digits, exceeds the
+`NUMERIC(12,3)` range, or its unit is not `LB` or `KG`, reject the entire
+booking submission with the durable field-specific issue code
+`TOTAL_GROSS_WEIGHT_INVALID`. Create no Loads. This validation applies
+although a valid gross-weight object is optional until planning.
+
+**Reason:** A supplied measurement is a booking assertion; malformed or
+unit-invalid assertions must not be silently dropped or converted into
+planning follow-up work.
+
+### D-417 — Define reefer operating mode
+
+**Decision:** Use `reeferMode` with allowed values `CONTINUOUS` and
+`START_STOP` for reefer Loads. If omitted, persist `CONTINUOUS` in the
+canonical Load revision and return the non-blocking informational follow-up
+`REEFER_MODE_DEFAULTED` at `/reeferMode`, inviting the broker to confirm or
+correct the default. The defaulted mode does not block planning.
+
+**Reason:** Recording the mode explicitly gives planning and operations a
+stable requirement while preserving booking progress when the broker omits
+it.
+
+### D-418 — Validate applicability of reefer-only fields
+
+**Decision:** If `equipmentProfile` explicitly identifies a non-`REEFER`
+profile, supplying `temperatureRange` or `reeferMode` rejects that booking
+row with the durable issue code `REEFER_REQUIREMENT_NOT_APPLICABLE` at the
+specific reefer-only field path. If `equipmentProfile` is omitted, accept and
+retain structurally valid reefer-only fields and defer applicability
+validation until the profile is selected. A later amendment may not commit a
+non-`REEFER` profile while retaining these reefer-only fields.
+
+**Reason:** An omitted profile is an unresolved planning-stage fact, not
+evidence that valid reefer requirements are inapplicable; an explicit
+conflicting profile is a booking inconsistency that must not be accepted.
+
+### D-419 — Defer reefer-mode default until profile selection
+
+**Decision:** Apply the `CONTINUOUS` default and emit
+`REEFER_MODE_DEFAULTED` only when `equipmentProfile` is `REEFER` and
+`reeferMode` is omitted. If the equipment profile is absent, do not insert a
+reefer-mode default or emit that follow-up; evaluate it when the profile is
+later selected. An explicitly supplied `reeferMode` remains subject to
+D-418's applicability rule.
+
+**Reason:** Applying a reefer-specific default while equipment type is
+unknown would add an inapplicable requirement to a potentially non-reefer
+Load.
+
+### D-420 — Recover from an invalid supplied reefer mode
+
+**Decision:** For a Load explicitly profiled as `REEFER`, if a supplied
+`reeferMode` is not `CONTINUOUS` or `START_STOP`, accept an otherwise valid
+booking, omit the invalid mode, and persist `CONTINUOUS` in the canonical
+revision. Return the non-blocking informational follow-up
+`REEFER_MODE_INVALID` at `/reeferMode`; do not also emit
+`REEFER_MODE_DEFAULTED`. The broker may confirm or correct the default.
+
+**Reason:** Operating mode is not a booking-critical requirement, and a
+safe documented default allows planning to proceed while preserving an
+actionable correction notice.
+
+### D-421 — Defer invalid reefer-mode correction with unknown profile
+
+**Decision:** If `equipmentProfile` is absent and a supplied `reeferMode` is
+invalid, omit the invalid value but do not default it or emit a mode
+follow-up yet. Evaluate the missing mode when the equipment profile is later
+selected: apply D-417 when it is `REEFER`; no reefer-mode follow-up is needed
+for a non-reefer profile.
+
+**Reason:** While the profile is unknown, Load cannot determine whether the
+reefer-specific field is applicable; deferring both default and correction
+work avoids creating an unnecessary task for a later non-reefer Load.
+
+### D-422 — Normalize the optional Customer reference
+
+**Decision:** `customerReference` is optional. Trim surrounding whitespace,
+preserve internal spacing and case, and limit the normalized value to 100
+Unicode code points. If trimming leaves an empty value, treat it as absent
+and omit it from the canonical Load revision. A non-empty value over the
+limit rejects the booking row with `CUSTOMER_REFERENCE_TOO_LONG`. Do not
+enforce uniqueness; duplicate detection remains advisory.
+
+**Reason:** Normalized bounded input is searchable and safe to store without
+changing the broker's meaningful reference text or preventing legitimate
+reuse.
+
+### D-423 — Bound optional stop contact and access text
+
+**Decision:** Optional `facilityName` and `contactName` values are trimmed
+and limited to 120 Unicode code points each; `contactPhone` is trimmed and
+limited to 32 code points while preserving its submitted formatting; and
+`accessInstructions` is trimmed and limited to 1,000 code points. A value
+that becomes empty after trimming is treated as absent and omitted from the
+canonical stop snapshot.
+
+**Reason:** Bounded optional stop text protects storage and interface
+usability without altering meaningful internal spacing or phone formatting.
+
+### D-424 — Reject overlength optional stop values
+
+**Decision:** If a supplied `facilityName`, `contactName`, `contactPhone`,
+or `accessInstructions` exceeds its D-423 limit after trimming, reject the
+booking row with `STOP_OPTIONAL_FIELD_TOO_LONG` at that field's RFC 6901
+path. This is a booking-rule issue and rejects the full batch; do not
+silently omit the value or convert it into a follow-up task.
+
+**Reason:** Explicitly supplied stop details are part of the booking request;
+accepting them only after silent truncation or omission would misrepresent
+the broker's submission.
+
+### D-425 — Validate stop phone syntax without reformatting
+
+**Decision:** After trimming, accept `contactPhone` only when it contains
+7–15 main digits, an optional leading `+`, and only digits separated by
+spaces, parentheses, hyphens, or periods. An optional extension may follow
+using `x`, `ext`, `ext.`, or `#` and contain 1–6 digits. Preserve the
+trimmed submitted formatting rather than normalizing the value.
+
+**Reason:** A permissive syntax check catches obvious non-phone text while
+supporting common human-readable formats without changing the contact's
+preferred display.
+
+### D-426 — Follow up on invalid optional stop phone values
+
+**Decision:** If an optional `contactPhone` is within its length limit but
+fails D-425's syntax validation, accept the otherwise valid booking, omit
+the invalid phone from the canonical stop snapshot, and return the
+non-blocking follow-up `STOP_CONTACT_PHONE_INVALID` at the exact stop phone
+field path. Overlength values remain subject to D-424 and reject the booking
+row.
+
+**Reason:** A malformed optional phone does not invalidate the commercial
+Load, but the broker should be prompted to correct contact details before
+they are relied on operationally.
+
+### D-427 — Bound and normalize freight-line descriptions
+
+**Decision:** Trim surrounding whitespace from each freight-line
+`description`, preserve internal spacing, and require a non-empty normalized
+value of at most 500 Unicode code points. Reject an empty value with
+`FREIGHT_DESCRIPTION_REQUIRED` and an overlength value with
+`FREIGHT_DESCRIPTION_TOO_LONG`, each at the affected field path. These
+booking-rule issues reject the full submission; store the trimmed
+description in the canonical Load revision.
+
+**Reason:** Bounded, normalized descriptions keep freight records usable
+across storage and operational interfaces while preserving the wording
+provided by the broker.
+
+### D-428 — Bound freight-line quantity precision and range
+
+**Decision:** Represent each freight-line `quantity` in the request as a
+positive decimal string with at most three fractional digits and persist it
+as `NUMERIC(12,3)`, with a maximum of `999999999.999`. A malformed,
+non-positive, over-precision, or out-of-range quantity rejects the full
+booking submission with `FREIGHT_QUANTITY_INVALID` at the affected field
+path.
+
+**Reason:** An explicit decimal precision and range ensure values can be
+validated before persistence without rounding or overflow.
+
+### D-429 — Bound the `OTHER` handling-unit description
+
+**Decision:** When `handlingUnitCode` is `OTHER`, require
+`handlingUnitDescription`. Trim its surrounding whitespace, preserve internal
+spacing, and require 1–120 Unicode code points after trimming. Reject a
+missing or empty normalized value with
+`OTHER_HANDLING_UNIT_DESCRIPTION_REQUIRED`; reject a longer value with
+`OTHER_HANDLING_UNIT_DESCRIPTION_TOO_LONG`. Include the row and field path,
+and reject the full booking submission for either issue. Store the trimmed
+description in the canonical Load revision.
+
+**Reason:** A bounded explanation makes the custom handling unit
+operationally meaningful while avoiding unbounded free-text values.
+
+### D-430 — Reject inapplicable handling-unit descriptions
+
+**Decision:** If `handlingUnitDescription` is supplied when
+`handlingUnitCode` is not `OTHER`, reject the full booking submission with
+`HANDLING_UNIT_DESCRIPTION_NOT_APPLICABLE` at the description field path.
+Do not silently omit the supplied value.
+
+**Reason:** Rejecting an explicitly supplied but inapplicable field makes
+the request contract unambiguous and gives the broker a clear correction.
+
+### D-431 — Bound stop street-address lines
+
+**Decision:** Trim surrounding whitespace from stop `addressLine1` and
+`addressLine2`, preserving internal spacing. Require a non-empty
+`addressLine1` of at most 200 Unicode code points; treat an empty
+`addressLine2` as absent and omit it, and limit a non-empty `addressLine2`
+to 200 Unicode code points. Reject a missing or empty `addressLine1` with
+`STOP_ADDRESS_FIELD_REQUIRED`; reject either overlength line with
+`STOP_ADDRESS_FIELD_TOO_LONG`. Include the row and exact field path, and
+reject the full booking submission.
+
+**Reason:** Explicit, bounded street-address lines protect the booking
+record from unusable or unbounded input without altering meaningful
+internal spacing.
+
+### D-432 — Validate US postal-code format
+
+**Decision:** Treat each stop `postalCode` as a string. Trim surrounding
+whitespace, accept either five digits (`12345`) or ZIP+4 in hyphenated form
+(`12345-6789`), and preserve the accepted trimmed format. Reject any other
+value with `STOP_POSTAL_CODE_INVALID` at the exact field path; this
+booking-rule issue rejects the full submission.
+
+**Reason:** Supporting both standard US ZIP and ZIP+4 formats covers normal
+domestic address use while retaining leading zeroes and the broker's valid
+format.
+
+### D-433 — Limit initial state codes to states and DC
+
+**Decision:** For the initial US-only address scope, accept `stateCode` only
+as the uppercase two-letter USPS abbreviation for one of the 50 US states or
+the District of Columbia. Do not accept territories or other USPS region
+codes. Reject an unsupported or invalid value with
+`STOP_STATE_CODE_INVALID` at the exact field path; this booking-rule issue
+rejects the full submission.
+
+**Reason:** The initial operating scope is limited to the states and DC;
+territories may require distinct transport and operating policies.
+
+### D-434 — Bound stop city names
+
+**Decision:** Trim surrounding whitespace from each stop `city`, preserve
+internal spacing and capitalization, and require 1–120 Unicode code points
+after trimming. Reject a missing or empty city with
+`STOP_ADDRESS_FIELD_REQUIRED`; reject an overlength city with
+`STOP_CITY_TOO_LONG`. Include the row and exact field path, and reject the
+full booking submission.
+
+**Reason:** A bounded city value supports reliable address storage and
+display without changing its meaningful spelling or capitalization.
+
+### D-435 — Normalize state-code casing
+
+**Decision:** Superseding D-433's uppercase-input requirement, trim
+surrounding whitespace from `stateCode` and accept valid two-letter USPS
+abbreviations for the 50 states and DC regardless of input casing. Normalize
+accepted values to uppercase in the canonical Load revision. Values that do
+not identify an in-scope state or DC reject the full booking submission with
+`STOP_STATE_CODE_INVALID` at the exact field path.
+
+**Reason:** Case normalization accepts routine broker input variation while
+keeping the stored address representation consistent.
+
+### D-436 — Default an omitted stop country code to US
+
+**Decision:** `countryCode` is optional in a stop address request. If omitted,
+default it to `US` in the canonical Load revision. If supplied, it must
+identify the United States; reject another country with
+`STOP_COUNTRY_UNSUPPORTED` at the exact field path. Non-US stops remain
+outside the initial scope.
+
+**Reason:** Defaulting the country keeps the initial domestic booking
+workflow concise without weakening the US-only address boundary.
+
+### D-437 — Normalize supplied country-code casing
+
+**Decision:** When `countryCode` is supplied, trim surrounding whitespace,
+accept `US` regardless of letter casing, and store it as uppercase `US` in
+the canonical Load revision. A supplied value that is empty after trimming
+or does not identify the United States rejects the full booking submission
+with `STOP_COUNTRY_UNSUPPORTED` at the exact field path. Omission continues
+to default to `US` under D-436.
+
+**Reason:** Consistent case normalization prevents routine input casing from
+causing false rejections while preserving one canonical country code.
+
+### D-438 — Reject unknown special-handling codes
+
+**Decision:** Permit only `OVERSIZE` and `HAZMAT` in
+`specialHandlingCodes`. These known codes may be booked but remain blocked
+from planning while their capabilities are unsupported. Reject any
+unrecognized value with `SPECIAL_HANDLING_CODE_INVALID` at its indexed field
+path; this booking-rule issue rejects the full submission.
+
+**Reason:** A closed code set prevents typos and unknown capabilities from
+being silently persisted as understood Load requirements.
+
+### D-439 — Deduplicate known special-handling codes
+
+**Decision:** Treat `specialHandlingCodes` as a set in the canonical Load
+revision. Accept repeated known values in booking input, retain each code
+only once, and preserve the first-occurrence order.
+
+**Reason:** A repeated code does not represent an additional requirement;
+deduplication avoids rejecting a valid booking while keeping the canonical
+requirement list unambiguous.
+
+### D-440 — Reject unrecognized equipment profiles
+
+**Decision:** `equipmentProfile` may be omitted at booking, but when
+supplied it must be one of `DRY_VAN`, `REEFER`, `FLATBED`, `STEP_DECK`, or
+`TANKER`. Reject any other value with `EQUIPMENT_PROFILE_INVALID` at the
+exact field path; this booking-rule issue rejects the full submission.
+`STEP_DECK` and `TANKER` remain accepted known profiles but are held from
+planning while unsupported.
+
+**Reason:** A closed profile set prevents typos and arbitrary equipment
+values from being persisted as meaningful requirements while retaining
+explicit support for known future profiles.
+
+### D-441 — Normalize equipment-profile casing
+
+**Decision:** When `equipmentProfile` is supplied, trim surrounding
+whitespace and accept recognized profile codes regardless of letter casing.
+Store the accepted value in uppercase in the canonical Load revision.
+After normalization, any value outside the recognized set defined by D-440
+rejects the full booking submission with `EQUIPMENT_PROFILE_INVALID`.
+
+**Reason:** Normalizing routine casing and whitespace variation preserves a
+single canonical profile representation without widening the supported
+profile set.
+
+### D-442 — Normalize special-handling codes
+
+**Decision:** For each `specialHandlingCodes` value, trim surrounding
+whitespace and accept `OVERSIZE` or `HAZMAT` regardless of letter casing.
+Normalize known values to uppercase before deduplication. Reject an empty or
+unrecognized normalized value with `SPECIAL_HANDLING_CODE_INVALID` at its
+indexed field path; this booking-rule issue rejects the full submission.
+
+**Reason:** Normalization and deduplication give the set a consistent
+canonical representation while keeping validation closed to known codes.
+
+### D-443 — Omit empty special-handling sets from revisions
+
+**Decision:** `specialHandlingCodes` is optional in booking input. When
+omitted or supplied as an empty array, omit it from the canonical Load
+revision; do not serialize an empty array or `null` to mean that no
+requirements exist. A non-empty array follows the value validation,
+normalization, and deduplication rules in D-438, D-439, and D-442.
+
+**Reason:** Omitting an empty optional set follows the canonical revision
+absence rule and avoids storing equivalent no-requirement states differently.
+
+### D-444 — Normalize optional stop coordinates
+
+**Decision:** Accept optional `address.coordinates` as a WGS 84 object with
+JSON-number `latitude` and `longitude`. Latitude must be within −90..90 and
+longitude within −180..180; each value may have at most six fractional
+digits. If supplied coordinates are partial, malformed, over-precision, or
+out of range, accept the otherwise valid booking, omit the coordinates from
+the canonical address snapshot, and return non-blocking
+`STOP_COORDINATES_INVALID` at the exact `address.coordinates` field path.
+
+**Reason:** Optional verified coordinates can improve downstream
+geospatial work, while invalid values should not erase an otherwise valid
+commercial booking.
+
+### D-445 — Normalize handling-unit codes
+
+**Decision:** Trim surrounding whitespace from each `handlingUnitCode`,
+accept recognized codes regardless of letter casing, and normalize the
+canonical value to uppercase before applying the `OTHER` description rules.
+Reject an empty or unrecognized value with `HANDLING_UNIT_INVALID` at the
+exact freight-line field path; this booking-rule issue rejects the full
+submission.
+
+**Reason:** Case and whitespace normalization improves broker input
+tolerance while preserving a single controlled handling-unit vocabulary.
+
+### D-446 — Normalize customer-rate currency codes
+
+**Decision:** Trim surrounding whitespace from `customerRate.currency` and
+normalize its casing to uppercase before validation. Reject a value that is
+not a valid ISO 4217 code with `CUSTOMER_CURRENCY_INVALID`; reject a valid
+code other than `USD` with `CUSTOMER_CURRENCY_UNSUPPORTED`. Store the accepted
+currency as uppercase `USD`. A missing currency remains invalid.
+
+**Reason:** Normalization accepts routine formatting variation while
+preserving the initial USD-only commercial contract.
+
+### D-447 — Bound the customer-rate amount
+
+**Decision:** Represent `customerRate.amount` as a positive decimal string
+with at most two fractional digits and persist it as `NUMERIC(12,2)`. The
+maximum is `9999999999.99` USD. A malformed, non-positive, over-precision,
+or out-of-range amount rejects the full booking submission with
+`CUSTOMER_RATE_AMOUNT_INVALID` at the exact amount field path.
+
+**Reason:** Explicit precision and range prevent rounding and database
+overflow while supporting the initial one-total-rate-per-Load model.
+
+### D-448 — Define customer-rate amount notation
+
+**Decision:** Trim surrounding whitespace from `customerRate.amount`, then
+accept only plain decimal notation matching digits with an optional decimal
+point followed by one or two digits. Do not accept signs, grouping
+separators, or exponent notation. The normalized value must remain positive
+and within the D-447 range; otherwise reject the submission with
+`CUSTOMER_RATE_AMOUNT_INVALID` at the exact amount field path.
+
+**Reason:** A strict decimal grammar preserves exact money values and
+prevents locale-specific or floating-point representations from being
+interpreted inconsistently.
+
+### D-449 — Canonicalize customer-rate scale
+
+**Decision:** After validating and trimming `customerRate.amount`, serialize
+it in the canonical Load revision with exactly two fractional digits and no
+redundant leading zeroes. For example, `0001250.5` becomes `1250.50`.
+
+**Reason:** Fixed-scale canonical money values compare and serialize
+consistently while preserving the exact accepted monetary amount.
+
+### D-450 — Canonicalize freight quantity scale
+
+**Decision:** After validating a freight-line `quantity`, serialize it in
+the canonical Load revision with exactly three fractional digits and no
+redundant leading zeroes. For example, `12` becomes `12.000` and `0.5`
+becomes `0.500`.
+
+**Reason:** Fixed-scale quantities compare and serialize consistently with
+their `NUMERIC(12,3)` storage representation.
+
+### D-451 — Define freight-quantity notation
+
+**Decision:** Trim surrounding whitespace from each freight-line
+`quantity`, then accept only plain decimal notation consisting of digits
+with an optional decimal point followed by one to three digits. Do not accept
+signs, grouping separators, or exponent notation. The normalized value must
+be positive and within the D-428 range; otherwise reject the full submission
+with `FREIGHT_QUANTITY_INVALID` at the exact field path.
+
+**Reason:** A strict decimal grammar preserves exact quantities and prevents
+locale-specific or floating-point representations from being interpreted
+inconsistently.
+
+### D-452 — Normalize stop-type values
+
+**Decision:** Trim surrounding whitespace from each stop `type`, accept
+`PICKUP` or `DELIVERY` regardless of letter casing, and store the normalized
+value in uppercase. Reject an empty or unrecognized value with
+`STOP_TYPE_INVALID` at the exact stop-type field path; this booking-rule
+issue rejects the full submission.
+
+**Reason:** Normalizing case and whitespace accepts ordinary input variation
+while retaining a controlled stop-type vocabulary and canonical values.
+
+### D-453 — Normalize gross-weight units
+
+**Decision:** Trim surrounding whitespace from `totalGrossWeight.unit`,
+accept `LB` or `KG` regardless of letter casing, and store the accepted unit
+in uppercase in the canonical Load revision. An empty or unsupported unit
+remains invalid and rejects the full booking submission with
+`TOTAL_GROSS_WEIGHT_INVALID` at the exact unit field path.
+
+**Reason:** Unit normalization accepts routine input variation while
+preserving explicit, canonical weight units.
+
+### D-454 — Canonicalize gross-weight scale
+
+**Decision:** After validating `totalGrossWeight.value`, serialize it in the
+canonical Load revision with exactly three fractional digits and no
+redundant leading zeroes. For example, `1250.5` becomes `1250.500`.
+
+**Reason:** Fixed-scale weight values compare and serialize consistently
+with their `NUMERIC(12,3)` storage representation.
+
+### D-455 — Define gross-weight value notation
+
+**Decision:** Trim surrounding whitespace from `totalGrossWeight.value`,
+then accept only plain decimal notation consisting of digits with an
+optional decimal point followed by one to three digits. Do not accept signs,
+grouping separators, or exponent notation. The normalized value must be
+positive and within the `NUMERIC(12,3)` range; otherwise reject the full
+submission with `TOTAL_GROSS_WEIGHT_INVALID` at the exact value field path.
+
+**Reason:** A strict decimal grammar prevents locale-specific and
+floating-point representations from being interpreted inconsistently.
+
+### D-456 — Normalize reefer temperature units
+
+**Decision:** Trim surrounding whitespace from `temperatureRange.unit`,
+accept `F` or `C` regardless of letter casing, and normalize recognized
+values to uppercase before validating the range. An empty or unsupported
+unit makes the supplied range invalid; apply the existing
+`REEFER_TEMPERATURE_RANGE_INVALID` planning-blocking follow-up behavior.
+
+**Reason:** Unit normalization accepts common input variations while
+retaining one canonical representation and the existing stage-gated
+correction path.
+
+### D-457 — Canonicalize reefer temperature scale
+
+**Decision:** After validating a reefer temperature endpoint, serialize each
+accepted `temperatureRange.minimum` and `.maximum` in the canonical Load
+revision with exactly two fractional digits, preserving its sign. For
+example, `2` becomes `2.00` and `-5.5` becomes `-5.50`.
+
+**Reason:** Fixed-scale temperature values compare and serialize
+consistently with their signed `NUMERIC(5,2)` storage representation.
+
+### D-458 — Define reefer temperature notation
+
+**Decision:** Trim surrounding whitespace from each
+`temperatureRange.minimum` and `.maximum`. Accept signed plain decimal
+notation with an optional leading minus sign, an optional decimal point
+followed by one or two digits, and values within the signed `NUMERIC(5,2)`
+range. Do not accept a leading plus sign, grouping separators, or exponent
+notation. A malformed or out-of-range supplied endpoint makes the range
+invalid and follows D-410's planning-blocking follow-up behavior.
+
+**Reason:** The signed decimal grammar supports below-zero temperatures
+while preserving exact values without locale or floating-point ambiguity.
+
+### D-459 — Normalize flatbed dimension units
+
+**Decision:** Trim surrounding whitespace from each flatbed freight-line
+`dimensions.unit`, accept `IN` or `CM` regardless of letter casing, and
+normalize recognized values to uppercase before validating dimensions. An
+empty or unsupported unit makes the supplied dimensions invalid and follows
+D-412's planning-blocking follow-up behavior.
+
+**Reason:** Unit normalization accepts routine input variations while
+preserving a single canonical measurement unit.
+
+### D-460 — Canonicalize flatbed dimension scale
+
+**Decision:** After validating each flatbed dimension, serialize accepted
+`length`, `width`, and `height` values in the canonical Load revision with
+exactly two fractional digits, consistent with `NUMERIC(10,2)`.
+
+**Reason:** Fixed-scale dimensions compare and serialize consistently with
+their database representation.
+
+### D-461 — Define flatbed dimension notation
+
+**Decision:** Trim surrounding whitespace from each flatbed dimension. Accept
+only positive plain decimal notation consisting of digits with an optional
+decimal point followed by one or two digits, without signs, grouping
+separators, or exponent notation. Values must fit `NUMERIC(10,2)`. A malformed,
+non-positive, over-precision, or out-of-range supplied value makes the
+dimensions invalid and follows D-412's planning-blocking follow-up behavior.
+
+**Reason:** A strict decimal grammar prevents locale-specific or
+floating-point representations from being interpreted inconsistently while
+preserving the agreed stage-gated correction behavior.
+
+### D-462 — Normalize reefer-mode values
+
+**Decision:** Trim surrounding whitespace from `reeferMode`, accept
+`CONTINUOUS` or `START_STOP` regardless of letter casing, and normalize
+recognized values to uppercase before applying the existing default and
+correction rules. Unrecognized values continue to follow D-420 and D-421.
+
+**Reason:** Normalizing recognized enum values avoids unnecessary correction
+notices while preserving the agreed safe-default behavior for truly invalid
+modes.
+
+### D-463 — Require UUIDv7 Customer identifiers
+
+**Decision:** Require booking `customerId` to be a syntactically valid
+UUIDv7 issued by Counterparty Registry. Reject a missing ID with
+`CUSTOMER_ID_REQUIRED`; reject malformed or non-UUIDv7 values with
+`CUSTOMER_ID_INVALID` at the exact field path. These booking-rule issues
+reject the full submission. Perform Customer-status lookup only for a
+syntactically valid UUIDv7.
+
+**Reason:** Validating identifier shape before owner lookup avoids pointless
+service calls and keeps cross-service references within the established
+UUIDv7 identifier convention.
+
+### D-464 — Require pickup-first and delivery-last stop order
+
+**Decision:** A booking's ordered stop list must begin with a `PICKUP` and
+end with a `DELIVERY`, and must contain at least one of each type.
+Intermediate pickups and deliveries may interleave. Reject a list that
+violates the endpoint or presence rules with `STOP_SEQUENCE_INVALID` at the
+stop-list field path; this booking-rule issue rejects the full submission.
+Dispatch Planning remains responsible for route feasibility.
+
+**Reason:** The first and last stop types establish a coherent transport
+direction at booking while preserving operationally valid multi-pickup and
+multi-delivery sequences for planning.
+
+### D-465 — Return all independent booking issues
+
+**Decision:** When a booking submission contains multiple validation
+failures, collect all independently detectable booking-critical issues rather
+than stopping at the first issue. Sort the durable `issues` array by
+`rowNumber` ascending, then `fieldPath` lexicographically ascending, with
+`code` lexicographically ascending as a tie-breaker. Do not emit duplicate
+or cascading issues when one invalid value prevents a dependent check.
+
+**Reason:** A complete, deterministic issue list lets brokers correct a
+rejected submission efficiently and gives clients stable response ordering.
+
+### D-466 — Separate missing and malformed postal codes
+
+**Decision:** A stop's `postalCode` is required. Reject a missing or
+whitespace-only value with `STOP_ADDRESS_FIELD_REQUIRED`. For a supplied
+non-empty value, trim surrounding whitespace and accept five digits or
+hyphenated ZIP+4; reject any other format with `STOP_POSTAL_CODE_INVALID`.
+Include the exact field path and reject the full booking submission.
+
+**Reason:** Distinct required-field and format errors tell the broker whether
+to provide a value or correct its format.
+
+### D-467 — Separate missing and invalid state codes
+
+**Decision:** A stop's `stateCode` is required. Reject a missing or
+whitespace-only value with `STOP_ADDRESS_FIELD_REQUIRED`. Otherwise trim the
+value, normalize valid in-scope state/DC abbreviations regardless of casing,
+and store them uppercase. Reject malformed codes and codes outside the 50
+states plus DC with `STOP_STATE_CODE_INVALID` at the exact field path.
+Booking-rule failures reject the full submission.
+
+**Reason:** The distinction gives clear corrective guidance without
+weakening the agreed state-code scope or normalization.
+
+### D-468 — Distinguish missing rate from missing amount
+
+**Decision:** Use `CUSTOMER_RATE_REQUIRED` only when the entire
+`customerRate` object is absent. If the object is present but `amount` is
+missing or whitespace-only after trimming, reject the full submission with
+`CUSTOMER_RATE_AMOUNT_INVALID` at the amount field path, as for any other
+malformed, non-positive, over-precision, or out-of-range amount.
+
+**Reason:** Separate codes identify whether the broker must add the rate
+object or correct its amount.
+
+### D-469 — Defer hazardous-goods details while HAZMAT is held
+
+**Decision:** In the initial booking schema, `HAZMAT` is a special-handling
+flag only; do not require hazardous-goods detail fields at booking. Continue
+to accept the flag but hold the Load from planning and Assignment with
+`SPECIAL_HANDLING_UNSUPPORTED` until a dedicated hazardous-goods workflow
+and its required details are defined.
+
+**Reason:** This preserves the selected initial booking behavior without
+implying that a HAZMAT Load is safe or ready for operational execution.
+
+### D-470 — Persist rejected Load amendment attempts
+
+**Decision:** When a complete Load amendment snapshot fails booking-rule
+validation, durably retain the rejected attempt and its validation issues in
+the Load service's idempotency result. Order issues by `fieldPath`
+lexicographically, then by `code` lexicographically. Do not create a Load
+revision or publish a revision fact. An identical retry with the same
+idempotency key replays the stored rejection; corrected content requires a
+new key.
+
+**Reason:** Durable, deterministic rejection results support reliable client
+retries and auditable correction without changing the committed Load state.
+
+### D-471 — Hold active Assignment through amendment revalidation
+
+**Decision:** When a Load amendment commits while an Assignment is active but
+Execution has not started, freeze Dispatch progression. Retain the existing
+Assignment and confirmed Capacity Commitment while the amended Load revision
+is replanned and replacement capacity is confirmed. Do not supersede the
+Assignment or release its commitment until the replacement plan and capacity
+confirmation are durable. Then perform a coordinated, recoverable handoff to
+the Assignment and commitment for the exact amended revision before resuming
+progression. If revalidation cannot complete, keep the Load held; do not
+resume the old plan against the amended revision.
+
+**Reason:** Retaining the current commitment avoids an unprotected capacity
+gap, while freezing progression prevents execution from relying on stale
+requirements.
+
+### D-472 — Keep Customer identity immutable across Load revisions
+
+**Decision:** An amendment must retain the Load's original `customerId`.
+Reject a changed value with `LOAD_CUSTOMER_IMMUTABLE` at `/customerId`.
+Changing the Customer is not a Load amendment; create a separate booking and
+handle the existing Load through its normal lifecycle controls.
+
+**Reason:** Customer identity determines the commercial and authorization
+context for the Load; changing it in place would rewrite ownership semantics
+across an immutable operational history.
+
+### D-473 — Clear omitted optional values in Load amendments
+
+**Decision:** A Load amendment is a complete replacement snapshot. An
+optional field omitted from the new snapshot has no value in that revision;
+do not inherit its value from the previous revision. Apply the field's
+existing validation and canonicalization rules to supplied values.
+
+**Reason:** Explicit replacement semantics make each immutable revision a
+self-contained statement of current requirements and prevent stale values
+from silently surviving a broker's amendment.
+
+### D-474 — Treat null as omission for optional request fields
+
+**Decision:** In booking and amendment request bodies, treat an explicit
+`null` for an optional field that is not defined as nullable as omission.
+Continue to apply normal validation to required fields and the explicitly
+defined semantics of nullable fields. Canonical Load revisions and emitted
+facts continue to omit fields with no value unless their contract defines a
+meaningful `null`.
+
+**Reason:** Accepting `null` as absence makes request normalization tolerant
+of common client serialization while preserving the canonical distinction
+between absent data and meaningful null values.
+
+### D-475 — Generate freight-line IDs for each revision
+
+**Decision:** Generate a new UUIDv7 `freightLineId` for every freight line
+when creating a Load revision, including lines whose business values are
+unchanged from the prior revision. Freight-line identifiers are revision-
+scoped and are never carried across revisions.
+
+**Reason:** Revision-scoped row identity keeps each immutable snapshot
+self-contained and prevents later edits from changing the meaning of a
+freight-line reference in historical records.
+
+### D-476 — Bind amendment idempotency to its base revision
+
+**Decision:** Include the normalized replacement snapshot and `If-Match`
+base-revision ETag in the Load amendment idempotency fingerprint. Resolve an
+existing idempotency result before re-evaluating the current ETag, so an
+identical retry replays the original outcome even if the Load has since
+advanced. Reusing the key with a different snapshot or base ETag returns
+`409 Conflict`.
+
+**Reason:** The base revision is part of the amendment's concurrency
+precondition; binding it to the key prevents one idempotency key from
+representing distinct amendment commands.
+
+### D-477 — Bound active-Assignment amendment revalidation
+
+**Decision:** The protective retention of an existing Assignment and
+confirmed Capacity Commitment during amendment revalidation expires ten
+minutes after the amendment commits; this deadline is not renewed by retries.
+If replacement planning and capacity confirmation are not both durable by
+then, retire that revalidation attempt and begin coordinated release of the
+old Assignment and commitment. Keep the Load blocked until both owners
+confirm release, then return it to normal planning. Late results from the
+expired attempt must not reactivate the old handoff. This supersedes D-471's
+instruction to keep the Load held when revalidation cannot complete.
+
+**Reason:** A fixed deadline prevents an unresolved amendment from holding
+capacity indefinitely while ensuring the Load cannot re-enter planning until
+its prior Assignment and commitment are safely released.
+
+### D-478 — Persist stale-ETag amendment outcomes
+
+**Decision:** When an amendment's `If-Match` ETag is stale, durably retain
+the `412 Precondition Failed` outcome against its idempotency key and
+fingerprint. An identical retry replays the stored `412`; it creates no Load
+revision or revision fact.
+
+**Reason:** Persisting precondition failures makes retries deterministic and
+prevents a stale amendment command from being reinterpreted after later Load
+changes.
+
+### D-479 — Persist missing-precondition amendment outcomes
+
+**Decision:** When an amendment omits required `If-Match`, return
+`428 Precondition Required` and durably retain the outcome against its
+idempotency fingerprint. An identical retry replays the `428` and creates no
+revision. Supplying the missing ETag changes the fingerprint, so the corrected
+request requires a new idempotency key.
+
+**Reason:** Consistent durable handling of amendment precondition failures
+keeps a key bound to one immutable command and makes client recovery
+unambiguous.
+
+### D-480 — Acknowledge expired amendment-revalidation release
+
+**Decision:** When the ten-minute amendment-revalidation deadline expires
+and the old Assignment and Capacity Commitment have both been released,
+immediately notify the responsible dispatcher as the primary
+acknowledgement owner and inform the broker. Require dispatcher
+acknowledgement and apply the existing urgent-notification resend and
+15-minute escalation protocol.
+
+**Reason:** The dispatcher must promptly know that prior capacity protection
+has ended and that the Load has returned to planning; acknowledgement confirms
+receipt without resolving or changing the Load's business state.
+
+### D-481 — Define the Execution-start gate
+
+**Decision:** Execution may accept actual pickup/departure and transition a
+Trip or per-Load Execution from `PLANNED` to `IN_PROGRESS` only when the
+Assignment is active for the exact current Load revision, its Capacity
+Commitment is confirmed, the current Load revision is `READY`, and all
+required Fleet Readiness facts used for the assigned resources remain current
+and valid. Do not require an additional per-start dispatcher approval or
+driver pre-trip attestation in the initial workflow. Actual pickup/departure
+is recorded by Execution as the start fact; assignment alone does not mean
+that movement has begun. This does not preclude separately reviewed legal or
+safety requirements.
+
+**Reason:** The gate relies on authoritative, revision-matched operational
+records and avoids treating an Assignment as proof of movement or adding an
+unapproved approval step.
+
+### D-482 — Prioritize the coherent TMS over showcase features
+
+**Decision:** Define the intended initial operational release as the coherent
+TMS capability the owners intend the system ultimately to provide, not as a
+narrow minimum feature set selected to demonstrate value to external
+customers. This does not require implementing the entire target in one
+delivery. Treat business scope, architecture, infrastructure, contracts,
+security, and operational controls as interconnected parts of one system
+and refine them iteratively. Select implementation increments according to
+their technical importance to the whole system, including architectural
+learning, unresolved risk, dependency order, system integrity, and
+end-to-end verifiability; no individual service or business function has
+inherent priority over system coherence. Use bounded vertical slices to
+implement and validate increments, not to redefine the target as a showcase.
+Do not use _MVP_ to imply a narrow customer-facing scope or a reduced
+technical standard. Detailed operational scope and measurable acceptance
+criteria remain subject to explicit approval.
+
+**Reason:** The owners are both the business and engineering stakeholders,
+so the objective is to establish a dependable, coherent TMS rather than to
+optimize for customer demonstration or feature quantity. Architecture-led
+sequencing directs effort toward the decisions and dependencies with the
+greatest impact on correctness and recoverability.
+
+### D-483 — Establish the minimum TMS target and preserve system boundaries
+
+**Decision:** Treat the currently documented booked-Load-to-Execution-
+confirmed-closeout workflow and its already selected connected
+responsibilities as the minimum identified TMS target, not as a finalized
+maximum scope or an approved release checklist. The minimum includes the
+foundational identity, counterparty and fleet-readiness records; Load
+booking/revisions; planning, capacity protection and Assignment; Execution,
+evidence, exception handling and closeout; and the connected operational
+capabilities explicitly recorded as in scope in the system blueprint and
+responsibility map. It also requires the platform and operational controls
+needed to make those responsibilities dependable. Detailed requirements,
+acceptance criteria, and implementation timing remain governed by their
+owning documents and the implementation-readiness gate.
+
+Keep the TMS a bounded, foundational transportation system on which adjacent
+business systems may rely through explicit contracts; do not absorb
+independent systems or mix their authoritative responsibilities into TMS
+services. Billing, accounting, accounts receivable/payable, and settlement
+remain outside the TMS. TMS rates and internal charge/cost proposals are not
+financial ledgers, invoices, payment obligations, or settlement records.
+Whether user-facing client applications are delivered with the TMS or
+separately remains open and does not change business ownership boundaries.
+The maximum scope is intentionally undefined. Any addition or exclusion
+requires an explicit owner decision identifying purpose, ownership, records,
+relationships, lifecycle, integrations, and completion boundary.
+
+This decision refines and supersedes the scope boundary in D-23 where later
+decisions have explicitly brought bounded manual tendering, internal
+Customer-charge and Carrier-cost proposals, and Load-linked operational
+claims into the TMS target. D-23's exclusion of broader sourcing,
+financial execution, maintenance management, and unrestricted claims
+handling remains in force as clarified by the current responsibility map.
+
+**Reason:** Establishing the minimum gives architecture and implementation
+planning a concrete foundation without falsely treating current coverage as
+the full product boundary. Preserving independent system ownership prevents
+scope growth from collapsing distinct business responsibilities into one
+TMS.
+
+### D-484 — Select one accepted Carrier tender as binding
+
+**Decision:** Carrier acceptance of a manual Load tender records the
+Carrier's commercial response but does not itself reserve capacity or bind
+the Load to that Carrier. If one or more tenders are accepted, the responsible
+`contract_capacity_dispatcher` explicitly selects exactly one accepted tender
+as the binding tender for the Load and records that selection. Dispatch
+Planning may consider only the Carrier on the selected binding tender for
+that Load. The binding selection does not assert that capacity is available:
+the normal Dispatch Planning and Capacity Commitment workflow must still
+establish a feasible Assignment and confirmed reservation. If the selected
+Carrier cannot pass readiness or capacity checks, keep the Load unassigned
+until an authorized dispatcher action changes the tender selection.
+
+When a tender is selected as binding, the dispatcher closes competing open
+and accepted tenders through the existing external channel and records their
+disposition; the TMS does not contact Carriers automatically. Preserve all
+tender rounds, acceptances, selection history, and closure records.
+
+Before an Assignment becomes active, the responsible dispatcher may
+explicitly supersede the binding selection and select another accepted
+tender only after reconfirming that Carrier's acceptance through the external
+channel, or issue a replacement tender. Record the actor, time, reason, old
+and new tender references, and required external communications. Once an
+Assignment is active, a Carrier change must use the Load amendment/replanning
+or cancellation workflow and its coordinated Assignment and Capacity
+Commitment handling; do not replace the Carrier directly on the active
+Assignment.
+
+**Reason:** An explicit binding selection resolves multiple Carrier
+acceptances without losing negotiation history. Constraining planning to the
+selected Carrier preserves the recorded commercial agreement, while keeping
+reservation and Assignment authority with their existing owners prevents a
+tender from being misrepresented as secured capacity.
+
+### D-485 — Permit tender withdrawal before binding selection
+
+**Decision:** The responsible `contract_capacity_dispatcher` may withdraw a
+tender at any time before it is selected as the Load's binding tender,
+including after a Carrier has accepted it. Record withdrawal as a terminal
+tender disposition, preserve all prior rounds and responses, and have the
+dispatcher communicate the withdrawal through the existing external
+channel. A tender selected as binding cannot be directly withdrawn; use the
+pre-Assignment reselection process in D-484 or the Load amendment/replanning
+or cancellation workflow after Assignment activation.
+
+This supersedes D-173's prohibition on withdrawing an open tender. D-174's
+automatic cancellation of open tenders when a Load is canceled remains in
+force.
+
+**Reason:** Allowing the responsible dispatcher to end a negotiation before
+binding supports changing operational circumstances, while preserving a
+clear control boundary once a Carrier is selected for the Load.
+
+### D-486 — Preserve the binding Carrier through pre-Assignment amendments
+
+**Decision:** A committed Load amendment before Assignment activation does not
+by itself clear or replace the selected binding Carrier. Dispatch Planning
+must revalidate the exact amended Load revision against that Carrier's
+readiness and capacity. If the bound Carrier cannot pass the required checks,
+keep the Load unassigned until the responsible dispatcher takes an explicit
+re-tender or reselection action under D-484. Do not silently substitute
+another Carrier. A Load amendment does not rewrite the accepted tender's
+historical terms; whether amended requirements require a new rate or renewed
+Carrier acceptance remains open.
+
+**Reason:** Retaining the binding Carrier avoids an implicit change to the
+commercial selection, while exact-revision revalidation prevents planning
+against stale Load requirements. Rate renegotiation remains a separate
+commercial decision rather than an automatic consequence of snapshot
+replacement.
+
+### D-487 — Preserve valid bookings when secondary input is invalid
+
+**Decision:** If all booking-critical data is valid, an invalid value in an
+optional field or a field required only at a later workflow stage does not
+reject the booking or its batch. Do not treat the invalid value as an
+authoritative Load fact; omit it from the canonical revision and create a
+field-addressed completion task that identifies the issue and required
+correction. Hold any later stage that requires that fact until valid data is
+provided and revalidated; unrelated stages and Loads may proceed. If the
+invalid field is not required by a stage gate, the completion task is
+non-blocking. Booking-critical omissions or invalid values continue to reject
+the entire batch without creating Loads.
+
+This supersedes conflicting booking-rejection behavior for invalid optional
+or later-stage values in D-416, D-422, D-424, D-426, D-430, D-438, D-440,
+D-441, D-442, D-453, D-454, and D-455. It does not change rejection of
+booking-critical fields or conditionally required booking data, such as the
+description required when a freight line uses `OTHER`. Existing field
+normalization rules remain in force. Exact completion-task and
+planning-readiness codes and payloads remain subject to the open contract
+work.
+
+**Reason:** Booking commits the commercial Load only when its essential
+requirements are valid. Treating malformed optional or later-stage data as
+an actionable correction preserves that commitment without allowing
+unverified facts to pass a later operational gate.
+
+### D-488 — Limit Customer status gating to future bookings
+
+**Decision:** A Customer status other than `ACTIVE` prevents new bookings
+for that Customer. A later transition from `ACTIVE` to `SUSPENDED` or
+`CLOSED` does not automatically hold, amend, or cancel Loads that were
+already accepted. Existing Loads continue under their current lifecycle
+unless separately amended or canceled through the authorized workflow.
+Status-change notifications and any Carrier/Fleet Readiness revalidation
+remain subject to their respective contracts.
+
+**Reason:** A Customer status change governs whether the company accepts
+additional commercial work; it does not silently reverse existing
+commitments or bypass the Load amendment and cancellation controls.
+
+### D-489 — Preserve active Carrier work after a status change
+
+**Decision:** Only an `ACTIVE` Carrier may be selected for new binding
+tenders or have a pending Assignment activated. If a Carrier becomes
+`SUSPENDED` or `CLOSED` before Assignment activation, do not activate a
+pending Assignment for that Carrier. Retain that pending Assignment and any
+existing Capacity Commitment reservation for explicit dispatcher
+re-tender/reselection or coordinated release; if no Assignment has been
+proposed, keep the Load unassigned pending dispatcher action. Do not
+automatically release a reservation, hold, amend, or cancel an already active
+Assignment or its Execution. Existing active work continues under its
+current lifecycle unless an authorized dispatcher performs the applicable
+coordinated reassignment or cancellation workflow. Status-change
+notifications and owner-fact freshness/revalidation procedures remain open.
+
+**Reason:** Carrier status controls new operational commitments and
+activation, while preserving already-active work avoids silent reassignment
+or cancellation outside the coordinated Load, Assignment, and Capacity
+Commitment workflows.
+
+### D-490 — Assign Carrier eligibility facts to Fleet Readiness
+
+**Decision:** Fleet Readiness owns versioned Carrier eligibility facts and
+their verification evidence when those facts are required as planning gates.
+Counterparty Registry continues to own Carrier identity and lifecycle status,
+not qualification. Fleet Readiness records facts and enforces approved
+hard gates; it does not interpret law or manage compliance cases. The exact
+fact catalogue, verification sources and roles, validity periods, and
+Carrier agreement lifecycle and ownership remain open.
+
+**Reason:** Planning-critical eligibility needs a clear operational owner
+and an auditable evidence trail, without expanding Counterparty Registry or
+Fleet Readiness into legal interpretation or compliance case management.
+
+### D-491 — Evaluate Carrier eligibility per applicable fact
+
+**Decision:** Dispatch Planning evaluates each applicable, evidence-backed
+Carrier eligibility fact independently. A required fact that is missing,
+expired, invalid, or not verified blocks planning; no single aggregate
+Carrier-level `QUALIFIED` flag may substitute for those facts. Dispatch
+Planning derives the eligibility outcome from the current owner facts. The
+exact fact catalogue, verification sources, and fact-specific validity
+periods remain open.
+
+**Reason:** Independent fact evaluation preserves the evidence and failure
+reason for each planning gate and prevents an aggregate status from
+concealing a missing, stale, or invalid requirement.
+
+### D-492 — Record Carrier eligibility from manual evidence review
+
+**Decision:** In the initial scope, an authorized verifier manually reviews
+an approved authoritative source and records the resulting Carrier
+eligibility fact in Fleet Readiness. Retain the evidence source/reference,
+verifier, observation time, owner revision, and applicable validity period.
+Do not assume or require live external-source integration for this workflow.
+Missing, expired, or unverified required evidence remains blocking under
+D-491. The approved source catalogue, verifier roles, and fact-specific
+validity periods remain open.
+
+**Reason:** Manual evidence review establishes an auditable initial path
+without coupling core planning to unselected external integrations or
+treating an unsupported assertion as verified eligibility.
+
+### D-493 — Keep Carrier agreements externally authoritative
+
+**Decision:** Carrier agreements remain external legal records; the TMS does
+not own their authoring, signature, renewal, termination, or full lifecycle.
+When an agreement is required for a planning or tender gate, Fleet Readiness
+stores only the versioned, verified operational eligibility fact and
+agreement reference needed for that gate, together with its evidence and
+validity metadata. Do not treat the TMS reference as the agreement itself.
+This resolves the agreement-ownership question left open in D-490. The exact
+reference fields, agreement sources, verification roles, and validity rules
+remain open.
+
+**Reason:** Keeping the legal agreement in its authoritative external
+boundary avoids duplicating legal lifecycle management while retaining the
+verified operational fact needed by TMS workflows.
+
+### D-494 — Notify owners when Carrier eligibility facts change
+
+**Decision:** When a Carrier eligibility fact becomes invalid, reaches its
+validity deadline, or is superseded, immediately notify the responsible
+verifier and affected planning owner. Apply the stage-specific gate in D-491:
+hold only planning actions that require the invalid or unavailable fact.
+This notice does not automatically hold, amend, or cancel an active
+Assignment or Execution under D-489. The notification channel, delivery
+retry, and acknowledgement rules remain open; this does not settle notices
+for Counterparty Registry status changes.
+
+**Reason:** Immediate, owner-directed notice makes a changed eligibility
+fact actionable while preserving stage ownership and the explicit
+reassignment/cancellation controls for active work.
+
+### D-495 — Require an explicit Execution closeout gate
+
+**Decision:** Execution alone determines whether a Trip or per-Load
+Execution may enter `COMPLETED`. A Trip Execution may complete after every
+planned Trip stop has its required actual arrival/departure milestones and
+stop outcome, and the final planned stop has been departed. Trip completion
+does not require per-Load closeout, proof-of-delivery approval, or resolution
+of a Load-specific delivery exception.
+
+A per-Load Execution may confirm closeout after the transportation attempt
+has ended and its planned stops have final actual outcomes. Each delivery
+stop at which freight was unloaded requires clean, `AVAILABLE`
+proof-of-delivery evidence or an authorized, reasoned exception when that
+evidence cannot be uploaded. A stop with no delivery requires a final
+`PARTIAL` or `NOT_COMPLETED` outcome and linked issue, not a fabricated POD.
+An own-fleet POD may satisfy the evidence gate on receipt. A contractor or
+outer-Carrier POD requires dispatcher review before closeout. If POD upload
+is unavailable, an authorized dispatcher may record the delivery statement
+and closeout basis; this is an explicit evidence exception, not a received
+or verified POD, and must create a linked issue for follow-up.
+
+Record actual delivered quantity for each applicable freight line at each
+delivery stop. Preserve shortfalls, overages, refused or omitted stops, and
+actual unload locations as factual outcomes and linked issue records. These
+outcomes do not keep the Load or Execution open after the transportation
+attempt has ended, and they do not certify that the Customer's commercial
+obligations are satisfied. If all freight for the Load has been unloaded,
+both Load and per-Load Execution become `COMPLETED`, including when the
+actual final unload location differs from the planned location. If freight
+remains on the equipment after the final attempted delivery, both records
+still become `COMPLETED`; the remaining-freight issue is recorded and handed
+to its receiving service. A Load may share equipment with other Loads, so
+completion is determined from this Load's freight, not whether the whole
+trailer is empty.
+
+Persist the closeout decision and its evidence/exception references as an
+Execution-owned fact. Load becomes `COMPLETED` only after consuming that
+authoritative fact under D-33; Load does not independently infer closeout.
+This consolidates D-19, D-42, D-65, and D-66 without changing the
+Execution-start gate in D-481. D-512 supersedes D-84's blocking-exception
+closeout rule. D-503 subsequently defines the logical quantity
+representation and closeout-fact schema. Exact operation payloads and
+evidence-retention controls remain open.
+
+**Reason:** An explicit owner-computed gate makes each delivery's evidence,
+quantity, and exception status auditable while preventing Trip completion
+from being confused with completion of every Load on that Trip.
+
+### D-496 — Keep exception cases independent of terminal lifecycle state
+
+**Decision:** Load terminal states are `CANCELLED` and `COMPLETED`; neither
+may transition to the other or back to a non-terminal Load state. Reaching
+`CANCELLED` requires the downstream release confirmations defined in D-29.
+Reaching `COMPLETED` requires the Execution closeout fact defined in D-495.
+An exception case does not itself reverse or delay cancellation once those
+required releases are confirmed.
+
+Execution-owned movement and evidence records retain their own history
+independently of Load lifecycle. D-512 supersedes the internal TMS lifecycle
+for post-delivery claims and operational issues: the Load service retains a
+minimal Load-linked issue record and handoff state, while the receiving
+out-of-scope service owns issue assignment, status, and resolution. A linked
+issue neither delays nor reverses terminal Load or Execution status.
+
+Trip and per-Load Execution lifecycle completion records the end of movement,
+not the resolution of every linked issue. Corrected reports and late evidence
+are appended as new records and do not silently alter a terminal state.
+
+**Reason:** Lifecycle status represents the disposition of transportation
+work; exception state represents follow-up. Keeping these histories
+independent preserves terminal-state meaning while allowing operational
+investigation and post-delivery claims to continue.
+
+### D-497 — Define booking validation outcomes and correction tasks
+
+**Decision:** The booking contract in [`contracts.md`](../contracts.md)
+defines the semantic request field inventory and the durable result
+envelopes for accepted and rejected submissions. Booking-critical errors
+reject the entire batch and produce ordered, field-addressed `issues`.
+Accepted results return one Load reference per source row, retaining the
+one-based row number and deterministic row order.
+Invalid optional or later-stage values are omitted from the canonical Load
+revision and produce accepted `followUpItems`; the task identifies the Load,
+source row, request field path, cause, safe explanation, corrective action,
+and the affected stage gate. Informational follow-ups do not block a stage.
+The Load readiness fact separately reports deterministic, field-addressed
+blockers for the current revision. None of these completion tasks is an
+exception case or changes the booking outcome.
+
+**Reason:** Explicitly distinguishing intake rejection, accepted correction
+work, and planning readiness preserves D-487's salvage behavior while making
+the client and asynchronous planning contracts actionable and consistent.
+This resolves D-487's deferred decision on exact completion-task and
+planning-readiness codes and payloads. The semantic contract does not replace
+the service-owned OpenAPI and AsyncAPI specifications.
+
+### D-498 — Define freight-line counts and stackability
+
+**Decision:** Each freight line represents one homogeneous commodity and
+handling-unit group. Its positive integer `quantity` is the count of
+handling units identified by `handlingUnitCode`, not a count of products
+contained within each unit. Accept it as an integer decimal string from
+`1` through `999999999999` and persist it as `NUMERIC(12,0)`. Missing counts
+reject with `FREIGHT_QUANTITY_REQUIRED`; malformed, non-integer,
+non-positive, or out-of-range counts reject with `FREIGHT_QUANTITY_INVALID`.
+A contained-product quantity and unit are not part of the present booking
+contract. This supersedes the quantity precision and fractional-scale rules
+in D-36, D-428, D-450, and D-451.
+
+Every freight line requires an explicit boolean `stackable` at booking. It
+applies to every handling unit in that line; groups with different
+stackability or dimensions must be separate lines. When `stackable` is true,
+dimensions describe one handling unit and must be supplied before planning.
+Flatbed Loads also require dimensions for every freight line, including
+non-stackable freight. Missing or invalid required dimensions are accepted
+booking follow-ups that block planning; use one field-addressed task when
+both rules require the same dimensions. Missing or non-boolean `stackable`
+is booking-critical and rejects the entire batch. Invalid dimensions supplied when
+not currently required are omitted with a non-blocking correction task;
+absent dimensions create no task until a requirement applies.
+The shared freight-dimension follow-up and readiness codes replace the
+flatbed-only dimension codes in D-411 and D-412.
+
+These facts establish a minimum stacking constraint and basic freight
+geometry only. They do not define a complete trailer packing or capacity
+model, including orientation, weight-bearing limits, stack height, partial-
+load space optimization, or a feasible arrangement. Those capabilities
+remain future planning scope. Hazardous-material detail and later
+Customer/Carrier links or supplemental child records remain separate
+discussion items; this decision does not introduce those fields.
+
+**Reason:** A precise unit count avoids conflating the number of pallets or
+other handling units with their contents. Explicit stackability and
+per-unit dimensions preserve the minimum information needed for planning
+while preventing the current schema from implying a complete trailer
+optimization capability.
+
+### D-499 — Establish initial Dispatch Planning hard gates and ranking
+
+**Decision:** Dispatch Planning evaluates only the exact current planning-
+ready Load revision against current owner facts. It applies hard eligibility,
+Carrier, equipment, driver, route/schedule, geometry, and complete-capacity
+reservation gates before candidate ranking. Missing or stale hard-gate facts
+are unknown/ineligible; missing or stale projections defer for reconciliation
+and never establish unavailability. A missing required route or stop-service
+time estimate defers the attempt for visible human review. The initial system
+does not claim to calculate or certify regulatory hours-of-service
+compliance; applicable legal gates require authoritative review before
+automation relies on them.
+
+Rank only candidates passing all hard gates, lexicographically by confirmed
+appointment-window buffer, minimum deadhead/repositioning time, valid
+explicit resource preferences, minimum unnecessary resource changes and
+driver/segment count, then stable UUID ordering. A strong avoid-preference or
+driver objection blocks automatic finalization for bounded human review;
+neither may bypass a hard gate. Persist evaluated owner revisions, route
+estimate source/model versions, and policy version for reproducibility.
+
+Planning evaluates each Load against its actual requested windows, subject
+to the rolling reservation horizon and chain limits in D-511. Multi-Load
+consolidation considers only current `READY` Loads with overlapping
+operational windows and revalidates the complete combined plan. Profile
+definitions are composable: `SHORT` is
+at most 12 elapsed hours from first pickup arrival to final delivery
+departure, `LONG` is more than 12 hours; `RETURN_HOME` means the assigned
+driver's final planned stop is inside that driver's explicitly configured
+home-area boundary, otherwise `OUTBOUND` when a home boundary is configured.
+Without a configured boundary, do not assign a direction profile. These are
+operational matching classifications, not legal driving limits; do not infer
+a home area from company headquarters or operating area.
+
+Capacity Commitment's atomic reservation outcome resolves resource
+contention. A successful complete reservation wins; rejected attempts retain
+no partial claims and must replan from current projections. New attempts
+start only for a relevant owner revision/fact, an explicit durable timer, or
+an authorized human request. Full trailer packing, partial-load space
+optimization, orientation/stack-strength proof, and regulatory driving-time
+compliance are not established by these gates.
+This settles D-07's initial short/long classification threshold and the
+planning/matching-policy baseline in item 21; the remaining prerequisites
+are recorded in D-500.
+
+**Reason:** Separating feasibility from preferences prevents optimization
+scores from weakening safety or contractual requirements. Deterministic
+ranking and recorded input versions make decisions explainable and
+reproducible while preserving owner authority for eligibility and capacity.
+
+### D-500 — Bound planning review and preserve estimate provenance
+
+**Decision:** Dispatch Planning uses a provider-neutral route-estimation
+interface. Each route estimate records its covered legs, distance and travel
+duration, applicable vehicle/route constraints, calculation time,
+source/provider (or reviewed manual source reference), and model/policy
+version. Stop service-time assumptions are explicit, versioned policy
+inputs. No vendor is selected by this decision. Missing required estimates
+or approved service-time policies defer the attempt for visible human review;
+an unverified manual estimate cannot support automatic finalization.
+
+A strong avoid-preference, driver objection, or missing required estimate
+creates a durable human-review task and keeps the proposal on hold. The
+responsible dispatcher must acknowledge the task within 15 minutes; absent
+acknowledgement, escalate to the transportation executive under the existing
+urgent-notification policy. Acknowledgement is receipt only. The hold ends
+only after an authorized, reasoned disposition; timer expiry does not
+automatically assign or reject the proposal.
+
+An unapproved legal or safety eligibility rule is not presumed satisfied.
+Automated finalization for affected work remains disabled until qualified
+review approves the authoritative rule, evidence source, and verification
+gate. This does not establish hours-of-service calculation or certification.
+Resource-fact validity continues to follow the owning service's fact-type
+policy; do not introduce a universal time-to-live or duplicate owner facts in
+Dispatch Planning. The existing 15-minute availability freshness rule and
+explicit maintenance-status expiry remain in force.
+
+Operational acceptance profiles define measurable system capacity and
+service targets separately from `SHORT`, `LONG`, `OUTBOUND`, and
+`RETURN_HOME` planning classifications. Do not infer numeric product limits
+from the reference organization's design assumptions; record the targets in
+the product-wide acceptance criteria.
+
+**Reason:** A provider-neutral boundary preserves replaceability while
+versioned provenance makes planning reproducible. Acknowledgement and
+resolution are distinct operational events, and an unresolved human or
+legal gate must never be converted into an automatic decision.
+
+### D-501 — Define the Load and booking-submission logical schema
+
+**Decision:** Define the first logical database schema slice in the
+[technical workflow](TECHNICAL_WORKFLOW.md#load-and-booking-submission-relational-schema).
+Load persists one versioned `booking_submissions` record per durable POST,
+including normalized input/result JSONB snapshots, normalized content hash,
+authenticated principal, idempotency key, correction link, outcome, and
+timestamps. The submission key is unique within the authenticated principal
+and booking operation. Rejected submissions persist issues and create no
+Load rows; accepted submissions atomically create one Load per input row,
+its initial committed revision, lifecycle transition, and planning outbox
+fact.
+
+The schema defines `loads` as mutable lifecycle/current-revision heads,
+`load_lifecycle_transitions` as append-only history, `load_revisions` as
+complete immutable requirement snapshots, and revision-owned ordered
+`load_revision_stops`, `load_revision_freight_lines`, and
+`load_revision_special_handling_codes` as typed relational children. Booking
+input/result JSONB is a replay and audit snapshot, not the authoritative
+accepted Load data model. Stop, freight-line, and controlled multi-valued
+special-handling requirements remain relational rather than embedded arrays
+or generic metadata.
+
+Use the existing exact `NUMERIC` precisions, UTC `timestamptz` instants,
+UUIDv7 identities, controlled `TEXT` values with named checks, same-service
+foreign keys, consecutive revision numbering, contiguous 1-based child
+ordering, same-Load composite head reference, and database-enforced
+revision immutability. The mutable Load head also stores the current
+Load-owned fact `owner_revision`, independent of its Load revision and
+lifecycle-transition sequence. Increment it once per published Load fact
+and commit the counter and outbox row atomically; the initial
+`load.booked` fact uses owner revision 1. Preserve the all-or-nothing booking
+transaction and accepted follow-up salvage behavior. No cross-service
+foreign keys are permitted.
+
+This decision defines the logical field inventory, key integrity rules, and
+initial indexes for Load and booking persistence; it does not define
+production migration SQL, a physical ORM mapping, retention durations, or
+the lifecycle schema for completion tasks, cancellation, inbox/outbox, and
+other services. Retention remains disabled until the reviewed data-class
+schedule is approved.
+
+**Reason:** Explicit authority and typed relational revisions preserve
+business integrity and planning reproducibility, while durable JSONB
+snapshots make request retries and exact result retrieval reliable without
+turning the Load into an opaque document.
+
+### D-502 — Define Dispatch Planning and Capacity Commitment schemas
+
+**Decision:** Define separate logical PostgreSQL schemas for Dispatch
+Planning and Capacity Commitment in the
+[technical workflow](TECHNICAL_WORKFLOW.md#dispatch-planning-and-capacity-commitment-relational-schemas).
+Dispatch Planning persists exact-revision planning attempts, leases, the
+owner-revision set evaluated, provider-neutral route and stop-service
+estimates, evaluated preference outcomes, stable outcome reasons, durable
+review tasks/events, immutable Trip Plan revisions and typed
+membership/segment/resource children, and immutable per-Load Assignment
+decisions with lifecycle history. A planning attempt records Load
+revision/owner revision, policy version, source revisions and estimate
+provenance. A review acknowledgement is receipt only; the review hold remains
+until authorized disposition or recorded supersession.
+
+Capacity Commitment persists each reservation as a versioned state head,
+append-only transitions, and one resource-window claim per assigned
+resource per segment. Claims use finite half-open `[start, end)` `tstzrange`
+windows and a GiST exclusion constraint on resource type, resource ID, and
+overlapping window for `HELD`/`CONFIRMED` claims. The constraint is
+deferrable so a complete reservation replacement can atomically deactivate
+the previous claim set and insert its replacement. `btree_gist` is required
+for scalar equality operators. Claim-state changes, reservation state and
+revision, and the corresponding outbox result commit together. Rejected
+operations have no partial capacity effect.
+
+Keep owner boundaries explicit: Dispatch Planning owns the plan and
+Assignment decision; CC owns reservation state and capacity claims; Load and
+Fleet Readiness facts remain external references. Preserve the existing
+10-minute planning lease with two-minute renewal, 15-minute review
+acknowledgement/escalation, five-minute CC hold, segment composition rules,
+atomic replacement semantics, and active Assignment uniqueness. Never use
+cross-service foreign keys. Index the documented lease, review, attempt,
+plan, Assignment, reservation-recovery, and claim access paths; do not add
+speculative candidate indexes before workload measurement.
+
+This establishes a logical schema, not production migration SQL or
+query-plan benchmarks. Exact operational acceptance scale, retention
+durations, and implementation-specific index refinements remain open.
+
+**Reason:** Durable planning inputs support deterministic audit and
+recovery. Database-enforced resource-window exclusion makes concurrent
+capacity decisions safe, while service ownership and immutable plan/decision
+records preserve clear authority.
+
+### D-503 — Define the Execution and evidence logical schema
+
+**Decision:** Define the Execution-owned relational schema in the
+[technical workflow](TECHNICAL_WORKFLOW.md#execution-and-evidence-relational-schema).
+Persist shared Trip Executions and per-Load Executions separately, with
+append-only lifecycle transitions, actual Trip/Load stop milestones and
+outcomes, per-freight-line delivery counts, driver handoffs, incident
+reports/corrections, private upload intents, clean-scan evidence records, and
+immutable per-Load closeout facts with typed evidence, stop, and quantity
+snapshots. Post-delivery and delivery-variance issues are minimal
+Load-linked records owned by Load for capture and handoff; the receiving
+out-of-scope service owns their follow-up lifecycle under D-512.
+
+Delivered quantity is a non-negative integer count of the freight line's
+handling units, represented and stored as `NUMERIC(12,0)`. Record the actual
+count, including over-delivery; do not clamp it. At closeout, aggregate all
+delivery-stop quantities against the exact committed Load revision and
+record actual delivered, undelivered, and over-delivery quantities. Preserve
+any variance in the closeout fact and create a minimal Load-linked issue for
+handoff. A shortfall or overage does not block terminal closeout or require
+an internal TMS case resolution.
+
+Each closeout is unique to one Load Execution and immutable. It requires the
+transportation attempt to end and final actual outcomes for its planned
+stops. Each stop at which freight was unloaded requires clean available POD
+evidence or an authorized reasoned evidence exception; a stop with no
+delivery requires a final outcome and linked issue, not a fabricated POD.
+Contractor and outer-Carrier POD requires dispatcher review; own-fleet POD
+may satisfy the evidence gate on receipt. A dispatcher may record a
+delivery statement when POD upload is unavailable, but must record that
+exception basis and create a linked issue.
+Closeout records actual delivered and undelivered quantities and actual stop
+locations. A quantity variance or remaining freight creates an issue and
+does not block terminal closeout. Publish the closeout fact through the
+Execution-owned transactional outbox. Late evidence and report corrections
+append history and do not rewrite the fact or reopen terminal lifecycle
+states.
+
+Presigned uploads remain private and expire after 30 minutes. Define the
+selected 25 MB per-file maximum as 25,000,000 bytes, with at most 10 files
+per delivery stop and only PDF, JPEG, or PNG. Verify stored size, type, and
+SHA-256 before asynchronous malware scanning; create usable evidence only
+after a clean scan. The upload-intent record stores the declared metadata
+and private object key, never the presigned URL. Execution persists its own
+scoped idempotency result transactionally with each accepted write. An
+unfinalized intent has an internal `ISSUED` state; the public poll endpoint
+does not expose it and returns `409 Conflict` until finalization or expiry.
+Public poll states remain `SCANNING`, `AVAILABLE`, `REJECTED`, and `EXPIRED`.
+
+This logical schema does not select an object-storage provider, signed
+headers, malware-scanner implementation, retention/deletion schedule, or
+final service-owned event payloads. Automated evidence deletion remains
+disabled until reviewed retention rules are approved.
+This decision resolves D-495's previously open logical-schema and quantity
+representation questions; production evidence-retention controls remain
+open.
+
+**Reason:** Typed append-only facts retain the source evidence for movement
+and delivery decisions. Exact integer handling-unit counts preserve the Load
+contract, while immutable closeout and clean-scan gates prevent late changes
+or unverified files from silently altering terminal business outcomes.
+
+### D-504 — Approve a bounded platform-foundation phase
+
+**Decision:** The first implementation phase is platform foundation, not a
+business vertical slice. Its scope and measurable acceptance evidence are
+defined in the [system blueprint](TMS_SYSTEM_BLUEPRINT.md#approved-platform-foundation-increment).
+It establishes and verifies reproducible local infrastructure, isolated
+service-owned PostgreSQL deployment patterns, durable RabbitMQ delivery,
+Temporal persistence and worker recovery, NATS as secondary realtime
+fan-out, service lifecycle behavior, and correlated observability. Conformance
+components are test-only; this phase creates no empty business services,
+dummy business records, product-facing business routes, or shared database
+authority.
+
+The phase is accepted only with documented, automated evidence for clean
+bootstrap/build/test, dependency-aware readiness, graceful shutdown without
+loss of acknowledged durable work, recovery across process and dependency
+restarts, duplicate-safe durable delivery, Temporal workflow resumption,
+deterministic failure injection with persisted-state assertions, backup and
+restore procedure, and correlated logs/traces/metrics. Provider-specific
+high-availability and disaster-recovery drills remain prerequisites for
+production qualification.
+
+Open business decisions are capability-scoped gates, not a blanket bar to
+platform-foundation work. Detailed resource authorization and canonical
+service contracts are required before protected business routes or message
+flows; logical schemas and source-fact/policy definitions are required before
+implementing their owning business capabilities; workflow-specific recovery
+and acceptance scenarios are required before implementing those workflows.
+The business vertical slice remains proposed and unselected. This decision
+does not approve the maximum TMS scope or production deployment. D-505
+separately defines product-wide operational acceptance.
+
+**Reason:** Verifying shared runtime behavior first addresses the system's
+architectural risks without forcing premature business policy or using an
+incomplete workflow as a demonstration. Explicit phase gates allow unrelated
+foundation work to advance while preserving the requirement that each
+business capability be specified and tested before it is implemented.
+
+### D-505 — Separate platform, capability, and product acceptance
+
+**Decision:** Use three acceptance levels. D-504 owns platform-foundation
+acceptance. Every business capability must define measurable scope-specific
+acceptance before its implementation begins. Overall TMS operational
+acceptance evaluates the coherent booked-Load-to-Execution-closeout target;
+it does not require the undefined maximum scope or delivery of every
+capability in one increment.
+
+For the overall target, acceptance must demonstrate that acknowledged
+business writes are not lost or duplicated; authoritative state and
+cross-service references remain owner-correct and auditable; each accepted
+Load reaches a correct terminal outcome or remains visibly pending with an
+actionable recovery path; and nominal plus deterministic failure scenarios
+complete without silent failure or a success-shaped fallback. Apply the
+selected internal service availability target of 99.5% monthly, RPO 0 for
+acknowledged bookings, and RTO at most four hours for critical TMS service
+restoration. Prove RPO/RTO through restore drills, not unit tests. Product
+owners may add operational measures as their definitions and evidence
+sources are approved.
+
+**Reason:** Separating acceptance prevents an infrastructure milestone from
+being mistaken for business readiness while avoiding an all-at-once scope
+gate or an arbitrary customer-showcase threshold.
+
+### D-506 — Enforce default-deny, domain-owned resource authorization
+
+**Decision:** Every protected business operation is denied unless the
+requesting human or workload identity is authenticated and explicitly
+authorized. Identity establishes the principal, session, and role grants;
+the service that owns a business record authorizes its action and transition.
+Authorization combines the granted role with applicable area, resource,
+relationship, assignment, and lifecycle scope. A role grant alone never
+confers access to every record or transition in that role's nominal domain.
+
+Use explicit, time-bounded delegation and supervisory coverage recorded
+against the granting authority; delegation cannot exceed the grantor's
+authority and is audited. Enforce separation of duties where selected,
+including distinct people for privileged-grant initiation/approval and
+prohibition of self-approval for designated review decisions. Technical
+operators may inspect and prepare recovery but cannot approve business-state
+replay. Each service's action-to-role/resource matrix is a required input
+before implementing its protected writes or production authorization policy.
+Unauthenticated health/readiness operations remain limited to their documented
+operational purpose.
+
+**Reason:** Default-deny and owner-enforced resource checks prevent role
+labels or cross-service convenience from becoming implicit business
+authority.
+
+### D-507 — Define logical schemas for target service owners
+
+**Decision:** The logical schemas for Counterparty Registry, Fleet Readiness,
+Load completion/cancellation, Load charge/cost proposals and operational
+claims, Identity, Notification, Operations View, and service-owned inbox,
+outbox, and idempotency records are defined in the
+[technical workflow](TECHNICAL_WORKFLOW.md#logical-record-families-by-owner).
+Use PostgreSQL, UUIDv7 identities, service-local foreign keys, named
+constraints, append-only transition/evidence history where required, and
+stable cross-service IDs without cross-database foreign keys. Follow the
+existing immutable-revision, owner-revision, transactional-outbox, inbox
+deduplication, and operation-scoped idempotency conventions. Use typed
+owner-specific tables; do not introduce a shared database or generic
+entity/attribute store.
+
+These are logical contracts for engineering and review, not production DDL
+or ORM mappings. Concrete SQL migrations, migration-runner code,
+workload-measured index refinements, data retention implementation, and
+provider-specific operations are completed and verified with the owning
+service implementation. Do not treat an unfinished schema for one owner as
+a blocker to unrelated platform work.
+
+**Reason:** A complete logical record boundary makes service ownership and
+consistency constraints explicit without prematurely binding the project to
+physical implementation details.
+
+### D-508 — Publish canonical service-owned API and message contracts
+
+**Decision:** Keep `docs/contracts.md` as the shared semantic and
+cross-service contract guide. Each HTTP-owning service publishes one
+service-owned OpenAPI 3.1 specification under `docs/api/`; each durable
+message-owning service publishes its channels and versioned payloads in an
+AsyncAPI 3.0 specification under `docs/api/`. Those specifications are the
+canonical executable contract for their respective boundary. Validate
+requests and messages at runtime and validate compatibility in CI.
+Current artifacts and their partial coverage are catalogued in the
+[API specification index](../api/README.md); publication alone does not close
+the remaining route, message, or operation-specific contracts.
+
+Complete the specifications and operation-specific outcomes required by a
+capability before implementing that capability's protected API or durable
+message flow. Do not require every future service's complete specification
+before platform foundation or an unrelated capability can proceed. A
+semantic rule is not open merely because its canonical machine-readable
+representation has not yet been published; track the artifact as an
+implementation prerequisite separately.
+
+**Reason:** Service-owned specifications prevent semantic prose, generated
+types, and runtime behavior from drifting while keeping the implementation
+sequence dependency-scoped.
+
+### D-509 — Fail closed on unverified planning inputs
+
+**Decision:** Dispatch Planning may use only versioned owner facts with
+recorded source, observation time, verifier/owner, and applicable validity
+information. Missing, stale, invalid, or unverified facts required by a hard
+gate make the candidate ineligible; do not infer approval from an aggregate
+flag or stale projection. Fleet Readiness owns the planning-critical
+readiness and eligibility fact catalogue and its evidence/validity rules.
+Legal or safety gates require authoritative sources and qualified review
+before activation.
+
+Route estimates use a provider-neutral adapter and immutable estimate
+provenance. Before Dispatch Planning is enabled, select and document one
+approved initial route-estimate source and the versioned service-time
+assumptions; do not silently switch providers or substitute an unqualified
+estimate. Preserve source/version, requested route inputs, estimate time,
+distance, duration, and any applied service-time policy in each planning
+attempt. Source selection and calibration require documented evidence and
+owner approval.
+
+**Reason:** Explicit fact freshness, provenance, and fail-closed gates
+preserve explainable planning decisions without mistaking the existence of a
+data feed for authoritative evidence.
+
+### D-510 — Require owner-correct forward recovery and verified outcomes
+
+**Decision:** Business writes that publish durable facts commit owner state,
+the transactional outbox, and their idempotency outcome atomically.
+Consumers durably persist inbox identity before acknowledging delivery and
+deduplicate by sender and command identity. Retry transient failures only
+under the selected bounded policy; park exhausted or permanently invalid
+work with inspectable reasons. Reconcile revision gaps from an authoritative
+owner snapshot before applying later revisions. Business-state replay is
+unchanged, audited, and requires approval by the owning domain distinct from
+the technical operator. After a confirmed external commitment, recover
+forward and reconcile before attempting compensation.
+
+Before implementing each business workflow, define its failure boundaries,
+owner-specific recovery and reconciliation behavior, measurable acceptance
+cases, and persisted-state assertions. Verify nominal and deterministic
+failure paths against disposable real dependencies. D-504 remains the
+separate foundation acceptance baseline; backup/restore drills prove the
+selected RPO/RTO before production qualification.
+
+**Reason:** Durable owner state and explicit recovery authority prevent
+transport retries, workflow restarts, or operator intervention from
+silently changing business outcomes.
+
+### D-511 — Bound rolling Load reservations and dispatcher re-ranking
+
+**Decision:** Dispatch Planning uses a rolling reservation horizon limited by
+both of these conditions: a pickup must fall within 14 days of the planning
+time, and a trio may have no more than five future Load reservations in its
+sequential chain. A new slot opens only after the earliest reserved Load has
+been assigned and Execution has recorded its actual pickup. Loads booked for
+later dates are not immediately reserved or ranked for a trio whose horizon
+or five-Load limit is full.
+
+The four composable policy profiles are outbound/return-home crossed with
+short/long duration. Use the existing `SHORT`, `LONG`, `OUTBOUND`, and
+`RETURN_HOME` classifications, subject to their authoritative inputs and
+limitations. Outbound planning must account for concentrated home-area
+capacity and competition by ranking the best available trios and drivers.
+Short outbound work supports rapid western and west-central trips and
+roundtrips, with their greater stop frequency. Return-home planning reflects
+scarcer eastbound trios and may collect and compare suitable Loads over the
+available horizon before routing unsuitable work to a Contractor or outside
+Carrier. Long-trip feasibility includes the required rest-place capability.
+These profiles do not relax any hard eligibility, safety, schedule, or
+capacity gate.
+
+Dispatcher Load ranking is distinct from D-499's automated ranking of
+feasible resource candidates. A newly eligible booked Load within the
+planning horizon creates ranking opportunities for dispatchers managing
+feasible trios, and the responsible dispatchers are notified. A dispatcher
+may rank eligible booked Loads for their
+managed trio, including while that trio has a reserved chain, but only the
+final Load in the chain may be re-ranked. With four future reservations, the
+fifth Load is the only next position available for ranking and reservation;
+no sixth Load may be ranked or reserved while the five-Load limit is full.
+
+Planning first uses currently unassigned feasible capacity to maximize
+coverage of booked Loads. It may then improve the rolling schedule using
+explicit dispatcher rankings and the complete affected chain. A reallocation is automatic only
+when the ranked alternative is feasible and the complete replan preserves
+other valid Load coverage and all hard gates. If the system identifies a
+material company-benefit Load that the dispatcher did not rank, it may
+invite the dispatcher to accept it; declining or not responding preserves
+the current reservation.
+
+Same-day Loads do not wait for ranking. For next-day Loads booked by 14:00
+local time in `America/Los_Angeles`, accept rankings until 16:00 local time
+and then plan. A later booking may wait until the next normal planning cycle
+only when that delay preserves a feasible plan; otherwise planning proceeds
+immediately without waiting for ranking.
+
+When a Load in a reserved chain is canceled or becomes infeasible, review
+the affected suffix immediately and preserve the valid prefix. First try
+replacing the affected Load with a booked, unreserved Load having matching
+pickup and delivery areas within the approved deadhead allowance. If no
+replacement preserves feasibility, release the affected future tail and
+return the trio's resulting capacity to planning. Never release completed
+or in-progress work as part of this recovery.
+
+When a Trip or per-Load Execution ends earlier than planned, use its
+authoritative actual closeout location to immediately revalidate the
+unstarted reservation suffix and replan the available trio from that
+location, minimizing feasible deadhead. Preserve suffix Loads that remain
+feasible; apply the replacement/release rule above to the first infeasible
+Load and its affected tail. Do not wait for the next ranking cycle. A
+missing/stale resource fact or remaining freight does not establish that the
+trio is available; require current owner facts before assigning new work.
+Customer pricing, responsibility, and commercial resolution remain with
+the broker and are not inferred by Dispatch Planning.
+
+The five-Load/14-day chain is a planning policy, not the five-minute
+Capacity Commitment `HELD` lease. CC continues to reserve complete resource
+windows atomically. The numeric deadhead allowance and validated
+route/service-time inputs remain prerequisites to enabling automatic
+replacement and planning.
+
+**Reason:** A bounded rolling chain limits disruption when a future Load
+fails, while dispatcher rankings preserve team preferences and free capacity
+is used first to maximize feasible Load coverage.
+
+### D-512 — Close transportation records and hand off minimal issue records
+
+**Decision:** Execution and Load lifecycle completion records the end of the
+transportation attempt, not a guarantee of full delivery, customer
+satisfaction, or commercial settlement. After the final attempted delivery,
+both the per-Load Execution and Load become `COMPLETED`, whether all freight
+for that Load was unloaded or freight remains on the equipment. Record actual
+delivered and undelivered quantities, final actual locations, and evidence
+in the immutable Execution closeout fact. Completion is evaluated per Load's
+freight, not by whether shared equipment is physically empty.
+
+For normal closeout, each stop at which freight was unloaded requires
+clean, `AVAILABLE` POD evidence. A stop with no delivery requires a final
+actual outcome and linked issue, not a fabricated POD. Receipt is sufficient
+for an own-fleet POD; a contractor or outer-Carrier POD requires dispatcher
+review. When POD upload is unavailable, an authorized dispatcher may enter
+the delivery statement and closeout basis, explicitly marking the evidence
+exception and creating a linked issue. Such a statement is not represented
+as a received or verified POD.
+These rules do not make a Load's `COMPLETED` status a commercial
+determination about disputed locations, shortages, or remaining freight.
+
+The Load service retains only a minimal issue record linked to the Load and
+its handoff status. It sends the issue record, not the detailed Load record
+or a full Load snapshot, to the responsible out-of-scope service. The
+receiving service owns issue assignment, status, and resolution. TMS does
+not operate an internal post-delivery claim lifecycle. Issue types,
+type-specific fields, receiving-service routing, and the exact message
+contracts remain to be defined; no such issue may delay or reverse terminal
+Load or Execution status.
+
+This decision supersedes D-127 through D-130 and D-156 through D-163, which
+assigned post-delivery issue ownership and resolution to an internal TMS
+case lifecycle. It clarifies D-495 and D-503: quantity variance, incomplete
+delivery, or remaining freight is recorded and handed off, not held open as
+a Load/Execution lifecycle or used to block closeout.
+
+**Reason:** Terminal transportation records preserve an accurate,
+immutable account of the attempt, while issue-specific services handle
+customer, carrier, technical, or other follow-up without receiving unrelated
+Load detail or expanding TMS into claims or settlement management.
 
 ## Record maintenance
 

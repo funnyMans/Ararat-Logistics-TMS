@@ -12,15 +12,27 @@ the target TMS model from software already present in this repository.
   [operating model](trucking/OPERATING_MODEL.md), and
   [roles and authority](trucking/RESPONSIBILITIES.md).
 - **TMS technical design:** [system blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md),
+  [service interaction map](trucking/SERVICE_INTERACTION_MAP.md),
+  [visual map catalog](maps/README.md),
   [technical workflow](trucking/TECHNICAL_WORKFLOW.md), and
-  [service contracts](contracts.md).
+  [service contracts](contracts.md), with the
+  [canonical API/message specifications](api/README.md) as their machine-readable
+  counterparts. The [API edge options](api/API_EDGE_OPTIONS.md) records the
+  future GraphQL/Federation discussion without approving it. The
+  [TMS ecosystem map](maps/scope/tms-ecosystem-boundary.svg) shows the
+  currently defined system boundary and adjacent responsibilities.
 - **Decision status:** [decision log](trucking/DECISIONS.md) and
   [open decisions](trucking/OPEN_QUESTIONS.md).
+- **Implementation readiness:** [capability gate matrix](trucking/IMPLEMENTATION_READINESS.md)
+  maps agreed prerequisites to the increments they govern; open decisions
+  remain scoped to their dependent capabilities.
 - **Implementation work:** [monorepo guide](monorepo.md),
   [HTTP service baseline](SERVICE_CONTRACT.md), and the
   [local development guide](../infra/README.md).
 - **Planning:** [first-slice candidate](trucking/FIRST_SLICE_CANDIDATE.md)
-  (not approved for implementation).
+  (business vertical slice proposed, not selected). The separately approved
+  [platform-foundation phase](trucking/TMS_SYSTEM_BLUEPRINT.md#approved-platform-foundation-increment)
+  may proceed without authorizing business workflows.
 
 ## TMS documentation sequence
 
@@ -49,13 +61,23 @@ document only when it resolves a real TMS requirement.
    relationships, and contracts are stable, define role-specific procedures,
    authority, exception coverage, and resource-level permissions. The
    [role guide](trucking/RESPONSIBILITIES.md) is only a high-level baseline.
-6. **MVP and verification:** select the supported TMS workflows, measurable
-   outcomes, explicit exclusions, acceptance scenarios, and operational
-   requirements. No MVP is currently approved.
-7. **Implementation readiness:** review and approve the complete, consistent
-   TMS documentation set before starting TMS capability implementation. An
-   engineering vertical slice may then be selected from the approved scope;
-   it is not a substitute for defining the MVP.
+6. **Target operational scope and verification:** define the coherent
+   intended TMS capability, measurable outcomes, explicit exclusions,
+   acceptance scenarios, and operational requirements. This target is not a
+   requirement to implement all capabilities in one delivery, nor a narrow
+   showcase scope selected to impress customers. The term _MVP_ must not be
+   used to imply either.
+7. **Implementation readiness:** before starting a domain-owned business
+   workflow, approve and reconcile the documentation required for that
+   capability and its shared dependencies. The platform-foundation phase is
+   separately approved and may proceed while business-specific gates remain
+   open. Each later capability must meet the relevant scope, contract,
+   authorization, schema, policy, and recovery gates listed in the
+   open-decision register. Increments are selected by
+   technical importance to the coherent system, including architectural risk
+   and learning, dependency order, system integrity, and end-to-end
+   verifiability. A vertical slice validates part of the target; it does not
+   substitute for defining that target.
 
 Do not implement TMS services, APIs, schemas, or infrastructure as a way to
 decide product scope. Engineering guides describe the repository and current
@@ -63,16 +85,27 @@ implementation; they must not silently become TMS requirements.
 
 ## Documents still needed for an implementation-ready baseline
 
-- **Product charter and MVP:** intended operator and problem, measurable
-  outcomes, selected workflows, release scope, and exclusions.
-- **TMS domain model:** end-to-end lifecycle and relationship diagrams, with
-  clear ownership for each record and transition.
-- **Approved TMS contracts:** exact boundary responsibilities, commands,
-  business facts, state changes, and failure/recovery behavior.
-- **Identity and access design:** TMS principals, account lifecycle,
-  authorization rules, delegation, and enforcement responsibilities.
-- **Acceptance and operations requirements:** required scenarios, evidence,
-  security and reliability targets, and operational recovery expectations.
+- **Remaining target acceptance:** the product-wide reliability and
+  auditability baseline and platform-foundation acceptance criteria are
+  approved. Maximum scope remains intentionally undefined; each business
+  capability must close its own measurable acceptance gates as listed in the
+  [readiness matrix](trucking/IMPLEMENTATION_READINESS.md).
+- **Remaining domain model:** the end-to-end ownership baseline exists, but
+  uncovered lifecycle, relationship, and handoff details remain in the
+  [open-decision register](trucking/OPEN_QUESTIONS.md).
+- **Canonical service contracts:** the shared guide contains substantial
+  semantic contracts. Partial service-owned OpenAPI and AsyncAPI
+  specifications are listed in the [API index](api/README.md); remaining
+  route, message, and operation-specific gaps must be closed before
+  implementing their respective business APIs and message flows.
+- **Detailed identity and authorization:** principal and authentication
+  baselines are recorded; resource-level permission matrices, delegation,
+  coverage, and remaining operational controls gate the protected services
+  that depend on them, not the platform-foundation phase.
+- **Domain-specific acceptance and operations:** foundation acceptance is
+  defined; workflow acceptance, recovery, security, and operational criteria
+  remain capability-specific gates before implementing or productionizing
+  those workflows.
 
 The responsibility map and open-decision register identify gaps, but do not
 replace these approved specifications.
@@ -100,18 +133,24 @@ verified so product intent cannot be mistaken for running software.
 
 ## Document ownership and authority
 
-| Document                                                   | Owns                                                                           |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [TMS responsibility map](trucking/TMS_SCOPE.md)            | TMS duties already represented and material coverage gaps                      |
-| [Operating model](trucking/OPERATING_MODEL.md)             | Agreed business workflow and operating principles                              |
-| [Roles and authority](trucking/RESPONSIBILITIES.md)        | High-level business roles and responsibility boundaries                        |
-| [System blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md)       | TMS system boundaries, technical principles, and implementation-readiness gate |
-| [Technical workflow](trucking/TECHNICAL_WORKFLOW.md)       | Cross-boundary ownership and technical invariants                              |
-| [Service contracts](contracts.md)                          | Internal TMS contract principles and unresolved contract requirements          |
-| [Decision log](trucking/DECISIONS.md)                      | Accepted TMS product and architecture decisions                                |
-| [Open decisions](trucking/OPEN_QUESTIONS.md)               | Unresolved TMS requirements and design choices                                 |
-| [First-slice candidate](trucking/FIRST_SLICE_CANDIDATE.md) | Unapproved engineering-slice candidate and selection gates                     |
-| Engineering guides                                         | Repository conventions and current local operation                             |
+| Document                                                         | Owns                                                                                       |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [TMS responsibility map](trucking/TMS_SCOPE.md)                  | TMS duties already represented and material coverage gaps                                  |
+| [Operating model](trucking/OPERATING_MODEL.md)                   | Agreed business workflow and operating principles                                          |
+| [Roles and authority](trucking/RESPONSIBILITIES.md)              | High-level business roles and responsibility boundaries                                    |
+| [System blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md)             | TMS system boundaries, technical principles, and implementation-readiness gate             |
+| [Service interaction map](trucking/SERVICE_INTERACTION_MAP.md)   | What each service owns, how one Load crosses service boundaries, and dependency order      |
+| [TMS map catalog](maps/README.md)                                | Standalone architecture, lifecycle, cancellation, and planning diagrams grouped by concern |
+| [Technical workflow](trucking/TECHNICAL_WORKFLOW.md)             | Cross-boundary ownership and technical invariants                                          |
+| [Implementation readiness](trucking/IMPLEMENTATION_READINESS.md) | Capability-specific prerequisites and their implementation scope                           |
+| [Service contracts](contracts.md)                                | Internal TMS contract principles and unresolved contract requirements                      |
+| [API specifications](api/README.md)                              | Canonical service-owned OpenAPI and AsyncAPI artifacts                                     |
+| OpenAPI documents under `docs/api/`                              | Canonical HTTP schemas, one document per API-owning service                                |
+| AsyncAPI documents under `docs/api/`                             | Canonical versioned command and fact schemas, owned per service                            |
+| [Decision log](trucking/DECISIONS.md)                            | Accepted TMS product and architecture decisions                                            |
+| [Open decisions](trucking/OPEN_QUESTIONS.md)                     | Unresolved TMS requirements and design choices                                             |
+| [First-slice candidate](trucking/FIRST_SLICE_CANDIDATE.md)       | Proposed, unselected business vertical slice and selection gates                           |
+| Engineering guides                                               | Repository conventions and current local operation                                         |
 
 The blueprint is authoritative for approved system architecture and target
 scope. The decision log records the accepted baseline and why it was chosen;

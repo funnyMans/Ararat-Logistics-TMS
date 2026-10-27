@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1180" style="height:auto" viewBox="0 0 1500 1180" role="img" aria-labelledby="title description">
+  <title id="title">Partial failures and recovery across a Load workflow</title>
+  <desc id="description">A stage-by-stage recovery map distinguishes failures before booking commit, after booking commit, during event delivery and Temporal coordination, stale planning projections, capacity reservation and finalization, Assignment activation, and Execution handoff. It shows when to retry, reconcile, hold, or return an owner outcome rather than falsely reporting success.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 16; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 1.8; rx: 12; }
+      .bad { fill: #fff4f1; stroke: #b45039; }
+      .good { fill: #e9f5ed; stroke: #24804a; }
+      .wait { fill: #fff3dc; stroke: #b87500; }
+      .info { fill: #eaf3fb; stroke: #1769aa; }
+      .title2 { font-size: 16px; font-weight: 700; }
+      .body { font-size: 13px; fill: #42586c; }
+      .small { font-size: 12px; fill: #526477; }
+      .label { font-size: 12px; font-weight: 700; fill: #40586c; }
+      .arrow { fill: none; stroke: #536579; stroke-width: 2.1; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1500" height="1180" fill="#fff"/>
+  <text class="title" x="42" y="54">Partial failures and recovery</text>
+  <text class="subtitle" x="42" y="81">A durable workflow preserves owner truth, retries only transient failures, and reconciles ambiguous outcomes.</text>
+
+  <rect class="band" x="30" y="110" width="1440" height="215"/>
+  <text class="label" x="55" y="140">1 — BEFORE AND AT BOOKING</text>
+  <rect class="box bad" x="60" y="165" width="405" height="120"/>
+  <text class="title2" x="82" y="195">Load transaction cannot commit</text>
+  <text class="body" x="82" y="223">Return explicit failure. No successful booking;</text>
+  <text class="body" x="82" y="246">no partial Load, revision, or outbox result.</text>
+  <rect class="box wait" x="545" y="165" width="405" height="120"/>
+  <text class="title2" x="567" y="195">Customer status unavailable/stale</text>
+  <text class="body" x="567" y="223">Retryable 503; create no submission. Reuse the</text>
+  <text class="body" x="567" y="246">same key after the current owner fact returns.</text>
+  <rect class="box good" x="1030" y="165" width="405" height="120"/>
+  <text class="title2" x="1052" y="195">Commit succeeded; HTTP response lost</text>
+  <text class="body" x="1052" y="223">Retry same key or GET submission. Return stored</text>
+  <text class="body" x="1052" y="246">result; never create a duplicate booking.</text>
+
+  <rect class="band" x="30" y="350" width="1440" height="215"/>
+  <text class="label" x="55" y="380">2 — AFTER BOOKING COMMIT: OUTBOX AND WORKFLOW</text>
+  <rect class="box wait" x="60" y="405" width="405" height="120"/>
+  <text class="title2" x="82" y="435">RabbitMQ unavailable</text>
+  <text class="body" x="82" y="463">Keep committed outbox item. Publish with confirms</text>
+  <text class="body" x="82" y="486">after recovery; no duplicate consumer effect.</text>
+  <rect class="box wait" x="545" y="405" width="405" height="120"/>
+  <text class="title2" x="567" y="435">Temporal unavailable / worker restarts</text>
+  <text class="body" x="567" y="463">Owner-accepted commands may finish idempotently.</text>
+  <text class="body" x="567" y="486">Pause new orchestration decisions; resume history.</text>
+  <rect class="box info" x="1030" y="405" width="405" height="120"/>
+  <text class="title2" x="1052" y="435">Transient consumer failure</text>
+  <text class="body" x="1052" y="463">Inbox persists RECEIVED. Retry up to 8 total attempts;</text>
+  <text class="body" x="1052" y="486">then park visibly for authorized recovery.</text>
+
+  <rect class="band" x="30" y="590" width="1440" height="215"/>
+  <text class="label" x="55" y="620">3 — PLANNING, CAPACITY, AND FINALIZATION</text>
+  <rect class="box wait" x="60" y="645" width="405" height="120"/>
+  <text class="title2" x="82" y="675">Missing or stale owner projection</text>
+  <text class="body" x="82" y="703">Block dependent decision; reconcile with owner.</text>
+  <text class="body" x="82" y="726">Do not report false capacity exhaustion.</text>
+  <rect class="box bad" x="545" y="645" width="405" height="120"/>
+  <text class="title2" x="567" y="675">No feasible plan / business rejection</text>
+  <text class="body" x="567" y="703">Record reason; Load stays BOOKED. Wait for a</text>
+  <text class="body" x="567" y="726">relevant fact or durable deadline, not polling.</text>
+  <rect class="box wait" x="1030" y="645" width="405" height="120"/>
+  <text class="title2" x="1052" y="675">CC hold / finalization hard gate fails</text>
+  <text class="body" x="1052" y="703">No partial claim. Invalidate stale plan, release</text>
+  <text class="body" x="1052" y="726">temporary holds/guards, then replan current revision.</text>
+
+  <rect class="band" x="30" y="830" width="1440" height="270"/>
+  <text class="label" x="55" y="860">4 — AFTER CAPACITY CONFIRMATION</text>
+  <rect class="box good" x="60" y="885" width="405" height="150"/>
+  <text class="title2" x="82" y="915">CC confirmed; Dispatch activation delayed</text>
+  <text class="body" x="82" y="943">Keep confirmed reservation and pending Assignment.</text>
+  <text class="body" x="82" y="966">Retry/reconcile forward; never free valid capacity</text>
+  <text class="body" x="82" y="989">because an acknowledgement was lost.</text>
+  <rect class="box wait" x="545" y="885" width="405" height="150"/>
+  <text class="title2" x="567" y="915">Dispatch activation rejected</text>
+  <text class="body" x="567" y="943">Reconcile Dispatch, Load guard, and CC. Release</text>
+  <text class="body" x="567" y="966">and replan only when owner state proves the intent</text>
+  <text class="body" x="567" y="989">invalid; otherwise require audited owner approval.</text>
+  <rect class="box wait" x="1030" y="885" width="405" height="150"/>
+  <text class="title2" x="1052" y="915">Execution handoff fails after Assignment</text>
+  <text class="body" x="1052" y="943">Preserve active Assignment. Reconcile/create the</text>
+  <text class="body" x="1052" y="966">same Execution record by Assignment ID. Do not</text>
+  <text class="body" x="1052" y="989">report active movement before Execution confirms.</text>
+
+  <text class="small" x="60" y="1068">Business refusal ≠ transient transport error. Duplicate delivery is inbox-deduplicated. Exhausted retries, topology errors, and inconsistent owner state remain visible; no success-shaped fallback.</text>
+  <text class="small" x="60" y="1089">After closeout, delivery variance creates a minimal issue handoff; the receiving out-of-scope service owns follow-up and resolution.</text>
+</svg>
