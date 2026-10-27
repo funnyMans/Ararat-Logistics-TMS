@@ -1,27 +1,50 @@
 # TMS open decisions
 
-This is the concise register of material choices not yet approved. A listed
-item must not become a requirement through implementation convenience.
-Record an accepted answer in its owning document, including rationale, then
-remove it from this register.
+This register tracks unresolved decisions and capability-specific
+implementation prerequisites. Items may also summarize approved baselines so
+that settled choices are not mislabeled as open. Do not turn an unresolved
+item into a requirement through implementation convenience; record an
+accepted decision in its owning document, including rationale, and update
+this register to show what remains.
 
-## Product and MVP definition
+## Product intent and operational acceptance
 
 1. **Operational success criteria:** Define measurable criteria for
    demonstrating that the single-company TMS reliably governs Loads from
-   booking through delivery closeout, including workflow completion,
-   recoverability, and operational record integrity.
-2. **Operational release scope and acceptance:** Define the usable
-   operational product's approved scope, measurable release acceptance
-   criteria, and non-goals. A distinct platform-foundation phase before
-   business-workflow implementation is selected; the engineering vertical
-   slice must prove a bounded end-to-end capability within that approved
-   scope.
+   booking through delivery closeout. D-505 establishes the overall
+   acceptance baseline: no loss or duplication of acknowledged writes,
+   owner-correct and auditable state, terminal outcome or visibly actionable
+   pending recovery for every accepted Load, and successful nominal and
+   deterministic failure-path scenarios. It applies the selected 99.5%
+   monthly availability, RPO 0 for acknowledged bookings, and RTO at most
+   four hours for critical restoration targets. D-504 separately owns
+   platform-foundation acceptance. Business-specific scenarios and any
+   additional operational KPIs must be defined with the capability that
+   owns them; no blanket product-acceptance decision remains open.
+2. **Target operational scope and acceptance:** Define the intended coherent
+   TMS capability, measurable operational acceptance criteria, and any
+   exclusions or additions beyond the minimum target. The minimum currently
+   identified scope and the principle that the TMS remains a bounded core
+   distinct from adjacent systems are recorded in the system blueprint and
+   responsibility map. This is not a commitment to implement the full target
+   in one delivery or to prioritize a narrow customer-facing showcase.
+   Product, business, architecture, infrastructure, contracts, and operations
+   are developed iteratively as one system; implementation increments are
+   prioritized by technical importance, architectural learning, risk,
+   dependency order, system integrity, and end-to-end verifiability. A
+   distinct platform-foundation phase before business-workflow implementation
+   is selected. The prioritization principles are agreed in D-482; the
+   maximum scope remains intentionally undefined. Product-wide baseline
+   acceptance is selected in D-505; each business capability must still
+   define bounded acceptance before implementation. Neither open maximum
+   scope nor a customer-showcase release blocks D-504 platform foundation.
 3. **Evidence application:** Research practices are evidence, not
    requirements by imitation; adopted practices must record source, date,
    applicability, and owner decision. Legal/regulatory requirements require
    authoritative sources and qualified review. Apply this policy to the
    remaining unresolved operating assumptions and document their evidence.
+   This is a gate for adopting operational or legal policy, not for
+   implementing the platform foundation.
 
 ## Identity and access
 
@@ -35,12 +58,16 @@ remove it from this register.
    preservation of active work on suspension/closure are selected. Define
    detailed Carrier relationship verification/reverification procedures.
    Identity-to-driver linking is one-to-one and corrections require approval
-   from both Identity and Fleet Readiness owners.
+   from both Identity and Fleet Readiness owners. The unresolved
+   relationship procedure blocks driver onboarding and contracted-driver
+   authorization, not the platform-foundation phase.
 5. **Identity detail:** OIDC Code + PKCE, access-token claims and role
    scopes, managed signing-key rotation, domain-owned resource authorization,
    short-lived OIDC client-credential tokens for service APIs, and unique
    TLS-authenticated RabbitMQ identities and workload-credential rotation
-   are selected. Broker permission configuration remains open.
+   are selected. Runtime identities have least-privilege access and cannot
+   manage topology; the exact per-service broker ACL matrix remains open and
+   is required before enabling each service's production messaging identity.
    Local token validation, bounded JWKS caching, and high-impact live
    revocation checks, `RS256`, and 15-minute audience-bound service tokens
    are selected.
@@ -48,7 +75,8 @@ remove it from this register.
    coverage and factors, password baseline, Argon2id hashing, recovery, and
    session lifetimes are recorded in the
    [technical workflow](TECHNICAL_WORKFLOW.md). Define network-level
-   throttling and support identity-verification procedures. Routine
+   throttling and support identity-verification procedures before exposing
+   Identity to its intended users. Routine
    role-change propagation is bounded by the 15-minute access-token
    lifetime; high-impact session revocation is immediate. The initial
    Argon2id parameters and account-level failed-login throttling policy are
@@ -61,31 +89,54 @@ remove it from this register.
    scopes, delegation and absence coverage, and separation-of-duties rules.
    The shared execution-only authority for in-house and contracted drivers
    and the domain-owned write-authority split are selected.
-   Each service remains responsible for authorizing its own records and
-   transitions.
+   D-506 selects default-deny authorization, Identity-owned authentication
+   and grants, and owner-service authorization combining role with applicable
+   area, resource, relationship, Assignment, and lifecycle scope. Explicit
+   time-bounded delegation, audit, and selected separation-of-duties rules
+   are also selected. Each protected service must still publish its
+   operation-level role/action/resource matrix before implementing protected
+   writes or enabling its production authorization policy; that is a
+   capability-specific implementation gate, not an open authorization
+   architecture decision or a blocker to platform conformance tests and
+   documented unauthenticated health/readiness endpoints.
 8. **Identity audit and data protection:** Identity audit events are
    append-only and cover account lifecycle, authentication/MFA, recovery,
    sessions, and grants/approvals without storing secrets. Retention is one
    year except for documented holds, and review is restricted to designated
    Identity/security administrators. Define alert ownership, remaining
-   privacy controls, and required evidence for identity administration.
+   privacy controls, and required evidence for Identity production
+   qualification. Apply the approved one-year Identity audit retention
+   baseline; do not represent its exact implementation controls as settled.
 
 ## TMS duty and lifecycle coverage
 
-9. **Complete TMS duty map:** Confirm which responsibilities belong inside
-   this TMS and which are explicitly out of scope. The
-   [responsibility map](TMS_SCOPE.md) records current coverage and unresolved
-   areas without implying that every listed capability is required.
+9. **Complete TMS duty map:** The minimum target currently includes the
+   booked-Load-to-Execution-closeout core and connected responsibilities
+   marked in scope in the [responsibility map](TMS_SCOPE.md). Confirm any
+   additions or exclusions beyond that minimum and maintain the maximum-scope
+   boundary; the map is not a final release checklist.
 10. **Workflow and record relationships:** Define how TMS work enters,
     changes, moves between responsible domains, and reaches completion,
     including the authoritative records and relationships at each stage.
+    The accepted-tender-to-planning relationship is selected in D-484;
+    complete the remaining lifecycle and handoff map without reopening
+    settled ownership boundaries.
 11. **Adjacent TMS scope:** The core includes a minimal Counterparty Registry
     and Fleet Readiness boundary, plus manual tenders to existing approved
     Carrier profiles. Load-board marketplace sourcing and automated
     procurement are excluded; the `contract_capacity_dispatcher` owns tender
     sending and response tracking. Tenders record the offered Carrier rate
     and, when accepted, the agreed rate and currency; payables and settlement
-    are excluded. The Carrier and dispatcher may exchange multiple
+    are excluded. A responsible dispatcher may withdraw a tender before it
+    is selected as binding, including after acceptance. When multiple
+    Carriers accept, the dispatcher selects one accepted tender as binding;
+    only that Carrier is eligible for planning. Competing tenders are closed
+    externally and their history is preserved. Before Assignment activation,
+    the binding selection may be auditably superseded; reselection of an
+    earlier acceptance requires Carrier reconfirmation. After activation,
+    Carrier changes use Load amendment/replanning or cancellation. Carrier
+    acceptance and tender selection do not reserve capacity. The Carrier and
+    dispatcher may exchange multiple
     counteroffers. Each new offer or counteroffer starts a response period
     with a one-hour default deadline, editable per tender. The responsible
     `contract_capacity_dispatcher` may accept a Carrier counteroffer without
@@ -111,12 +162,11 @@ remove it from this register.
     attachment; copied message bodies are excluded.
     Tender rates use at most two decimal places and must be greater than
     USD 0.00. Indicative USD totals are rounded half up to the nearest cent.
-    The exact tender payload and remaining tender terms are open.
-    Carrier acceptance is not capacity protection; normal Dispatch Planning and Capacity
-    Commitment confirmation remain required before the Load is considered
-    capacity-secured. The dispatcher cannot withdraw an open tender; it
-    remains active until acceptance, rejection, or expiry, unless the Load is
-    canceled. Load cancellation automatically cancels open tenders and notifies
+    The exact tender payload and remaining tender terms are open. A Load
+    amendment preserves the binding Carrier and requires replanning of the
+    exact new revision; whether changed requirements require a new rate or
+    renewed Carrier acceptance remains open. Load cancellation automatically
+    cancels open tenders and notifies
     the responsible dispatcher, who contacts the Carrier through the external
     channel; the TMS preserves negotiation history.
     Customer-service follow-up is Load-linked and internal; portals and
@@ -191,28 +241,15 @@ remove it from this register.
     source/reference; attach a file when one exists, but an attachment is not
     mandatory. Further review rules and alternate-supervisor grant
     administration remain open.
-    Customer invoicing, accounting/AR/AP, carrier
-    payables, and settlement remain deferred. Post-delivery claims are
-    tracked as Load-linked
-    operational cases with a designated owner accountable for coordination
-    through resolution, evidence, and status, not financial settlement.
-    Reuse `OPEN`, `IN_PROGRESS`, and `RESOLVED`, with audited, reasoned
-    reopening. Limit claims to internal operational follow-up and referral;
-    formal insurance handling, legal adjudication, and financial settlement
-    are excluded. A case may close after operational resolution or documented
-    referral; the external claim lifecycle is not tracked. The Load's area
-    supervisor assigns and may reassign the designated owner from eligible
-    staff with explicit claim-owner permission, regardless of department;
-    escalation goes first to the Load's area supervisor, who may escalate
-    further through the supervisory chain. The owner may escalate whenever a
-    case is blocked or requires a decision beyond the owner's authority; no
-    time-based automatic escalation applies. The designated owner may resolve
-    a case after recording an audited outcome and reason; no blanket supervisor
-    approval is required. Closure outcomes are
-    `OPERATIONALLY_RESOLVED`, `DENIED` (internal disposition only),
-    `WITHDRAWN`, `DUPLICATE`, or `REFERRED_OUTSIDE_TMS`. A referral records
-    destination, date/time, external reference when available, and supporting
-    evidence.
+    Customer invoicing, accounting/AR/AP, Carrier payables, and settlement
+    remain deferred. Under D-512, the TMS records a minimal Load-linked issue
+    and handoff status; the receiving out-of-scope service owns assignment,
+    status, and resolution. The TMS does not maintain an internal post-
+    delivery claim lifecycle and never sends the detailed Load record as the
+    issue handoff. Issue types, type-specific minimum data, recipient
+    services, and message contracts remain to be defined. Formal insurance
+    handling, legal adjudication, and financial settlement are outside TMS
+    scope.
 13. **Safety and compliance details:** The TMS is limited to verified,
     planning-critical safety and contractual facts and approved hard gates;
     it will not interpret legal/regulatory rules, provide regulatory
@@ -220,140 +257,248 @@ remove it from this register.
     accountable owners, gate rules, and authoritative sources with qualified
     review before treating any applicable rule as product policy.
 
-## Required before technical implementation readiness
+## Capability-specific implementation-readiness gaps
 
-14. **Booking and stage-completeness fields:** The first booking data groups,
-    domestic address rules, stop ordering, freight units, and dry-van/reefer/
-    flatbed planning gates are recorded in the
-    [technical workflow](TECHNICAL_WORKFLOW.md). Still define the complete
-    request schema, additional stage-specific issue codes for invalid
-    provided values, remaining planning constraints, and field-by-field
-    gates for execution start and delivery closeout.
+D-504 approves the platform-foundation phase and its acceptance evidence in
+the [system blueprint](TMS_SYSTEM_BLUEPRINT.md#approved-platform-foundation-increment).
+The gaps below are not a blanket prohibition on that phase. Each is a
+readiness gate for the named business capability or production qualification;
+do not implement the dependent behavior by assumption. The
+[implementation-readiness matrix](IMPLEMENTATION_READINESS.md) summarizes
+which increment each gate affects; this register remains authoritative for
+the unresolved details.
+
+14. **Booking and stage-completeness fields:** Decisions D-497 and D-498
+    and [the shared contract](../contracts.md) now define the semantic booking
+    request inventory and the exact durable issue, accepted follow-up, and
+    planning-readiness payloads, including D-487's omission-and-correction
+    behavior, freight-line handling-unit counts, required stackability, and
+    conditional per-unit dimensions. Hazardous-material detail, supplemental
+    Customer/Carrier links, and future trailer packing optimization remain
+    out of this booking contract. The semantic booking decision does not
+    close transport-level contract work: a partial Load OpenAPI specification
+    is published, with remaining API details tracked in item 17. Remaining
+    planning-source and calibration gaps are
+    tracked in item 21. D-503 settles the Execution/evidence logical
+    schema and delivered-quantity representation; exact operation payloads
+    and production evidence controls remain in item 22.
+    Decisions D-495 and D-512 establish the Trip and per-Load Execution
+    closeout gates, evidence rules, actual quantity/location recording, and
+    separation of Trip completion from Load closeout. Both Load and
+    per-Load Execution become terminal when the transportation attempt ends,
+    including when freight remains or delivered quantities differ. The
+    Execution-start gate is selected in D-481. D-496 preserves terminal
+    lifecycle state; D-512 assigns ongoing issue follow-up to the receiving
+    out-of-scope service and requires only a minimal linked issue record and
+    handoff state in TMS.
 15. **Customer and Carrier boundaries:** The Counterparty Registry, shared
     organization identity with separate Customer/Carrier profiles, initial
     status lifecycle, basic registry fields, applicable DOT/MC references,
     and Customer-name snapshot on Load revisions are selected. Define
-    complete customer/carrier onboarding, contact lifecycle, carrier
-    qualification and agreement ownership, verification sources, and
-    status-change notification/revalidation procedures.
-16. **Logical schemas and constraints:** Specify service-owned tables,
-    relationships, uniqueness and concurrency constraints, indexes, retention,
-    and migration strategy from the logical record families in the
-    [technical workflow](TECHNICAL_WORKFLOW.md). Load table boundaries,
-    revision-owned stop/freight tables, and booking-submission JSONB snapshots
-    are selected. Revision-number/order uniqueness, same-Load head linkage,
-    and database-protected revision immutability are selected; remaining
-    columns, constraints, indexes, retention, and migration details remain
-    open. CC resource claims use a PostgreSQL range/exclusion-constraint
-    model to prevent active overlaps, with half-open windows and explicit
-    repositioning intervals. Execution facts use typed append-only
-    relational tables rather than a generic event/payload table.
-17. **API and message contracts:** The versioned booking, cancellation, and
-    Load-amendment routes, core outcome/idempotency behavior, response
-    representations, and principal HTTP statuses are recorded in the
-    [service-contract guide](../contracts.md). Still specify the complete
-    booking/amendment request schemas, any additional issue codes, remaining
-    routes, command/event names and payload schemas, serialized command
-    issuer-context shape and propagation details,
-    consumer migration evidence and rollout controls, remaining
-    operation-specific idempotency behavior,
-    and retention of other technical delivery records. Per-service
-    transactional idempotency records, scope uniqueness, and result
-    retention for the protected resource's lifetime are selected. Load
-    customer rates use USD only, without currency conversion. The owning
-    service authorizes the initiating principal and resource access at command
-    acceptance; a durably accepted asynchronous command may complete after
-    permission changes, subject to domain state and concurrency checks.
-    Consumers ignore unrecognized optional fields in supported versions and
-    quarantine unsupported versions; define quarantine monitoring and replay
-    procedures. Owner services publish specific versioned facts rather than
-    full snapshots; consumers reconcile the current owner snapshot when
-    required. Exact command/event payload schemas remain open.
-18. **CC and Assignment protocol:** Define exact command/event names and
-    payloads, transition ordering, cancellation release confirmations from
-    Execution when a planned record exists, partial-failure handling, and
-    reconciliation across Dispatch Planning, CC, and Load finalization.
-    Cancellation of one member
-    requires revalidation and atomic reservation replacement for a feasible
-    remainder. Complete ordered segment reservation payload and all-or-none
-    behavior and privacy-safe accepted/rejected result shape are selected.
-    Assignment-to-Execution gating and idempotent record creation are also
-    selected, as are reservation states and complete-reservation
-    release/replacement semantics. Hold-confirmation/Assignment activation
-    ordering and the initial CC rejection-code catalog/replan guidance are
-    selected. Cancellation release payloads and detailed reconciliation
-    remain open. Consumers apply only newer owner-fact revisions, ignore
-    duplicates/stale facts, and reconcile revision gaps with the owner;
-    reconcile a gap by fetching the current owner snapshot, advancing to its
-    revision, and ignoring older deliveries. Define the lookup contract,
-    retry schedule, staleness visibility, and recovery evidence. If the owner
-    is unavailable, retain the last projection as stale and do not apply
-    later revisions until reconciliation succeeds.
+    complete customer/carrier onboarding and contact lifecycle, exact
+    eligibility facts and verification sources, and status-change
+    notification/revalidation procedures. These gate the dependent
+    Counterparty Registry and Fleet Readiness workflows, not platform
+    foundation. D-507 defines their logical record schemas. D-509 selects
+    source-backed, versioned, fail-closed planning facts; the fact catalogue
+    and each required field's approved source, verifier, and validity period
+    must be completed before enabling the corresponding planning gate.
+    Decisions D-490 and D-491 assign
+    planning-critical Carrier eligibility facts and evidence to Fleet
+    Readiness, with Dispatch Planning evaluating each applicable fact
+    independently. Decision D-492 selects manual evidence review without
+    assuming live integration. Still define the fact catalogue, approved
+    authoritative sources, verifier roles, validity periods, and required
+    agreement-reference fields and verification rules. Carrier agreements
+    remain externally authoritative under D-493. D-494 requires immediate
+    notice to responsible owners when an eligibility fact becomes invalid,
+    expires, or is superseded; delivery and acknowledgement mechanics, and
+    notices for Registry status changes, remain open. Decision D-488
+    establishes that a Customer status change blocks future bookings only;
+    already accepted Loads continue unless separately amended or canceled.
+    Decision D-489 establishes that a non-active Carrier cannot be selected
+    for a new binding tender or have a pending Assignment activated;
+    pending Assignments and reservations are retained for explicit dispatcher
+    action, while existing active Assignments and Execution continue until an
+    authorized reassignment or cancellation.
+16. **Schema implementation and production controls:** D-501 defines the Load and booking
+    schema; D-502 and the
+    [Dispatch Planning/CC schema baseline](TECHNICAL_WORKFLOW.md#dispatch-planning-and-capacity-commitment-relational-schemas)
+    define planning attempts and leases, exact input/estimate provenance,
+    human-review records, immutable Trip Plans and Assignments, reservation
+    revisions/transitions, resource claims, and the GiST exclusion rule.
+    D-503 and the
+    [Execution/evidence schema baseline](TECHNICAL_WORKFLOW.md#execution-and-evidence-relational-schema)
+    define Execution/evidence records. D-507 defines logical schemas for
+    Counterparty Registry, Fleet Readiness,
+    Load stage-completeness/follow-up, cancellation/release confirmations,
+    charge/cost proposals, operational claims, Identity, Notification,
+    Operations View, and reusable service-local inbox/outbox/idempotency
+    records. This completes the target owners' logical-schema baseline;
+    schemas do not constitute production migrations or ORM mappings.
+    Relationships, named constraints, and access-path indexes are specified
+    at the logical level. Each service retains its own database and
+    authority; do not create cross-service foreign keys or a global
+    relational schema.
+    Apply PostgreSQL foreign-key, `UNIQUE`, and named `CHECK` constraints;
+    default to `ON DELETE RESTRICT`, allowing cascades only for explicitly
+    disposable subordinate data. Use ordered, service-local SQL migrations
+    with a checksum-verified ledger, a lock-protected deployment job, and
+    transactional execution by default. Apply additive expansion before
+    promotion; perform destructive cleanup only after old instances drain.
+    Failed migrations block promotion and require forward repair. Production
+    migration SQL, migration-runner behavior, workload-measured query-plan
+    validation, and approved data-class-specific retention schedules remain
+    implementation/production work; automated deletion remains disabled
+    until the relevant retention schedule is approved.
+17. **API and message contracts:** D-508 selects the shared contract guide
+    as semantic/cross-service guidance and one canonical service-owned
+    OpenAPI 3.1 specification per HTTP service plus one AsyncAPI 3.0
+    specification per durable-message owner, under `docs/api/`. Runtime
+    validation and CI compatibility checks are selected. The semantic
+    booking inventory and selected shared behavior are not open. The
+    [API specification index](../api/README.md) lists the currently
+    published partial Load and Execution OpenAPI documents and the partial
+    Load, Execution, Capacity Commitment, and Dispatch Planning AsyncAPI
+    documents. Complete the remaining HTTP-service route inventories,
+    operation-specific validation outcomes, and amendment request/response
+    schemas. Rejected amendment attempts are retained in their idempotency
+    results with deterministically ordered issues; they create no Load
+    revision or revision fact. Fill operation-specific idempotency gaps and
+    validate contract compatibility in CI. These artifacts and remaining
+    contract details are prerequisites for their own APIs/message flows, not
+    for unrelated capabilities or the platform foundation. Item 18 tracks
+    remaining message schemas and recovery scenarios.
+18. **CC, Assignment, and cancellation protocols:** The core command/outcome
+    identities, ownership, reservation and Assignment state transitions,
+    idempotency scopes, cancellation coordination, and recovery rules are
+    recorded in [the service contracts](../contracts.md),
+    [the decision log](DECISIONS.md), and
+    [the technical workflow](TECHNICAL_WORKFLOW.md). The currently specified
+    message exchanges have partial owner-specific schemas in the
+    [API specification index](../api/README.md). Complete the durable
+    message inventories and payloads for all remaining service interactions,
+    including owner-specific snapshot request/results, before implementing
+    those workflows. Add executable acceptance coverage for the coordinated
+    active-Assignment amendment handoff, including its ten-minute
+    revalidation expiry and release recovery, before implementing that
+    handoff. Item 17 tracks the shared contract-publication and compatibility
+    work.
+
 19. **Deadlines, leases, and freshness:** Initial booking response deadline,
     Dispatch lease, CC hold, Load guard, pickup escalation, notification
-    acknowledgement, and Operations View freshness thresholds are recorded
-    in the [technical workflow](TECHNICAL_WORKFLOW.md). Define freshness
-    rules for remaining authoritative facts, recovery if Temporal or an owner
-    service is unavailable, and measurable remaining platform objectives.
-    Durable booking during a Temporal outage is selected. RPO 0 for
+    acknowledgement, ten-minute active-Assignment amendment-revalidation
+    expiry, and Operations View freshness thresholds are recorded in the
+    [technical workflow](TECHNICAL_WORKFLOW.md). Owner-defined,
+    per-fact freshness is selected; Customer status remains valid until
+    superseded, while availability has its selected 15-minute window.
+    Event-fed projection lag targets are p95 at or below five seconds and
+    stale at 30 seconds for required updates. Determine remaining individual
+    validity values before the corresponding planning or eligibility gates
+    are enabled; define recovery for other owner-service outages before the
+    affected workflows depend on them; and settle the internal availability
+    measurement boundaries, including planned-
+    maintenance treatment. Booking
+    fails closed with retryable `503` and `CUSTOMER_STATUS_UNAVAILABLE` when
+    current Customer status cannot be established. During Temporal outages,
+    durably accepted owner work continues idempotently and orchestration
+    resumes from durable state after recovery. The internal availability
+    target is 99.5% monthly for critical APIs/workflows, not a customer-facing
+    SLA. RPO 0 for
     acknowledged bookings and RTO at most four hours for critical TMS service
-    restoration are selected; failover implementation remains open.
+    restoration are selected. The platform-neutral baseline is a
+    Load's booking-critical PostgreSQL cluster uses a single-region HA
+    deployment with synchronous standby, automatic failover, continuous
+    point-in-time backups, and tested restore drills; provider-specific
+    implementation remains open.
 20. **Revision concurrency:** Immutable revisions, full-snapshot amendments,
     the pre-execution boundary, and conditional amendment API behavior are
     selected. Specify exact lease and finalization-guard protocols, remaining
     conflicting-edit behavior, Trip Plan amendment and reservation
     replacement, and revalidation outcomes under concurrent changes.
-21. **Planning and matching policy:** Ordered resource segments, atomic
-    segment reservations, one- or two-driver teams, baseline segment
-    feasibility gates, and availability freshness thresholds are selected.
-    Define measurable load/trip profiles, remaining readiness sources and
-    hard gates, detailed feasibility calculations, allocation objective,
-    preference weights/lookback, deterministic conflict behavior, and
-    planning horizon. Availability is modeled as a versioned, time-bounded
-    fact rather than a stored readiness boolean.
-22. **Execution and evidence schema:** Per-delivery-stop proof of delivery
-    or an authorized, reasoned exception is required for Load closeout.
-    PDF, JPEG, and PNG are the initial formats, capped at 10 files and 25 MB
-    per delivery stop. Stop arrival/departure milestones and completed,
-    partial, or not-completed outcomes are selected, including delivered
-    quantities per freight line. The authorized intent, short-lived
-    presigned upload, verified finalize flow, required upload metadata, and
-    idempotency are selected. Asynchronous malware scanning and a pollable
-    upload state are selected. Presigned URLs last 30 minutes and require a
-    new intent after expiry. Define remaining evidence metadata, upload
-    headers, create-intent response details, object-storage controls, and
-    evidence retention. The poll-status payload and states are selected.
+21. **Planning and matching policy:** Decisions D-499, D-498, and D-511 and the
+    [shared planning contract](../contracts.md#initial-dispatch-planning-policy)
+    define hard-gate categories, fail-closed treatment of missing/stale facts,
+    deterministic lexicographic ranking, 12-hour short/long classification,
+    driver-specific return-home classification, the four directional/
+    duration profiles, the 14-day/five-Load rolling reservation limit,
+    dispatcher ranking of only the final chain Load, daily ranking cutoffs,
+    full-chain safe reallocation, immediate replan from early Execution
+    closeout location, and atomic CC contention behavior. D-500
+    adds provider-neutral route estimates with provenance, explicit versioned
+    service-time assumptions, a 15-minute review acknowledgement/escalation
+    rule, and a fail-closed boundary for unapproved legal or safety gates.
+    Existing ordered resource segments, one- or two-driver teams,
+    15-minute availability freshness, and explicit maintenance-status expiry
+    remain in force. The numeric deadhead allowance for replacement Loads,
+    approved initial route-estimate source, and calibrated service-time
+    values remain to be selected and validated. D-509 selects the
+    provider-neutral adapter, one approved source at a time, immutable
+    provenance, source-backed versioned facts, and fail-closed handling.
+    Complete each Fleet Readiness fact definition, evidence source,
+    verifier, and validity period under item 15; obtain authoritative legal
+    review before enabling applicable automated gates. Define measurable
+    acceptance for Dispatch before implementing it. Do not claim regulatory
+    compliance or complete trailer packing from the initial matching policy.
+    Source selection, deadhead allowance, and calibration block dependent
+    automated planning, not platform foundation or unrelated service work.
+22. **Execution and evidence production controls:** D-503 and D-512 plus the
+    [Execution/evidence schema baseline](TECHNICAL_WORKFLOW.md#execution-and-evidence-relational-schema)
+    settle the logical records, integer handling-unit quantity
+    representation, closeout-fact structure, 25 MB decimal per-file limit,
+    and internal `ISSUED` upload state. The public polling contract continues
+    to expose only `SCANNING`, `AVAILABLE`, `REJECTED`, and `EXPIRED`;
+    polling an unfinalized, unexpired intent returns `409 Conflict`.
+    POD is required for each stop where freight is unloaded; a stop with no
+    delivery requires a final actual outcome and linked issue. An authorized,
+    reasoned evidence exception is available for upload failure. Own-fleet
+    POD is accepted on receipt; contractor/outer-Carrier POD requires
+    dispatcher review. A dispatcher may record a delivery statement when
+    upload is unavailable. Execution
+    and Load close when the transportation attempt ends, even when freight
+    remains or quantities differ; a minimal issue record is handed to the
+    receiving out-of-scope service, which owns follow-up. Stop
+    arrival/departure milestones and
+    completed, partial, or not-completed outcomes are selected, including
+    delivered quantities per freight line. The authorized intent,
+    30-minute presigned upload, verified finalize flow, required upload
+    metadata, and idempotency are selected. Asynchronous malware scanning
+    and the public poll states are selected.
     POD submitters are the assigned driver, responsible dispatcher, and area
-    supervisor/coverage; submit authority does not include exception
-    approval. The supervisor exception-approval boundary is selected.
+    supervisor/coverage. An authorized dispatcher may enter a delivery
+    statement when POD upload is unavailable; exact operation-level
+    authorization mapping remains to be specified.
     Report descriptions and remarks have selected length limits and
     append-only correction rules.
     Trip and per-Load Execution lifecycle states are selected as `PLANNED`,
-    `IN_PROGRESS`, `COMPLETED`, and pre-start-only `VOIDED`. Exception types,
-    case ownership, and the `OPEN`/`IN_PROGRESS`/`RESOLVED` lifecycle with
-    audited reopening are selected. Partial/not-completed delivery creates a
-    blocking exception case until supervisor resolution. Exception cases
-    keep current state separately from append-only transition rows with
-    actor, timestamp, and reason; detailed columns and transition commands
-    remain to be specified.
-23. **Notification minimum:** Initial channels, event classes, recipients,
-    urgent acknowledgement/escalation behavior, and receipt-versus-
-    resolution semantics are recorded in the
-    [technical workflow](TECHNICAL_WORKFLOW.md). Define exact event
-    templates, delivery retry evidence, retention, and recovery. Immediate
-    notification to the designated proposal reviewer on submission, with
-    the proposal added to that reviewer's queue, and notification to the
-    submitter for every recorded review outcome are selected. No automatic
-    reminders are sent while proposals await review.
-    internal notifications to the responsible `contract_capacity_dispatcher`
-    when tender acceptance/rejection/expiry or Carrier counteroffers are
-    recorded are selected; pre-deadline reminders are excluded. Non-urgent external-delivery
-    preferences are allowed; urgent
-    acknowledgement alerts cannot be suppressed and have one designated
-    primary acknowledgement owner. Unassigned-Load, urgent-incident, and
-    parked-technical-failure primary-recipient routing is selected.
-24. **Operations View:** The read-only view covers all in-scope operational
-    records and workflows, links to owning services for actions, and does not
+    `IN_PROGRESS`, `COMPLETED`, and pre-start-only `VOIDED`. Execution
+    incident and delivery outcomes remain append-only facts; post-delivery
+    issue assignment and resolution belong to the receiving service.
+    Detailed transition commands, exact outcome payloads, create-intent
+    response headers, authorization mapping, verification-failure codes,
+    and issue-handoff contracts remain to be specified. These details
+    gate Execution APIs and evidence production. Production migration SQL,
+    query plans, storage policy, signed headers, scanner integration, and
+    reviewed evidence-retention rules remain
+    production gates; automated evidence deletion stays disabled until
+    those rules are approved.
+23. **Notification:** Logical tables for durable inbox records, recipients,
+    primary acknowledgement, versioned templates, preferences, channel
+    deliveries and attempts, and audited requeue are defined under D-507 in
+    the [technical workflow](TECHNICAL_WORKFLOW.md). Channels, event classes,
+    recipients, acknowledgement and escalation behavior, and
+    receipt-versus-resolution semantics are selected. Proposal review
+    notices, Carrier tender updates, expired amendment-revalidation release
+    notices, external-delivery preferences, retry limits, attempt evidence,
+    retention, and authorized recovery are also selected. Versioned
+    templates use concise safe summaries and authorization-aware links.
+    Define the exact per-event template catalogue and delivery recovery
+    runbooks before implementing or productionizing Notification.
+24. **Operations View:** The logical schema under D-507 defines typed
+    read projections for Loads, Assignments, Executions, exceptions, and
+    resource availability, together with owner-revision watermarks,
+    reconciliation, and rebuild records. The read-only view covers all
+    in-scope operational records and workflows, links to owning services for actions, and does not
     write authoritative records. Its initial freshness target/stale threshold
     are established. Define exact screens/projections, rebuild/reconciliation
     behavior, and detailed grant mappings. The transportation executive and
@@ -361,31 +506,58 @@ remove it from this register.
     are scoped by area where applicable or by their existing resource and
     relationship authority otherwise. The transportation executive owns the
     company-wide operational KPI set, including definitions and review. The
-    transportation executive and chief supervisor have
-    company-wide KPI dashboard access; area supervisors have access only for
-    their assigned areas; other roles have no KPI dashboard access by default. The
+    transportation executive and chief supervisor have company-wide KPI
+    dashboard access; area supervisors have access only for their assigned
+    areas; other roles have no KPI dashboard access by default. The
     `America/Los_Angeles` timezone applies company-wide, with weeks beginning
     Monday at 00:00. Unknown/stale availability is excluded and displayed
-    separately. The
-    on-time KPI uses actual arrival versus confirmed appointment windows per
-    stop, with pickup/delivery reported separately and unappointed stops
-    excluded.
+    separately. The on-time KPI uses actual arrival versus confirmed
+    appointment windows per stop, with pickup/delivery reported separately
+    and unappointed stops excluded. Remaining projection, rebuild, and grant
+    The selected utilization measure compares confirmed Assignment/reservation
+    time with declared operational availability for in-house and contracted
+    drivers and equipment; unknown/stale availability is shown separately.
+    Corrected Fleet Readiness intervals require historical recalculation.
+    Remaining screen definitions, reconciliation/rebuild runbooks, detailed
+    grant mappings, and the transportation executive's complete KPI catalogue
+    gate Operations View and KPI implementation, not upstream authoritative
+    services or platform foundation.
 25. **Recovery and acceptance scenarios:** Failure-injection boundaries
     across booking, outbox, CC, Assignment, Execution, cancellation, and
     disaster restore are selected in the
-    [technical workflow](TECHNICAL_WORKFLOW.md). Still define executable
-    test cases and evidence, domain-owner replay approval/audit mechanics,
-    reconciliation runbooks, and acceptance criteria for
-    operational-exception paths.
+    [technical workflow](TECHNICAL_WORKFLOW.md). Automated integration tests
+    use disposable real dependencies, deterministic fault injection, and
+    persisted-state assertions; restore drills prove RPO/RTO. Business-state
+    replay requires an owning-domain approver distinct from the technical
+    operator; replay is unchanged and audited. D-504 defines acceptance
+    evidence for platform foundation; D-505 defines overall TMS acceptance;
+    and D-510 establishes owner-correct forward recovery, durable
+    idempotency/inbox/outbox behavior, and capability-scoped fault testing.
+    Before implementing each business workflow, define its exact
+    failure-injection cases, reconciliation runbook, and measurable
+    capability-specific acceptance, especially for operational exceptions.
+    Production qualification additionally requires the approved storage,
+    retention, security, and provider-specific disaster-recovery controls.
 
 ## Scope decisions retained for later
 
 - Complete Customer and Carrier onboarding, qualification, and operating
   workflows beyond the selected Counterparty Registry baseline.
-- The extent of carrier sourcing, customer service, tracking, document
-  handling, fleet administration, safety/compliance, billing, settlement,
-  claims, and reporting beyond the booked-Load-to-Execution core.
-- Explicit exclusions and any future scope-change criteria.
+- The maximum scope beyond the minimum TMS target, including any extensions
+  to carrier sourcing, customer service, tracking, document handling, fleet
+  administration, safety/compliance, claims, and reporting. Existing
+  boundaries remain in force: billing, accounting, accounts receivable/payable,
+  and settlement are outside the TMS; marketplace sourcing and automated
+  procurement are not included in the current minimum.
+- Whether user-facing client applications are delivered with the TMS or
+  developed separately. This is a packaging decision, not a change to
+  business-system ownership.
+- Client API composition remains open: evaluate owner REST APIs behind the
+  API Gateway against a future Apollo Federation graph. A separate BFF is not
+  recommended without a distinct client-specific need. The proposal and
+  decision gates are documented in [API edge options](../api/API_EDGE_OPTIONS.md);
+  no GraphQL/Federation runtime or production ingress has been selected.
+- Explicit additions, exclusions, and future scope-change criteria.
 
 ## Other open design
 
@@ -393,13 +565,24 @@ remove it from this register.
   outbound/return-home policy.
 - Preference strength, objection response coverage, and human-review
   conversation and disposition.
-- Exact message topology, routing, technical failure-injection cases,
-  dead-letter inspection, replay authorization, and compatibility tests.
-- Which workflows require durable timers, human waits, and compensation, and
-  who owns operational repair.
+- Exact RabbitMQ exchange/queue names, per-message bindings and ACL matrix,
+  routing-key catalogue, and operational monitoring/recovery runbooks.
+  Domain-owned exchanges, receiver/consumer-owned queues, MAJOR-version
+  routing, no default TTL, least-privilege identities, and deployment-
+  managed versioned topology are selected.
+- The per-Load Temporal workflow spans accepted booking through cancellation
+  or Execution-confirmed closeout; it is event-signaled and does not own
+  domain state. Activity retries use the shared bounded eight-attempt
+  jittered policy; exhaustion parks for authorized recovery. Workflow
+  changes require replay compatibility tests, version markers for
+  incompatible behavior, and old-worker retention until affected executions
+  drain. Continue-As-New bounds history at an initial threshold of 10,000
+  events and carries forward orchestration state, owner revisions, and
+  deadlines. Exact activity boundaries, timer thresholds, human waits,
+  compensation, and operational repair ownership remain to be specified.
 - Cluster sizing and platform failover, data and file retention, and measured
-  security/operability targets beyond the selected booking RPO and critical-
-  service RTO.
+  security/operability targets beyond the selected availability objective and
+  booking RPO/critical-service RTO.
 - Applicable employment, carrier-contract, safety, customer-contract,
   evidence-retention, privacy, and regulatory constraints. These require
   authoritative sources and qualified review.
@@ -407,6 +590,6 @@ remove it from this register.
 ## Not approved as first-slice requirements
 
 Deeper brokerage negotiation and sourcing automation, customer/carrier
-portals, billing, settlement, analytics, fleet maintenance, and hours-of-
-service management are not approved for the first engineering slice. Their
-inclusion in this list is a scope question, not a commitment to build them.
+portals, billing, settlement, advanced analytics, fleet maintenance, and
+hours-of-service management are not approved for the first engineering
+slice. Their inclusion in this list is not a commitment to build them.

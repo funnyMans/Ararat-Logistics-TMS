@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="900" style="height:auto" viewBox="0 0 1450 900" role="img" aria-labelledby="title description">
+  <title id="title">Current and possible future client API edge</title>
+  <desc id="description">Today the repository has a local Nginx reverse proxy and a health-only API Gateway; the TMS target expects a client API Gateway routing to owner APIs. A future Apollo Router with Apollo Federation subgraphs is a possible client composition layer, not approved or implemented. It must call owner APIs, preserve authorization, and leave long-running business workflows to Temporal and RabbitMQ.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 18; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 12; }
+      .current { fill: #eaf3fb; stroke: #1769aa; }
+      .future { fill: #fff3dc; stroke: #b87500; }
+      .owner { fill: #e8f5ee; stroke: #24804a; }
+      .out { fill: #fff7f4; stroke: #b45039; }
+      .box-title { font-size: 17px; font-weight: 700; }
+      .body { font-size: 13px; fill: #42586c; }
+      .small { font-size: 12px; fill: #526477; }
+      .label { font-size: 12px; font-weight: 700; fill: #40586c; }
+      .arrow { fill: none; stroke: #536579; stroke-width: 2.4; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 6; }
+    </style>
+  </defs>
+  <rect width="1450" height="900" fill="#fff"/>
+  <text class="title" x="42" y="55">Client API edge: current baseline and future option</text>
+  <text class="subtitle" x="42" y="82">Federation can be useful; it is not a replacement for owner APIs or durable business orchestration.</text>
+
+  <rect class="band" x="35" y="115" width="670" height="430"/>
+  <text class="label" x="60" y="148">TODAY / FIRST BUSINESS API BASELINE</text>
+  <rect class="box out" x="65" y="180" width="250" height="90"/>
+  <text class="box-title" x="88" y="215">Web / mobile client</text>
+  <text class="body" x="88" y="242">Client packaging is still open</text>
+  <rect class="box current" x="390" y="180" width="250" height="90"/>
+  <text class="box-title" x="413" y="215">Nginx → API Gateway</text>
+  <text class="body" x="413" y="242">Nginx is local-only; gateway is</text>
+  <text class="small" x="413" y="260">health/readiness/metrics today</text>
+  <rect class="box owner" x="65" y="340" width="250" height="105"/>
+  <text class="box-title" x="88" y="375">Owner REST APIs</text>
+  <text class="body" x="88" y="402">Load, Execution; others defined</text>
+  <text class="small" x="88" y="427">only after owner contracts close</text>
+  <path class="arrow" d="M315 225 L390 225"/>
+  <path class="arrow" d="M515 270 L515 305 L190 305 L190 340"/>
+  <text class="body" x="65" y="465">Recommendation: one Gateway path first; no separate BFF without a distinct client need.</text>
+  <text class="small" x="65" y="495">Start with documented owner APIs; do not infer missing routes from this diagram.</text>
+
+  <rect class="band" x="745" y="115" width="670" height="430"/>
+  <text class="label" x="770" y="148">POSSIBLE LATER: APOLLO FEDERATION (PROPOSED, NOT APPROVED)</text>
+  <rect class="box out" x="775" y="180" width="240" height="85"/>
+  <text class="box-title" x="798" y="214">Client applications</text>
+  <text class="body" x="798" y="241">Shared graph if useful</text>
+  <rect class="box future" x="1095" y="180" width="275" height="85"/>
+  <text class="box-title" x="1118" y="214">Apollo Router</text>
+  <text class="body" x="1118" y="241">Federation query composition</text>
+  <rect class="box owner" x="775" y="335" width="175" height="100"/>
+  <text class="box-title" x="795" y="370">Load subgraph</text>
+  <text class="body" x="795" y="397">calls Load owner API</text>
+  <rect class="box owner" x="985" y="335" width="175" height="100"/>
+  <text class="box-title" x="1005" y="370">Execution subgraph</text>
+  <text class="body" x="1005" y="397">calls Execution API</text>
+  <rect class="box owner" x="1195" y="335" width="175" height="100"/>
+  <text class="box-title" x="1215" y="370">Other subgraphs</text>
+  <text class="body" x="1215" y="397">only where approved</text>
+  <path class="arrow" d="M1015 222 L1095 222"/>
+  <path class="arrow" d="M1232 265 L1232 300 L862 300 L862 335"/>
+  <path class="arrow" d="M1232 300 L1072 300 L1072 335"/>
+  <path class="arrow" d="M1232 300 L1282 300 L1282 335"/>
+  <text class="small" x="775" y="480">Subgraphs call owner APIs—not owner databases. GraphQL does not provide a cross-service transaction.</text>
+  <text class="small" x="775" y="505">Use Operations View projections for broad dashboards when live resolver fan-out is costly or stale-sensitive.</text>
+
+  <rect class="band" x="35" y="575" width="1380" height="270"/>
+  <text class="label" x="60" y="608">KEEP THESE RESPONSIBILITIES SEPARATE</text>
+  <rect class="box current" x="65" y="645" width="390" height="135"/>
+  <text class="box-title" x="90" y="680">API Gateway / Federation edge</text>
+  <text class="body" x="90" y="710">Authenticate/route or compose client reads.</text>
+  <text class="body" x="90" y="735">No direct DB access; no domain authority.</text>
+  <rect class="box owner" x="530" y="645" width="390" height="135"/>
+  <text class="box-title" x="555" y="680">Domain service</text>
+  <text class="body" x="555" y="710">Authorizes resource and commits its write.</text>
+  <text class="body" x="555" y="735">Persists state, idempotency, and outbox.</text>
+  <rect class="box future" x="995" y="645" width="390" height="135"/>
+  <text class="box-title" x="1020" y="680">Temporal + RabbitMQ</text>
+  <text class="body" x="1020" y="710">Coordinate long-running business workflow</text>
+  <text class="body" x="1020" y="735">and durable owner-to-owner outcomes.</text>
+  <path class="arrow" d="M455 710 L530 710"/>
+  <path class="arrow" d="M920 710 L995 710"/>
+  <text class="small" x="65" y="818">Recommendation: no separate BFF or Federation layer yet. Revisit Federation after client journeys, graph ownership, authorization, composition, and operations requirements are known.</text>
+</svg>

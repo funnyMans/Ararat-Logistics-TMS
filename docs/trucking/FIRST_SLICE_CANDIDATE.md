@@ -1,12 +1,16 @@
 # TMS first-slice candidate
 
-**Status: proposed, not selected.** The [system blueprint](TMS_SYSTEM_BLUEPRINT.md)
-owns the approved target architecture. This page records a candidate
-direction only; it is not authorization to implement the full target.
+**Status: business vertical slice proposed, not selected.** The
+[platform-foundation phase](TMS_SYSTEM_BLUEPRINT.md#approved-platform-foundation-increment)
+is separately approved as the first implementation phase. This page records
+a candidate business-workflow direction only; it is not authorization to
+implement that workflow or the full target.
 
-An engineering vertical slice is not automatically the product MVP. Define
-the MVP's users, operational value, scope, and release acceptance criteria
-before selecting an engineering slice from it.
+The coherent target operational scope is not defined as a narrow product MVP
+or customer-facing showcase. An engineering vertical slice is an incremental
+method for implementing and validating part of that target. Select it based
+on technical risk, architectural learning, dependencies, system integrity,
+and end-to-end verifiability, not feature count or demonstration value.
 
 ## Candidate direction
 
@@ -33,5 +37,7 @@ Before selecting this or another slice:
   placeholders and unsupported operations.
 - Prove any platform capability on which the slice depends.
 
-The first slice, exact scenarios, matching profile, and data sources remain
-open. See [open decisions](OPEN_QUESTIONS.md).
+The later business slice, exact scenarios, matching profile, and data sources
+remain open. In particular, planning implementation requires the source-fact
+and calibration gates in items 15 and 21 of
+[open decisions](OPEN_QUESTIONS.md).

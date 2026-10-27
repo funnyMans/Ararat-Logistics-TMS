@@ -1,0 +1,246 @@
+openapi: 3.1.0
+info:
+  title: TMS Execution Service API
+  version: 1.0.0
+  description: >-
+    Canonical HTTP contract for the Execution-owned evidence upload intent,
+    finalization, and status operations currently specified in
+    docs/contracts.md. The object-storage PUT occurs directly against the
+    presigned URL and is not an Execution API operation.
+servers:
+  - url: /
+    description: Deployment-specific Execution API base URL
+tags:
+  - name: Evidence uploads
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/load-executions/{loadExecutionId}/stops/{stopId}/evidence-uploads:
+    post:
+      operationId: createEvidenceUploadIntent
+      tags: [Evidence uploads]
+      summary: Create an authorized evidence upload intent
+      parameters:
+        - name: loadExecutionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UuidV7'
+        - name: stopId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UuidV7'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceUploadIntentRequest'
+      responses:
+        '201':
+          description: Upload intent and short-lived private object-storage URL created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceUploadIntent'
+        '400':
+          $ref: '#/components/responses/TransportError'
+        '401':
+          $ref: '#/components/responses/TransportError'
+        '403':
+          $ref: '#/components/responses/TransportError'
+        '404':
+          $ref: '#/components/responses/TransportError'
+        '409':
+          $ref: '#/components/responses/TransportError'
+        '413':
+          $ref: '#/components/responses/TransportError'
+        '415':
+          $ref: '#/components/responses/TransportError'
+        '422':
+          $ref: '#/components/responses/TransportError'
+        '429':
+          $ref: '#/components/responses/TransportError'
+        '500':
+          $ref: '#/components/responses/TransportError'
+        '503':
+          $ref: '#/components/responses/TransportError'
+        '504':
+          $ref: '#/components/responses/TransportError'
+  /api/v1/evidence-uploads/{uploadId}/finalization:
+    post:
+      operationId: finalizeEvidenceUpload
+      tags: [Evidence uploads]
+      summary: Verify the uploaded object and start malware scanning
+      parameters:
+        - $ref: '#/components/parameters/UploadId'
+      responses:
+        '202':
+          description: Stored object verified and asynchronous scan started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceUploadStatus'
+        '400':
+          $ref: '#/components/responses/TransportError'
+        '401':
+          $ref: '#/components/responses/TransportError'
+        '403':
+          $ref: '#/components/responses/TransportError'
+        '404':
+          $ref: '#/components/responses/TransportError'
+        '409':
+          $ref: '#/components/responses/TransportError'
+        '410':
+          $ref: '#/components/responses/TransportError'
+        '422':
+          $ref: '#/components/responses/TransportError'
+        '429':
+          $ref: '#/components/responses/TransportError'
+        '500':
+          $ref: '#/components/responses/TransportError'
+        '503':
+          $ref: '#/components/responses/TransportError'
+  /api/v1/evidence-uploads/{uploadId}:
+    get:
+      operationId: getEvidenceUploadStatus
+      tags: [Evidence uploads]
+      summary: Retrieve evidence upload processing state
+      description: >-
+        An unfinalized, unexpired intent returns 409. Never return the
+        object-storage URL from this polling endpoint.
+      parameters:
+        - $ref: '#/components/parameters/UploadId'
+      responses:
+        '200':
+          description: Current upload processing state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceUploadStatus'
+        '401':
+          $ref: '#/components/responses/TransportError'
+        '403':
+          $ref: '#/components/responses/TransportError'
+        '404':
+          $ref: '#/components/responses/TransportError'
+        '409':
+          $ref: '#/components/responses/TransportError'
+        '429':
+          $ref: '#/components/responses/TransportError'
+        '500':
+          $ref: '#/components/responses/TransportError'
+        '503':
+          $ref: '#/components/responses/TransportError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Scoped to authenticated principal, operation, and target resource.
+      schema:
+        type: string
+        minLength: 1
+    UploadId:
+      name: uploadId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UuidV7'
+  responses:
+    TransportError:
+      description: Shared safe transport-error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    EvidenceUploadIntentRequest:
+      type: object
+      additionalProperties: false
+      required: [fileName, contentType, sizeBytes, sha256]
+      properties:
+        fileName:
+          type: string
+          minLength: 1
+        contentType:
+          type: string
+          enum: [application/pdf, image/jpeg, image/png]
+        sizeBytes:
+          type: integer
+          minimum: 1
+          description: Maximum 25,000,000 bytes; larger declarations return 413.
+          x-maximum-bytes: 25000000
+        sha256:
+          type: string
+          pattern: '^[A-Fa-f0-9]{64}$'
+    EvidenceUploadIntent:
+      type: object
+      required: [uploadId, uploadUrl, expiresAt, requiredHeaders]
+      properties:
+        uploadId: { $ref: '#/components/schemas/UuidV7' }
+        uploadUrl:
+          type: string
+          format: uri
+          description: Private presigned object-storage URL, valid for 30 minutes.
+        expiresAt: { type: string, format: date-time }
+        requiredHeaders:
+          type: object
+          additionalProperties: { type: string }
+          description: >-
+            Exact required header names/values are storage-provider-specific
+            and remain an implementation contract detail.
+    EvidenceUploadStatus:
+      type: object
+      required: [uploadId, status, expiresAt]
+      properties:
+        uploadId: { $ref: '#/components/schemas/UuidV7' }
+        status:
+          type: string
+          enum: [SCANNING, AVAILABLE, REJECTED, EXPIRED]
+        expiresAt: { type: string, format: date-time }
+        evidenceId: { $ref: '#/components/schemas/UuidV7' }
+        reasonCode:
+          type: string
+          description: Present only when status is REJECTED.
+    TransportError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable, requestId]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            retryable: { type: boolean }
+            requestId: { $ref: '#/components/schemas/UuidV7' }
+            details:
+              type: array
+              items:
+                type: object
+                required: [code, message]
+                properties:
+                  code: { type: string }
+                  fieldPath: { type: string }
+                  message: { type: string }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    Exact create-intent response headers, authorization mapping,
+    verification-failure codes, and evidence retention are not yet specified.
+  - >-
+    Other Execution HTTP operations and durable message inventories are
+    capability-specific contract work.

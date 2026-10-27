@@ -1,0 +1,929 @@
+openapi: 3.1.0
+info:
+  title: TMS Load Service API
+  version: 1.0.0
+  description: >-
+    Canonical HTTP contract for the Load-owned booking, read, amendment, and
+    cancellation operations currently specified in docs/contracts.md.
+    Nested booking row fields intentionally use x-tms-expected-shape rather
+    than restrictive JSON Schema assertions: Load must persist semantic
+    rejections and non-critical invalid values as outcomes/follow-up work.
+    Unknown row properties are likewise accepted for a durable UNKNOWN_FIELD
+    result. This is not a waiver of validation; it preserves the agreed
+    business-outcome behavior.
+servers:
+  - url: /
+    description: Deployment-specific Load API base URL
+tags:
+  - name: Booking
+  - name: Loads
+  - name: Cancellation
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/booking-submissions:
+    post:
+      operationId: createBookingSubmission
+      tags: [Booking]
+      summary: Record a booking submission attempt
+      description: >-
+        A well-formed request produces a durable accepted or rejected
+        submission resource. Booking-rule failures are represented in the
+        response body and do not become transport errors.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingSubmissionRequest'
+      responses:
+        '201':
+          description: New durable accepted or rejected submission
+          headers:
+            Location:
+              $ref: '#/components/headers/ResourceLocation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSubmissionResult'
+        '200':
+          description: Idempotent replay of the stored submission result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSubmissionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/ContentTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/CustomerStatusUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+    parameters: []
+  /api/v1/booking-submissions/{submissionId}:
+    get:
+      operationId: getBookingSubmission
+      tags: [Booking]
+      summary: Retrieve a durable booking submission outcome
+      parameters:
+        - $ref: '#/components/parameters/SubmissionId'
+      responses:
+        '200':
+          description: Visible submission and its immutable result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingSubmissionResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/loads/{loadId}:
+    get:
+      operationId: getLoad
+      tags: [Loads]
+      summary: Retrieve the current Load and revision
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+      responses:
+        '200':
+          description: Current Load representation
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/loads/{loadId}/revisions/{revisionId}:
+    get:
+      operationId: getLoadRevision
+      tags: [Loads]
+      summary: Retrieve an immutable Load revision
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - $ref: '#/components/parameters/RevisionId'
+      responses:
+        '200':
+          description: Immutable revision representation
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadRevision'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/loads/{loadId}/revisions:
+    post:
+      operationId: createLoadRevision
+      tags: [Loads]
+      summary: Create the next full-snapshot Load revision
+      description: >-
+        The request is a complete replacement snapshot, not a partial patch.
+        Invalid attempts are durably retained and replayed by idempotency key;
+        they do not create revisions or revision facts.
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - name: If-Match
+          in: header
+          required: true
+          description: ETag of the current Load revision.
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoadRevisionInput'
+      responses:
+        '201':
+          description: New immutable revision created
+          headers:
+            Location:
+              $ref: '#/components/headers/ResourceLocation'
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionCreationResult'
+        '200':
+          description: Idempotent replay of an accepted amendment
+          headers:
+            ETag:
+              $ref: '#/components/headers/EntityTag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionCreationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+        '422':
+          $ref: '#/components/responses/AmendmentInvalid'
+        '428':
+          $ref: '#/components/responses/PreconditionRequired'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+  /api/v1/loads/{loadId}/cancellation-requests:
+    post:
+      operationId: createLoadCancellationRequest
+      tags: [Cancellation]
+      summary: Request cancellation of a Load
+      parameters:
+        - $ref: '#/components/parameters/LoadId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancellationRequestInput'
+      responses:
+        '202':
+          description: Cancellation request durably accepted
+          headers:
+            Location:
+              $ref: '#/components/headers/ResourceLocation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationRequest'
+        '200':
+          description: Idempotent replay of the existing request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationRequest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/CancellationConflict'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+  /api/v1/cancellation-requests/{cancellationRequestId}:
+    get:
+      operationId: getLoadCancellationRequest
+      tags: [Cancellation]
+      summary: Retrieve the current cancellation request state
+      parameters:
+        - name: cancellationRequestId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UuidV7'
+      responses:
+        '200':
+          description: Visible cancellation request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/UnexpectedError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >-
+        Opaque key scoped to authenticated principal, operation, and target
+        resource when present. Same key with changed normalized content is
+        409 Conflict.
+      schema:
+        type: string
+        minLength: 1
+    SubmissionId:
+      name: submissionId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UuidV7'
+    LoadId:
+      name: loadId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UuidV7'
+    RevisionId:
+      name: revisionId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/UuidV7'
+  headers:
+    ResourceLocation:
+      description: URI of the created or pollable resource.
+      schema:
+        type: string
+        format: uri-reference
+    EntityTag:
+      description: Strong entity tag for the exact representation.
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Malformed JSON or uninterpretable request; no business resource is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    Unauthorized:
+      description: Authentication is required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    Forbidden:
+      description: The caller is not authorized for the requested resource or operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    NotFound:
+      description: Resource does not exist or is not visible to the caller.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    Conflict:
+      description: Idempotency conflict, lifecycle conflict, or conflicting finalization guard.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    CancellationConflict:
+      description: >-
+        Cancellation conflict, including CANCELLATION_ALREADY_PENDING,
+        LOAD_ALREADY_CANCELLED, or CANCELLATION_NOT_ALLOWED_EXECUTION_STARTED.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    ContentTooLarge:
+      description: Request exceeds the 100-row or 5 MB normalized JSON limit.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    UnsupportedMediaType:
+      description: Content type is not supported.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    RateLimited:
+      description: Request rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    UnexpectedError:
+      description: Unexpected server failure.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    ServiceUnavailable:
+      description: Retryable service or dependency unavailability.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    CustomerStatusUnavailable:
+      description: >-
+        Current Customer status could not be verified. No submission or Load
+        is committed; retry the unchanged request with the same key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    GatewayTimeout:
+      description: >-
+        Commit outcome may be unknown. Retry unchanged content with the same
+        Idempotency-Key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    PreconditionFailed:
+      description: The supplied If-Match ETag is stale; the rejected attempt is retained.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    PreconditionRequired:
+      description: If-Match is missing; the rejected attempt is retained.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TransportError'
+    AmendmentInvalid:
+      description: Invalid full-snapshot amendment; issues are durably retained with no new revision.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AmendmentError'
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    BookingSubmissionRequest:
+      type: object
+      additionalProperties: false
+      required: [rows]
+      properties:
+        rows:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: >-
+            One Load row per entry. Entries are permissive so Load can durably
+            report semantic field issues and salvage non-critical values.
+          items:
+            $ref: '#/components/schemas/BookingRowInput'
+        correctionOfSubmissionId:
+          oneOf:
+            - $ref: '#/components/schemas/UuidV7'
+            - type: 'null'
+          description: Must identify a durably rejected submission when supplied.
+    BookingRowInput:
+      type: object
+      additionalProperties: true
+      description: >-
+        Unknown properties and invalid known-field values are accepted for
+        domain outcome processing. The expected valid shapes are annotated
+        with x-tms-expected-shape; do not apply strict schema rejection to
+        these nested fields.
+      properties:
+        customerId:
+          description: Registry Customer UUIDv7.
+          x-tms-expected-shape:
+            type: string
+            format: uuid
+            version: 7
+        customerReference:
+          description: Optional trimmed string, maximum 100 Unicode code points.
+          x-tms-expected-shape:
+            type: string
+            maxUnicodeCodePoints: 100
+        customerRate:
+          description: Required positive USD decimal amount and ISO currency.
+          x-tms-expected-shape:
+            type: object
+            required: [amount, currency]
+            properties:
+              amount: { type: string, positive: true, maximum: '9999999999.99' }
+              currency: { type: string, const: USD }
+        equipmentProfile:
+          description: DRY_VAN, REEFER, FLATBED; recognized unsupported values are handled as follow-up.
+          x-tms-expected-shape:
+            type: string
+            enum: [DRY_VAN, REEFER, FLATBED]
+        specialHandlingCodes:
+          description: Optional array containing OVERSIZE and/or HAZMAT.
+          x-tms-expected-shape:
+            type: array
+            items: { type: string, enum: [OVERSIZE, HAZMAT] }
+        totalGrossWeight:
+          description: Optional planning-stage weight object.
+          x-tms-expected-shape:
+            type: object
+            required: [value, unit]
+            properties:
+              value: { type: string, positive: true }
+              unit: { type: string, enum: [LB, KG] }
+        temperatureRange:
+          description: Reefer-only, stage-gated temperature range.
+          x-tms-expected-shape:
+            type: object
+            required: [minimum, maximum, unit]
+            properties:
+              minimum: { type: string, minimum: '-999.99', maximum: '999.99' }
+              maximum: { type: string, minimum: '-999.99', maximum: '999.99' }
+              unit: { type: string, enum: [F, C] }
+        reeferMode:
+          description: Reefer-only CONTINUOUS or START_STOP value.
+          x-tms-expected-shape:
+            type: string
+            enum: [CONTINUOUS, START_STOP]
+        tarpRequired:
+          description: Flatbed planning-stage boolean.
+          x-tms-expected-shape:
+            type: boolean
+        stops:
+          description: Ordered stop array; valid count is 2–50.
+          x-tms-expected-shape:
+            type: array
+            minItems: 2
+            maxItems: 50
+            items:
+              type: object
+              required: [type, address, appointmentWindow]
+              properties:
+                type: { type: string, enum: [PICKUP, DELIVERY] }
+                address:
+                  type: object
+                  required: [addressLine1, city, stateCode, postalCode]
+                  properties:
+                    addressLine1: { type: string, maxLength: 200 }
+                    addressLine2: { type: string, maxLength: 200 }
+                    city: { type: string, maxLength: 120 }
+                    stateCode: { type: string, pattern: '^[A-Z]{2}$' }
+                    postalCode: { type: string, pattern: '^[0-9]{5}(-[0-9]{4})?$' }
+                    countryCode: { type: string, const: US }
+                    coordinates:
+                      type: object
+                      properties:
+                        latitude: { type: number, minimum: -90, maximum: 90 }
+                        longitude: { type: number, minimum: -180, maximum: 180 }
+                appointmentWindow:
+                  type: object
+                  required: [startAt, endAt, timeZone]
+                  properties:
+                    startAt: { type: string, format: date-time }
+                    endAt: { type: string, format: date-time }
+                    timeZone: { type: string, description: IANA time-zone identifier }
+                facilityName: { type: string, maxLength: 120 }
+                contactName: { type: string, maxLength: 120 }
+                contactPhone: { type: string, maxLength: 32 }
+                accessInstructions: { type: string, maxLength: 1000 }
+        freightLines:
+          description: Freight-line array; valid count is 1–500.
+          x-tms-expected-shape:
+            type: array
+            minItems: 1
+            maxItems: 500
+            items:
+              type: object
+              required: [description, quantity, handlingUnitCode, stackable]
+              properties:
+                description: { type: string, maxLength: 500 }
+                quantity: { type: string, pattern: '^[1-9][0-9]{0,11}$' }
+                handlingUnitCode:
+                  type: string
+                  enum:
+                    [
+                      PALLET,
+                      SKID,
+                      CASE,
+                      CARTON,
+                      BOX,
+                      PIECE,
+                      CRATE,
+                      DRUM,
+                      BAG,
+                      ROLL,
+                      CONTAINER,
+                      OTHER,
+                    ]
+                handlingUnitDescription: { type: string, maxLength: 120 }
+                stackable: { type: boolean }
+                dimensions:
+                  type: object
+                  required: [length, width, height, unit]
+                  properties:
+                    length: { type: string }
+                    width: { type: string }
+                    height: { type: string }
+                    unit: { type: string, enum: [IN, CM] }
+          x-tms-validation-mode: >-
+            Treat these nested constraints as expected canonical values, not
+            pre-domain rejection assertions. Preserve invalid known values
+            for durable rejection or accepted follow-up handling.
+    BookingSubmissionResult:
+      type: object
+      required: [submissionId, outcome, createdAt, loadReferences, issues, followUpItems]
+      properties:
+        submissionId:
+          $ref: '#/components/schemas/UuidV7'
+        outcome:
+          type: string
+          enum: [accepted, rejected]
+        createdAt:
+          type: string
+          format: date-time
+        correctionOfSubmissionId:
+          oneOf:
+            - $ref: '#/components/schemas/UuidV7'
+            - type: 'null'
+        loadReferences:
+          type: array
+          description: Empty on rejection; one entry per accepted source row.
+          items:
+            type: object
+            required: [rowNumber, loadId, loadReference]
+            properties:
+              rowNumber: { type: integer, minimum: 1 }
+              loadId: { $ref: '#/components/schemas/UuidV7' }
+              loadReference: { type: string }
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookingIssue'
+        followUpItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/FollowUpItem'
+    BookingIssue:
+      type: object
+      required: [rowNumber, fieldPath, code, message, correctiveAction]
+      properties:
+        rowNumber: { type: integer, minimum: 1 }
+        fieldPath: { type: string, description: RFC 6901 JSON Pointer }
+        code: { type: string, pattern: '^[A-Z][A-Z0-9_]*$' }
+        message: { type: string }
+        correctiveAction: { type: string }
+    FollowUpItem:
+      type: object
+      required:
+        [loadId, rowNumber, fieldPath, code, message, correctiveAction, requiredStage, blocksStage]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        rowNumber: { type: integer, minimum: 1 }
+        fieldPath: { type: string, description: RFC 6901 JSON Pointer }
+        code: { type: string, pattern: '^[A-Z][A-Z0-9_]*$' }
+        message: { type: string }
+        correctiveAction: { type: string }
+        requiredStage:
+          oneOf:
+            - type: string
+              enum: [PLANNING, EXECUTION_START, DELIVERY_CLOSEOUT]
+            - type: 'null'
+        blocksStage: { type: boolean }
+    LoadResource:
+      type: object
+      required: [loadId, loadReference, lifecycleStatus, currentRevision]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadReference: { type: string }
+        lifecycleStatus:
+          type: string
+          enum: [BOOKED, CANCELLATION_PENDING, CANCELLED, COMPLETED]
+        currentRevision:
+          $ref: '#/components/schemas/LoadRevision'
+    LoadRevision:
+      type: object
+      required:
+        [
+          revisionId,
+          revisionNumber,
+          createdAt,
+          customerId,
+          customerNameSnapshot,
+          customerRate,
+          stops,
+          freightLines,
+        ]
+      properties:
+        revisionId: { $ref: '#/components/schemas/UuidV7' }
+        revisionNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        createdAt: { type: string, format: date-time }
+        customerId: { $ref: '#/components/schemas/UuidV7' }
+        customerNameSnapshot: { type: string }
+        customerReference: { type: string }
+        customerRate:
+          type: object
+          required: [amount, currency]
+          properties:
+            amount: { type: string, pattern: '^[0-9]+\\.[0-9]{2}$' }
+            currency: { type: string, const: USD }
+        equipmentProfile: { type: string }
+        specialHandlingCodes:
+          type: array
+          items: { type: string, enum: [OVERSIZE, HAZMAT] }
+        totalGrossWeight:
+          type: object
+          required: [value, unit]
+          properties:
+            value: { type: string }
+            unit: { type: string, enum: [LB, KG] }
+        temperatureRange:
+          type: object
+          required: [minimum, maximum, unit]
+          properties:
+            minimum: { type: string }
+            maximum: { type: string }
+            unit: { type: string, enum: [F, C] }
+        reeferMode: { type: string, enum: [CONTINUOUS, START_STOP] }
+        tarpRequired: { type: boolean }
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoadStop'
+        freightLines:
+          type: array
+          items:
+            $ref: '#/components/schemas/FreightLine'
+    LoadStop:
+      type: object
+      required: [stopId, sequenceNumber, type, address, appointmentWindow]
+      properties:
+        stopId: { $ref: '#/components/schemas/UuidV7' }
+        sequenceNumber: { type: integer, minimum: 1 }
+        type: { type: string, enum: [PICKUP, DELIVERY] }
+        address:
+          type: object
+          required: [addressLine1, city, stateCode, postalCode]
+          properties:
+            addressLine1: { type: string }
+            addressLine2: { type: string }
+            city: { type: string }
+            stateCode: { type: string, pattern: '^[A-Z]{2}$' }
+            postalCode: { type: string }
+            countryCode: { type: string, const: US }
+            coordinates:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude: { type: number, minimum: -90, maximum: 90 }
+                longitude: { type: number, minimum: -180, maximum: 180 }
+        appointmentWindow:
+          type: object
+          required: [startAt, endAt, timeZone]
+          properties:
+            startAt: { type: string, format: date-time }
+            endAt: { type: string, format: date-time }
+            timeZone: { type: string }
+        facilityName: { type: string }
+        contactName: { type: string }
+        contactPhone: { type: string }
+        accessInstructions: { type: string }
+    FreightLine:
+      type: object
+      required: [freightLineId, sequenceNumber, description, quantity, handlingUnitCode, stackable]
+      properties:
+        freightLineId: { $ref: '#/components/schemas/UuidV7' }
+        sequenceNumber: { type: integer, minimum: 1 }
+        description: { type: string }
+        quantity: { type: string, pattern: '^[1-9][0-9]{0,11}$' }
+        handlingUnitCode:
+          type: string
+          enum: [PALLET, SKID, CASE, CARTON, BOX, PIECE, CRATE, DRUM, BAG, ROLL, CONTAINER, OTHER]
+        handlingUnitDescription: { type: string }
+        stackable: { type: boolean }
+        dimensions:
+          type: object
+          required: [length, width, height, unit]
+          properties:
+            length: { type: string }
+            width: { type: string }
+            height: { type: string }
+            unit: { type: string, enum: [IN, CM] }
+    LoadRevisionInput:
+      allOf:
+        - $ref: '#/components/schemas/BookingRowInput'
+      description: >-
+        Complete replacement snapshot. customerId is required and must equal
+        the original booking's Customer. Omitted optional fields are cleared.
+        Invalid full snapshots are durably retained and return 422; perform
+        domain outcome validation rather than rejecting nested values at the
+        transport schema boundary.
+      x-tms-required-fields:
+        - customerId
+        - customerRate
+        - stops
+        - freightLines
+      x-tms-domain-outcome-validation: true
+    RevisionCreationResult:
+      type: object
+      required: [loadId, revisionId, revisionNumber, createdAt, revalidationRequired]
+      properties:
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        revisionId: { $ref: '#/components/schemas/UuidV7' }
+        revisionNumber: { type: integer, minimum: 1 }
+        createdAt: { type: string, format: date-time }
+        revalidationRequired: { type: boolean }
+    CancellationRequestInput:
+      type: object
+      additionalProperties: false
+      required: [reasonCode]
+      properties:
+        reasonCode:
+          type: string
+          enum: [CUSTOMER_REQUEST, DUPLICATE_BOOKING, BOOKING_ERROR, LOAD_NO_LONGER_NEEDED, OTHER]
+        note:
+          type: string
+          maxLength: 500
+          description: Required when reasonCode is OTHER.
+      allOf:
+        - if:
+            properties:
+              reasonCode: { const: OTHER }
+            required: [reasonCode]
+          then:
+            required: [note]
+    CancellationRequest:
+      type: object
+      required: [cancellationRequestId, loadId, state, reasonCode, createdAt, statusUrl]
+      properties:
+        cancellationRequestId: { $ref: '#/components/schemas/UuidV7' }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        state:
+          type: string
+          enum: [PENDING_RELEASE, REQUIRES_RECONCILIATION, CANCELLED]
+        reasonCode:
+          type: string
+          enum: [CUSTOMER_REQUEST, DUPLICATE_BOOKING, BOOKING_ERROR, LOAD_NO_LONGER_NEEDED, OTHER]
+        note: { type: string, maxLength: 500 }
+        requestedByPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        completedAt:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+        reconciliationRequired: { type: boolean }
+        failure:
+          oneOf:
+            - $ref: '#/components/schemas/CancellationFailure'
+            - { type: 'null' }
+        statusUrl: { type: string, format: uri-reference }
+    CancellationFailure:
+      type: object
+      required: [code, occurredAt]
+      properties:
+        code: { type: string }
+        occurredAt: { type: string, format: date-time }
+    AmendmentError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable, requestId, details]
+          properties:
+            code: { type: string, const: LOAD_AMENDMENT_INVALID }
+            message: { type: string }
+            retryable: { type: boolean, const: false }
+            requestId: { $ref: '#/components/schemas/UuidV7' }
+            details:
+              type: array
+              items:
+                type: object
+                required: [fieldPath, code, message, correctiveAction]
+                properties:
+                  fieldPath: { type: string }
+                  code: { type: string }
+                  message: { type: string }
+                  correctiveAction: { type: string }
+    TransportError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, retryable, requestId]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            retryable: { type: boolean }
+            requestId: { $ref: '#/components/schemas/UuidV7' }
+            details:
+              type: array
+              items:
+                type: object
+                required: [code, message]
+                properties:
+                  code: { type: string }
+                  fieldPath: { type: string }
+                  message: { type: string }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    HTTP route inventories and operation contracts for service owners other
+    than Load and Execution remain open in OPEN_QUESTIONS.md item 17.
+  - >-
+    Remaining Load operation-specific validation and idempotency details are
+    tracked in OPEN_QUESTIONS.md item 17.

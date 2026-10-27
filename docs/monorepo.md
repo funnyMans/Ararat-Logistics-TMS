@@ -17,7 +17,7 @@ implementation status, see the [documentation guide](README.md) and
 
 The Identity service and the TMS business services are not implemented.
 Their ownership and responsibilities are target product boundaries, not
-existing workspace packages. Define a service's structure when its MVP
+existing workspace packages. Define a service's structure when its target
 responsibility and contracts are approved; do not create empty packages to
 mirror conceptual nouns.
 

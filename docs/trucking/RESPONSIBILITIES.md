@@ -5,10 +5,12 @@ a staffing recommendation for every carrier. Role grants are authorization
 inputs, not unrestricted access: each owning service must also check access
 to the specific record and transition.
 
-This page defines high-level business accountability only. It does not yet
-specify detailed role procedures, permissions, or technical enforcement.
-Settle domain ownership, relationships, and internal contracts before
-designing those role-level solutions.
+This page defines high-level business accountability, not a complete
+permission matrix. Under D-506, each record-owning service enforces
+default-deny authorization using the role grant and applicable
+resource/relationship scope. Detailed action-to-role matrices, delegation
+rules, and technical enforcement remain capability-specific prerequisites
+before protected writes are implemented.
 
 An account may have multiple grants. Grants may be area-scoped to `la`,
 `west`, `central`, or `east` where the role permits it. Area scope does not
@@ -89,17 +91,11 @@ have no area grant, by their existing resource and relationship authority.
   submitted the proposal, another authorized supervisor reviews it; the chief
   supervisor or transportation executive may provide coverage. This review
   does not authorize invoicing, Carrier payment, or settlement.
-- The Load's area supervisor assigns and may reassign each post-delivery
-  claim's designated owner from staff with explicit claim-owner permission,
-  regardless of department. If the owner cannot progress or needs a decision,
-  the case escalates first to the Load's area supervisor, who may escalate
-  further through the supervisory chain. The owner may escalate whenever the
-  case is blocked or requires a decision beyond their authority; escalation
-  is not time-triggered.
-- Each post-delivery claim has a designated owner accountable for coordinating
-  the case through resolution, regardless of department. The owner may resolve
-  the case after recording an audited outcome and reason; this does not create
-  a dedicated claims role.
+- The Load service records a minimal Load-linked issue and its handoff
+  status. It does not assign an internal claim owner or manage post-delivery
+  issue resolution. The receiving out-of-scope service owns issue assignment,
+  status, and resolution; the handoff contains the issue record, not the
+  detailed Load record or full Load snapshot.
 - Each domain's owning service remains the only authority that writes its
   business records. A role grant does not confer cross-domain write access.
 
@@ -129,9 +125,10 @@ transition.
   be conflated. Applicable law and agreements govern the actual authority.
 
 This role model is a business authority baseline, not an implemented
-authentication or authorization system. The Identity and session baseline
-is recorded; detailed role-to-action permissions and resource-level
-enforcement remain open in [open decisions](OPEN_QUESTIONS.md). Customer and
-carrier office accounts are deferred. Privileged identity-grant changes
-require a second approver; the identity administrator grant does not confer
-access to transportation operations.
+authentication or authorization system. Identity and session requirements
+are recorded, and D-506 establishes the authorization model. Detailed
+role-to-action and resource-level matrices remain capability-specific
+prerequisites in [open decisions](OPEN_QUESTIONS.md). Customer and carrier
+office accounts are deferred. Privileged identity-grant changes require a
+second approver; the identity administrator grant does not confer access to
+transportation operations.

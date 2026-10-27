@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="920" style="height:auto" viewBox="0 0 1500 920" role="img" aria-labelledby="title description">
+  <title id="title">TMS service dependency map</title>
+  <desc id="description">Registry, Fleet Readiness, and Load provide authoritative facts to Dispatch Planning. Dispatch proposes a plan, Capacity Commitment reserves the complete resource windows, Dispatch activates Assignment after confirmation, and Execution records actual movement and closeout for Load. Identity, RabbitMQ, Temporal, NATS, Operations View, and Notification support but do not replace domain ownership.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 18; }
+      .card { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 14; }
+      .owner { fill: #eaf3fb; stroke: #1769aa; }
+      .decision { fill: #fff3dc; stroke: #b87500; }
+      .movement { fill: #e8f5ee; stroke: #24804a; }
+      .support { fill: #f0edfa; stroke: #6853a6; }
+      .read { fill: #f5f6f7; stroke: #687582; }
+      .card-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; fill: #42586c; }
+      .small { font-size: 13px; fill: #526477; }
+      .edge { fill: none; stroke: #536579; stroke-width: 2.7; marker-end: url(#arrow); }
+      .zone-title { font-size: 18px; font-weight: 700; fill: #38536a; }
+    </style>
+  </defs>
+  <rect width="1500" height="920" fill="#fff"/>
+  <text class="title" x="48" y="58">TMS service dependency map</text>
+  <text class="subtitle" x="48" y="86">Business facts stay with their owners; planning, reservation, and movement are distinct responsibilities.</text>
+
+  <rect class="band" x="35" y="120" width="1430" height="425"/>
+  <text class="zone-title" x="60" y="155">Authoritative business flow</text>
+
+  <rect class="card owner" x="60" y="220" width="205" height="165"/>
+  <text class="card-title" x="82" y="255">Owner facts</text>
+  <text class="body" x="82" y="290">Registry</text>
+  <text class="body" x="82" y="315">Fleet Readiness</text>
+  <text class="body" x="82" y="340">Load</text>
+  <text class="small" x="82" y="368">Reference, eligibility, READY</text>
+
+  <rect class="card decision" x="305" y="220" width="205" height="165"/>
+  <text class="card-title" x="327" y="255">Dispatch Planning</text>
+  <text class="body" x="327" y="290">Evaluate feasibility</text>
+  <text class="body" x="327" y="315">Rank and build Trip Plan</text>
+  <text class="body" x="327" y="340">Own Assignment decision</text>
+
+  <rect class="card decision" x="550" y="220" width="205" height="165"/>
+  <text class="card-title" x="572" y="255">Capacity Commitment</text>
+  <text class="body" x="572" y="290">Reserve every resource</text>
+  <text class="body" x="572" y="315">window atomically or none</text>
+  <text class="small" x="572" y="350">Owns claim state and expiry</text>
+
+  <rect class="card decision" x="795" y="220" width="205" height="165"/>
+  <text class="card-title" x="817" y="255">Dispatch Assignment</text>
+  <text class="body" x="817" y="290">Recheck plan gates</text>
+  <text class="body" x="817" y="315">Activate after CC confirms</text>
+  <text class="small" x="817" y="350">Immutable decision history</text>
+
+  <rect class="card movement" x="1040" y="220" width="205" height="165"/>
+  <text class="card-title" x="1062" y="255">Execution</text>
+  <text class="body" x="1062" y="290">Create planned records</text>
+  <text class="body" x="1062" y="315">Record actual movement</text>
+  <text class="small" x="1062" y="350">Evidence and closeout fact</text>
+
+  <rect class="card owner" x="1285" y="220" width="150" height="165"/>
+  <text class="card-title" x="1307" y="255">Load closeout</text>
+  <text class="body" x="1307" y="290">Consume Execution</text>
+  <text class="body" x="1307" y="315">closeout; complete</text>
+  <text class="small" x="1307" y="350">Handoff minimal issue</text>
+
+  <path class="edge" d="M265 302 L305 302"/>
+  <path class="edge" d="M510 302 L550 302"/>
+  <path class="edge" d="M755 302 L795 302"/>
+  <path class="edge" d="M1000 302 L1040 302"/>
+  <path class="edge" d="M1245 302 L1285 302"/>
+
+  <text class="small" x="60" y="430">Each service commits only its own records and publishes versioned facts or outcomes.</text>
+  <text class="small" x="60" y="455">Dispatch decides what to request; CC alone decides whether capacity is protected.</text>
+  <text class="small" x="60" y="480">Execution records what happened; Load owns the commercial lifecycle and consumes closeout.</text>
+
+  <rect class="band" x="35" y="585" width="1430" height="260"/>
+  <text class="zone-title" x="60" y="620">Cross-cutting support and read models</text>
+
+  <rect class="card support" x="60" y="665" width="245" height="125"/>
+  <text class="card-title" x="82" y="700">Identity</text>
+  <text class="body" x="82" y="730">Principal and role context</text>
+  <text class="small" x="82" y="758">Domain owners authorize resources</text>
+
+  <rect class="card support" x="340" y="665" width="245" height="125"/>
+  <text class="card-title" x="362" y="700">RabbitMQ</text>
+  <text class="body" x="362" y="730">Durable commands and facts</text>
+  <text class="small" x="362" y="758">Transport, not domain authority</text>
+
+  <rect class="card support" x="620" y="665" width="245" height="125"/>
+  <text class="card-title" x="642" y="700">Temporal</text>
+  <text class="body" x="642" y="730">Workflow progress and timers</text>
+  <text class="small" x="642" y="758">Coordinates, owns no business state</text>
+
+  <rect class="card support" x="900" y="665" width="245" height="125"/>
+  <text class="card-title" x="922" y="700">NATS</text>
+  <text class="body" x="922" y="730">Secondary realtime fan-out</text>
+  <text class="small" x="922" y="758">Not the durable workflow channel</text>
+
+  <rect class="card read" x="1180" y="665" width="255" height="125"/>
+  <text class="card-title" x="1202" y="700">Read / notice consumers</text>
+  <text class="body" x="1202" y="730">Operations View · Notification</text>
+  <text class="small" x="1202" y="758">Project or deliver; do not resolve</text>
+
+  <text class="small" x="60" y="820">These platform and read-model roles support domain owners; they do not form additional sources of business truth.</text>
+</svg>
