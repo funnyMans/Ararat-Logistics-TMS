@@ -226,6 +226,47 @@ remaining design gates are in the [open decisions](OPEN_QUESTIONS.md).
 7. Extend or revise the intended TMS through explicit owner decisions,
    preserving clear ownership and verification.
 
+### Technical foundation milestones
+
+The first implementation work follows the D-504 platform-foundation phase
+below. These are engineering milestones, not business capabilities or a
+commitment to implement the target in one delivery. Complete and verify each
+milestone's exit evidence before relying on it in a later milestone.
+
+| Milestone | Status | Depends on | Bounded scope | Exit evidence |
+| --- | --- | --- | --- | --- |
+| **F0. Reproducible runtime baseline** | Planned | Existing repository baseline | Establish clean local bootstrap and build, configuration and secret boundaries, service lifecycle conventions, distinct liveness/readiness behavior, and graceful shutdown. Extend the existing shared utilities and gateway baseline where appropriate; do not create empty business services. | A clean checkout passes the D-504 commands: `pnpm install --frozen-lockfile`, `pnpm build`, `pnpm lint`, `pnpm test`, and `pnpm test:all`. Readiness reflects required dependency availability; shutdown stops new work and drains or durably retains accepted work within the configured grace period. |
+| **F1. Isolated persistence conformance** | Planned | F0 | Add disposable local PostgreSQL for test-only conformance components and verify the pattern for isolated service-owned persistence. Keep database authority separate; create no TMS business schema or shared product database. | Automated integration evidence shows committed conformance state survives process and dependency restart. Document how the local database is started and reset without destructive default cleanup. |
+| **F2. Durable messaging conformance** | Planned | F0, F1 | Add RabbitMQ for durable delivery and exercise test-only publisher/consumer conformance, including the transactional outbox/inbox behavior needed to prove publication recovery and duplicate-safe consumption. | Automated integration evidence shows committed outbox work is published after restart, acknowledged durable work is not lost, and duplicate delivery does not repeat the conformance side effect. |
+| **F3. Persistent workflow recovery** | Planned | F0 and the persistence configuration required by Temporal | Add Temporal persistence and test-only workflow/worker conformance. Keep workflow progress separate from business truth and do not implement a business workflow. | An automated integration test proves a persisted conformance workflow resumes after worker restart and asserts its resulting state. |
+| **F4. Secondary fan-out and correlated observability** | Planned | F0–F3 | Add NATS only for secondary realtime fan-out. Correlate a conformance transaction across the existing structured logging, tracing, and metrics stack. NATS messages remain non-authoritative and may be rebuilt from durable facts. | A conformance transaction is traceable across the relevant components; health, readiness, failure signals, and bounded-cardinality metrics are inspectable. Tests demonstrate that loss of realtime fan-out does not lose authoritative state. |
+| **F5. Foundation recovery and acceptance** | Planned | F0–F4 | Complete deterministic failure-injection coverage, dependency-restart and shutdown scenarios, and the local backup/restore procedure. Reconcile all evidence against D-504; keep provider-specific HA and disaster-recovery qualification separate. | Automated tests assert persisted outcomes and no success-shaped fallback for the specified failure boundaries. The documented foundation acceptance commands and results are recorded, and backup/restore steps are exercised. Passing this gate qualifies only the tested local platform capabilities. |
+
+This sequence does not authorize business services, product-facing business
+routes, fabricated operational data, or third-party integrations. In
+particular, it does not add accounting/QuickBooks, ELD, load-board, general
+fleet-management, yard-management, or legal/compliance systems to the TMS
+foundation. The proposed business vertical slice remains unselected; before
+any business capability begins, close its applicable gates in the
+[implementation-readiness matrix](IMPLEMENTATION_READINESS.md) and
+[open-decision register](OPEN_QUESTIONS.md), then select the increment
+through an explicit owner decision. The near-term operating assumption
+remains approximately 50–100 trucks; capacity for 500 trucks is not claimed
+by this roadmap and must be revisited and validated before it is represented
+as supported.
+
+### Milestone status and documentation
+
+After each milestone is completed, update this roadmap with its actual
+status and link the exact validation command and result in the document that
+owns that implementation detail (for example, the
+[local development guide](../../infra/README.md) for local environment
+behavior). Update the implementation-readiness matrix when a gate changes
+status, and update the decision log or open-decision register only when an
+owner decision or unresolved prerequisite changes. Keep agreed design,
+implemented behavior, and verified evidence distinct. Do not mark the whole
+foundation accepted until all F0–F5 evidence required by D-504 is recorded.
+
 The [first-slice candidate](FIRST_SLICE_CANDIDATE.md) is not selected.
 Selection gates and unresolved design questions are tracked in
 [open decisions](OPEN_QUESTIONS.md).
