@@ -18,7 +18,24 @@ describe('common env helpers', () => {
   it('parses boolean values safely', () => {
     process.env.TEST_SERVICE_ENABLED = 'true';
     expect(getBooleanEnv('TEST_SERVICE_ENABLED', false)).toBe(true);
+
+    process.env.TEST_SERVICE_ENABLED = ' FALSE ';
+    expect(getBooleanEnv('TEST_SERVICE_ENABLED', true)).toBe(false);
+
+    process.env.TEST_SERVICE_ENABLED = 'YES';
+    expect(getBooleanEnv('TEST_SERVICE_ENABLED', false)).toBe(true);
     delete process.env.TEST_SERVICE_ENABLED;
+  });
+
+  it('trims whitespace for required and numeric env values', () => {
+    process.env.TEST_SERVICE_PORT = ' 4000 ';
+    process.env.TEST_SERVICE_TIMEOUT = ' 1500 ';
+
+    expect(getRequiredEnv('TEST_SERVICE_PORT')).toBe('4000');
+    expect(getNumberEnv('TEST_SERVICE_TIMEOUT', 500)).toBe(1500);
+
+    delete process.env.TEST_SERVICE_PORT;
+    delete process.env.TEST_SERVICE_TIMEOUT;
   });
 
   it('creates a strongly typed config from a zod schema', () => {
