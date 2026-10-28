@@ -7,11 +7,11 @@ services exist. For transport ownership and message semantics, see the
 
 ## Health and readiness
 
-| Endpoint       | Contract                                                                                                                                               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /health`  | Report service identity, observed dependency health, and timestamp. Return HTTP 200 when the health document itself can be produced.                   |
-| `GET /ready`   | Return HTTP 200 `{ "ready": true }` only when the service can accept its supported work; otherwise HTTP 503 with `{ "ready": false, "details": ... }`. |
-| `GET /metrics` | Expose process and bounded-cardinality service metrics.                                                                                                |
+| Endpoint       | Contract                                                                                                                                                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /health`  | Liveness/health report: report service identity, observed dependency health, and timestamp. Return HTTP 200 when the health document itself can be produced; dependency degradation does not by itself fail liveness.                 |
+| `GET /ready`   | Return HTTP 200 `{ "ready": true }` only when the service can accept its supported work; otherwise HTTP 503 with `{ "ready": false, "details": ... }`. Readiness is false before startup completes and once graceful shutdown begins. |
+| `GET /metrics` | Expose process and bounded-cardinality service metrics.                                                                                                                                                                               |
 
 Health reports observed process/dependency conditions. Readiness is the
 service's decision to accept work. A dependency used only for a later

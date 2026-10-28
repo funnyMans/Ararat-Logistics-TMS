@@ -2,10 +2,10 @@
 
 This repository is the product and engineering baseline for an owner-led
 Transportation Management System (TMS) initiative. The owners define the
-product direction and are establishing its business model, scope, MVP, and
-system architecture. Product assumptions, accepted requirements, evidence,
-legal conclusions, and implemented capabilities are recorded as distinct
-things.
+product direction and are establishing its business model, target scope,
+measurable acceptance, and system architecture. Product assumptions,
+accepted requirements, evidence, legal conclusions, and implemented
+capabilities are recorded as distinct things.
 
 The initial operating model is a US trucking carrier and brokerage with its
 own fleet, approximately 50–100 trucks, and working areas in LA, West,
@@ -57,16 +57,20 @@ docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
 
 See the [local development guide](infra/README.md) for the current Compose
-scope. Local infrastructure is for engineering and is not a deployment
-environment.
+scope, including the test-only PostgreSQL conformance dependency. It is not
+an application database or a deployment environment.
 
 ## Product-establishment discipline
 
-Complete and approve the TMS scope, business model, domain ownership and
-relationships, technical boundaries and contracts, role responsibilities,
-MVP outcomes, and verification criteria before TMS capability implementation
-begins. The
-[candidate slice](docs/trucking/FIRST_SLICE_CANDIDATE.md) remains unapproved;
-the required choices are in [open decisions](docs/trucking/OPEN_QUESTIONS.md).
+The approved implementation sequence is to complete and verify platform
+foundation milestones F0–F5 before starting TMS business-service
+implementation. This does not require resolving the intentionally open
+maximum product scope or every future capability in advance. After the
+foundation is accepted, implement business capabilities incrementally, closing
+their applicable scope, ownership, contract, authorization, recovery, and
+acceptance gates before starting each capability. The
+[candidate slice](docs/trucking/FIRST_SLICE_CANDIDATE.md) remains proposed,
+not selected; capability-specific prerequisites are tracked in
+[open decisions](docs/trucking/OPEN_QUESTIONS.md).
 
 This project is available under the [MIT License](LICENSE).
