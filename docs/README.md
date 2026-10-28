@@ -29,8 +29,8 @@ the target TMS model from software already present in this repository.
 - **Implementation work:** [monorepo guide](monorepo.md),
   [HTTP service baseline](SERVICE_CONTRACT.md), and the
   [local development guide](../infra/README.md).
-- **Planning:** [first-slice candidate](trucking/FIRST_SLICE_CANDIDATE.md)
-  (business vertical slice proposed, not selected). The separately approved
+- **Planning:** [selected first business increment](trucking/FIRST_SLICE_CANDIDATE.md)
+  (Load booking and outcome reads). The separately approved
   [platform-foundation phase](trucking/TMS_SYSTEM_BLUEPRINT.md#approved-platform-foundation-increment)
   may proceed without authorizing business workflows.
 
@@ -149,7 +149,7 @@ verified so product intent cannot be mistaken for running software.
 | AsyncAPI documents under `docs/api/`                             | Canonical versioned command and fact schemas, owned per service                            |
 | [Decision log](trucking/DECISIONS.md)                            | Accepted TMS product and architecture decisions                                            |
 | [Open decisions](trucking/OPEN_QUESTIONS.md)                     | Unresolved TMS requirements and design choices                                             |
-| [First-slice candidate](trucking/FIRST_SLICE_CANDIDATE.md)       | Proposed, unselected business vertical slice and selection gates                           |
+| [First business increment](trucking/FIRST_SLICE_CANDIDATE.md)    | Selected Load booking/read scope, acceptance, and remaining implementation gates           |
 | Engineering guides                                               | Repository conventions and current local operation                                         |
 
 The blueprint is authoritative for approved system architecture and target

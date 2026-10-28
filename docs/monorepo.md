@@ -10,7 +10,9 @@ implementation status, see the [documentation guide](README.md) and
 - `packages/common/` contains shared logging, tracing, health, metrics,
   configuration, and service-bootstrap utilities.
 - `services/api-gateway/` currently exposes gateway health/readiness and
-  observability. It has no implemented Identity or TMS business routes.
+  observability. Its non-health HTTP routes now require an Identity-issued
+  bearer token when Identity JWKS settings are configured; it still has no
+  TMS business routes and does not make domain authorization decisions.
 - `infra/` contains the local gateway and observability environment.
 - `docs/` contains product, business, architecture, and engineering
   documentation.
@@ -20,6 +22,15 @@ Their ownership and responsibilities are target product boundaries, not
 existing workspace packages. Define a service's structure when its target
 responsibility and contracts are approved; do not create empty packages to
 mirror conceptual nouns.
+
+The gateway accepts `IDENTITY_ISSUER`, `IDENTITY_AUDIENCE`, and
+`IDENTITY_JWKS_URI` as one configuration set. If configured, it verifies
+RS256 signatures and the selected identity-token claims with a five-minute
+JWKS cache. Until the Identity issuer is deployed, application routes fail
+closed as unavailable; `/health`, `/ready`, and the existing `/metrics`
+scrape endpoint remain public. Domain services must independently verify
+identity tokens and enforce their own resource authorization when those
+services are implemented.
 
 ## Workspace and build
 

@@ -24,7 +24,7 @@ Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
 [technical workflow](docs/trucking/TECHNICAL_WORKFLOW.md),
 [accepted decision log](docs/trucking/DECISIONS.md),
 [open decisions](docs/trucking/OPEN_QUESTIONS.md),
-[first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md),
+[selected first business increment](docs/trucking/FIRST_SLICE_CANDIDATE.md),
 [service contracts](docs/contracts.md),
 [monorepo conventions](docs/monorepo.md),
 [local development environment](infra/README.md).
@@ -69,8 +69,8 @@ maximum product scope or every future capability in advance. After the
 foundation is accepted, implement business capabilities incrementally, closing
 their applicable scope, ownership, contract, authorization, recovery, and
 acceptance gates before starting each capability. The
-[candidate slice](docs/trucking/FIRST_SLICE_CANDIDATE.md) remains proposed,
-not selected; capability-specific prerequisites are tracked in
+[Load booking/read increment](docs/trucking/FIRST_SLICE_CANDIDATE.md) is
+selected; capability-specific prerequisites are tracked in
 [open decisions](docs/trucking/OPEN_QUESTIONS.md).
 
 This project is available under the [MIT License](LICENSE).

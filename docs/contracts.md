@@ -195,6 +195,26 @@ nullable retain their stated meaning. Canonical Load revisions and emitted
 facts continue to omit fields with no value unless their contract defines a
 meaningful `null`.
 
+### Load booking and read authorization
+
+The initial operation-level authorization matrix is selected in
+[D-513](./trucking/DECISIONS.md#d-513--scope-load-booking-and-read-access)
+and is repeated per operation in the [Load OpenAPI specification](./api/load.openapi.yaml).
+Load must authenticate the human caller and authorize each row's `areaId`
+before persisting a booking attempt. A missing or malformed area returns
+`400`; an area outside the caller's broker grants returns `403`. Neither
+creates a submission. Successful rows record the caller as their handling
+broker. A multi-row request may include more than one area only if the
+caller holds a grant for every area.
+
+The handling broker, granted area supervisor, and company-wide
+`chief_supervisor`/`transportation_executive` read scopes are distinct.
+Other roles are denied by default. A submission creator may retrieve the
+complete result; another actor may retrieve an accepted result only when
+authorized to read every Load in it. Rejected results and correction links
+are creator-only. Do not return partially filtered stored submission
+results. Missing and non-visible resources both return `404`.
+
 ### Booking request field inventory
 
 `POST /api/v1/booking-submissions` accepts an object with required `rows`
@@ -211,6 +231,7 @@ that follow.
 | ------------ | ----------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Request      | `rows`                        | Yes                 | Array of 1–100 Load row objects.                                                                                                                                       |
 | Request      | `correctionOfSubmissionId`    | No                  | UUIDv7 or `null`; must refer to a rejected attempt.                                                                                                                    |
+| Load row     | `areaId`                      | Yes                 | One of `la`, `west`, `central`, or `east`; caller must hold a broker grant for every row's area.                                                                       |
 | Load row     | `customerId`                  | Yes                 | UUIDv7 Customer profile identifier.                                                                                                                                    |
 | Load row     | `customerReference`           | No                  | String; trimmed to at most 100 Unicode code points; not unique.                                                                                                        |
 | Load row     | `customerRate`                | Yes                 | Object `{amount, currency}`; amount is a positive USD decimal string, currency is an ISO 4217 code (USD only initially).                                               |
@@ -1775,6 +1796,19 @@ The `503` uses the shared transport-error envelope with
 `error.code: CUSTOMER_STATUS_UNAVAILABLE` and `retryable: true`; its safe
 message states that current Customer status could not be verified. It does
 not expose internal service details or create a submission.
+
+Load consumes the Registry-owned Customer status/legal-name fact projection
+through the versioned message contract in the
+[Counterparty Registry AsyncAPI specification](api/counterparty-registry.asyncapi.yaml).
+Each fact has a per-Customer owner revision and a commit-ordered
+Registry-wide sequence. Registry publishes a completeness watermark every 10
+seconds, only after all facts through its high-water sequence have been
+confirmed to the durable broker. Load marks existing Customer projections
+stale on a sequence gap or after 30 seconds without a watermark, reconciles
+the affected snapshots at or beyond the required watermark, and keeps booking
+fail-closed until the required Customer projection is current. The 30-second
+window monitors change-stream completeness; unchanged fact values do not
+expire by wall-clock age.
 
 A `504` error body uses code `GATEWAY_TIMEOUT` and `retryable: true`; it does
 not assert whether Load committed. Clients must reuse the same idempotency

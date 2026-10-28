@@ -9,7 +9,7 @@ info:
     remain capability-specific contract work.
   externalDocs:
     description: Shared semantic TMS service contracts
-    url: ../contracts.md
+    url: https://github.com/funnyMans/Ararat-Logistics-TMS/blob/dev/docs/contracts.md
 servers:
   rabbitmq:
     host: '{brokerHost}'
@@ -91,6 +91,26 @@ channels:
     messages:
       CancellationRequestSnapshotResult:
         $ref: '#/components/messages/CancellationRequestSnapshotResult'
+  customerBookingFactChanged:
+    address: counterparty.customer.booking-fact.changed.v1
+    messages:
+      CustomerBookingFactChanged:
+        $ref: ./counterparty-registry.asyncapi.yaml#/components/messages/CustomerBookingFactChanged
+  customerBookingFactWatermark:
+    address: counterparty.customer.booking-fact.watermark.v1
+    messages:
+      CustomerBookingFactWatermark:
+        $ref: ./counterparty-registry.asyncapi.yaml#/components/messages/CustomerBookingFactWatermark
+  customerBookingFactSnapshotGet:
+    address: counterparty.customer.booking-fact.snapshot.get.v1
+    messages:
+      CustomerBookingFactSnapshotGet:
+        $ref: ./counterparty-registry.asyncapi.yaml#/components/messages/CustomerBookingFactSnapshotGet
+  customerBookingFactSnapshotResult:
+    address: counterparty.customer.booking-fact.snapshot.result.v1
+    messages:
+      CustomerBookingFactSnapshotResult:
+        $ref: ./counterparty-registry.asyncapi.yaml#/components/messages/CustomerBookingFactSnapshotResult
 operations:
   publishLoadBooked:
     action: send
@@ -176,6 +196,30 @@ operations:
       $ref: '#/channels/cancellationRequestSnapshotResult'
     messages:
       - $ref: '#/channels/cancellationRequestSnapshotResult/messages/CancellationRequestSnapshotResult'
+  receiveCustomerBookingFactChanged:
+    action: receive
+    channel:
+      $ref: '#/channels/customerBookingFactChanged'
+    messages:
+      - $ref: '#/channels/customerBookingFactChanged/messages/CustomerBookingFactChanged'
+  receiveCustomerBookingFactWatermark:
+    action: receive
+    channel:
+      $ref: '#/channels/customerBookingFactWatermark'
+    messages:
+      - $ref: '#/channels/customerBookingFactWatermark/messages/CustomerBookingFactWatermark'
+  sendCustomerBookingFactSnapshotGet:
+    action: send
+    channel:
+      $ref: '#/channels/customerBookingFactSnapshotGet'
+    messages:
+      - $ref: '#/channels/customerBookingFactSnapshotGet/messages/CustomerBookingFactSnapshotGet'
+  receiveCustomerBookingFactSnapshotResult:
+    action: receive
+    channel:
+      $ref: '#/channels/customerBookingFactSnapshotResult'
+    messages:
+      - $ref: '#/channels/customerBookingFactSnapshotResult/messages/CustomerBookingFactSnapshotResult'
 components:
   schemas:
     UuidV7:

@@ -6378,6 +6378,127 @@ immutable account of the attempt, while issue-specific services handle
 customer, carrier, technical, or other follow-up without receiving unrelated
 Load detail or expanding TMS into claims or settlement management.
 
+### D-513 — Scope Load booking and read access
+
+**Decision:** Load booking and read operations use default-deny,
+owner-enforced authorization. Each booking row identifies one operational
+area (`la`, `west`, `central`, or `east`); the area is an authorization
+attribute, not inferred from stop geography. A broker may submit a row only
+when their active Identity grant includes that area. The authenticated
+submitting broker becomes the Load's handling broker. A multi-row submission
+may span areas only when the broker has grants for every row. If any row is
+outside the caller's grant, reject the complete request with `403` and
+persist no submission. Replays of a booking POST also require the caller's
+current grants for every submitted area.
+
+The handling broker with an active broker grant for the Load's area may read
+that Load and its revisions. An `area_supervisor` with an active grant may
+read Loads in each of their granted areas. The `chief_supervisor` and
+`transportation_executive` with active grants may read company-wide.
+Area membership alone does not grant another broker access. All other roles,
+including `identity_administrator`, are denied direct Load reads. Delegated
+Load access is not part of this increment; any later delegation must be
+explicit, time-bounded, resource-scoped, and audited under D-506.
+
+The principal that created a booking submission may read its complete,
+versioned submission outcome while holding active broker grants for every
+area in the submission, whether accepted or rejected. Another actor may
+read an accepted submission only when currently authorized for every Load
+row in that result; rejected submissions are visible only to their creator.
+A broker may link a corrected attempt only to a rejected submission they
+created and may do so only while holding active broker grants for every
+area in the original submission. Do not filter individual rows from a
+stored result. Return `404` for a missing or non-visible submission, Load,
+or revision so resource existence is not disclosed.
+
+Before creating a durable submission, authenticate the human caller and
+authorize every row's area. Missing or malformed area scope returns `400`;
+an area not granted to the caller returns `403`. Neither outcome creates a
+submission. Idempotency remains scoped to the authenticated principal under
+D-98. Load may call Counterparty Registry only to read the Customer status
+and legal name needed for booking and the immutable revision name snapshot;
+this workload permission grants no Registry writes or unrelated Customer
+data access. It does not define RabbitMQ ACLs or permissions for other
+service interactions.
+
+**Reason:** Explicit area attribution provides an authorization boundary
+without inventing geographic boundaries. Persisting the handling principal
+and applying all-row checks keeps booking outcomes and commercial Load data
+from becoming visible through role membership or mixed-area batch access
+alone.
+
+### D-514 — Project current Customer booking facts into Load
+
+**Decision:** Counterparty Registry is authoritative for Customer lifecycle
+status and legal name. It publishes a versioned full snapshot for the
+Load-specific booking projection containing only `customerId`, `status`,
+`legalName`, and a per-Customer `ownerRevision`. Increment the revision
+whenever either projected value changes. Each changed fact also receives a
+strictly increasing, commit-ordered Registry-wide `registrySequence`,
+allocated under serialized sequence assignment atomically with the owner
+update and outbox record. Publish facts through the Registry
+transactional outbox to RabbitMQ; Load consumes them into a minimal local
+projection and commits inbox deduplication and projection changes atomically.
+The Registry also publishes a completeness watermark every 10 seconds,
+including when no facts changed. A watermark's high-water sequence states
+that all Customer booking facts through that sequence have been confirmed to
+the durable broker. Registry publishes watermarks only after all earlier
+outbox facts are confirmed. Load tracks the contiguous sequence and marks
+its Customer projection stale on a sequence gap or if no watermark is
+received for 30 seconds. A gap or expired stream-health window marks all
+existing Customer projections stale because the missing sequence cannot
+identify its Customer. Load reconciles each affected Customer with an
+authoritative snapshot at or beyond the required watermark before using its
+facts for booking; it advances its contiguous stream cursor only after all
+existing projections have been reconciled through that watermark. On first
+startup or loss of durable consumer continuity, Load keeps booking gated,
+reconciles all existing projection rows against an observed watermark, and
+initializes its stream cursor only after those snapshots are current.
+Customer fact values themselves have no wall-clock TTL; the 30-second rule
+qualifies completeness of the change stream, not the age of an unchanged
+Customer value. The same full-snapshot contract is used for targeted
+reconciliation. Canonical channels and payloads are in the
+[Registry AsyncAPI specification](../api/counterparty-registry.asyncapi.yaml);
+Load's consumer and reconciliation operations are referenced in the
+[Load AsyncAPI specification](../api/load.asyncapi.yaml).
+
+Load may use only this projection's current status and legal name for
+booking. Ignore duplicate or older per-Customer revisions and Registry
+sequences. If an already-established projection receives a non-consecutive
+later owner revision, mark it stale, retain the last applied revision, and
+request a full authoritative snapshot. A Registry-sequence gap or stale
+stream marks all existing Customer projections stale. Apply a reconciliation
+result only if it is at least as new as both the last applied and observed
+owner revisions and is at or beyond the required Registry sequence;
+otherwise keep the projection stale and reconcile again. A new projection
+may initialize from an authoritative full snapshot at its current revision.
+Do not use a stale projection to authorize booking.
+
+When status is missing, an owner-revision or Registry-sequence gap is
+detected, or the completeness watermark has not been applied within 30
+seconds, Load initiates durable snapshot reconciliation without blocking a
+broker request on cross-service request/reply. While the projection is
+missing or stale, booking returns the existing retryable
+`503 CUSTOMER_STATUS_UNAVAILABLE`, creates no submission, and the unchanged
+request may be retried with the same idempotency key after reconciliation.
+If the authoritative snapshot reports no Customer profile, persist the
+normal `CUSTOMER_NOT_FOUND` booking rejection. A known non-`ACTIVE` status
+is likewise a durable business rejection. Existing accepted Loads are not
+changed by later Customer status updates under D-488.
+
+Load's workload identity may subscribe to Customer booking facts and
+completeness watermarks, request/reply snapshot channels, and may read only
+status and legal name. Registry's workload identity may publish those facts
+and watermarks and answer those snapshot requests. This decision defines the
+message-level permission boundary, not the deployment-specific RabbitMQ ACL
+configuration or the remaining Registry APIs and status-notification
+workflows.
+
+**Reason:** A revisioned local owner-fact projection preserves the
+asynchronous service boundary while allowing booking to use current,
+authoritative Customer facts without exposing Registry writes or making
+every booking depend on a synchronous service call.
+
 ## Record maintenance
 
 When a decision changes, update this entry and the owning document together.
