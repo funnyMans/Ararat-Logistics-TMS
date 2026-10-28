@@ -12,9 +12,9 @@ summarizes the current architecture; unresolved choices belong in
 ### D-01 — Establish product direction through owner decisions and evidence
 
 **Decision:** Establish the product direction as owners of the intended TMS.
-Develop its business model and MVP from owner direction and recorded
-operational evidence. The reference scale and operating areas are current
-design assumptions, not product limits.
+Develop its business model and coherent target scope from owner direction
+and recorded operational evidence. The reference scale and operating areas
+are current design assumptions, not product limits.
 
 **Reason:** Product ownership must be explicit while distinguishing owner
 decisions from claims validated by customers, operations, or law.
@@ -6097,9 +6097,12 @@ service contracts are required before protected business routes or message
 flows; logical schemas and source-fact/policy definitions are required before
 implementing their owning business capabilities; workflow-specific recovery
 and acceptance scenarios are required before implementing those workflows.
-The business vertical slice remains proposed and unselected. This decision
-does not approve the maximum TMS scope or production deployment. D-505
-separately defines product-wide operational acceptance.
+The F0–F5 platform-foundation increment must be accepted before TMS
+business-service implementation begins. After that foundation gate, business
+capabilities proceed incrementally as their applicable gates close. The
+business vertical slice remains proposed and unselected. This decision does
+not approve the maximum TMS scope or production deployment. D-505 separately
+defines product-wide operational acceptance.
 
 **Reason:** Verifying shared runtime behavior first addresses the system's
 architectural risks without forcing premature business policy or using an

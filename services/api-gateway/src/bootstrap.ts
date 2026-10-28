@@ -7,18 +7,31 @@ import { registerHealthRoutes } from './interfaces/http/routes/health';
 export function createServer(): {
   server: FastifyInstance;
   shutdown: () => Promise<void>;
+  markReady: () => void;
 } {
   const logger: FastifyBaseLogger = createLogger('api-gateway', config.LOG_LEVEL);
   const server = Fastify({ loggerInstance: logger });
+  let ready = false;
 
-  const { shutdown } = createServiceBootstrap(server, {
+  const { shutdown: shutdownService } = createServiceBootstrap(server, {
     serviceName: 'api-gateway',
     observabilityEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
   });
 
-  registerHealthRoutes(server);
+  registerHealthRoutes(server, () => ready);
 
   registerServiceMetrics(server, 'api-gateway');
 
-  return { server, shutdown };
+  const shutdown = () => {
+    ready = false;
+    return shutdownService();
+  };
+
+  return {
+    server,
+    shutdown,
+    markReady: () => {
+      ready = true;
+    },
+  };
 }

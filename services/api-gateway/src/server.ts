@@ -2,7 +2,7 @@ import { config } from './infrastructure/config';
 import { createServer } from './bootstrap';
 import { registerProcessShutdownHandlers } from '@app/common';
 
-const { server, shutdown } = createServer();
+const { server, shutdown, markReady } = createServer();
 
 const start = async () => {
   try {
@@ -17,6 +17,7 @@ const start = async () => {
       }
     );
     await listening;
+    markReady();
   } catch (err) {
     server.log.error({ err }, 'server failed to start');
     try {

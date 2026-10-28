@@ -10,20 +10,30 @@ describe('api gateway health routes', () => {
     vi.unstubAllGlobals();
   });
 
-  function createServer() {
+  function createServer(isReady?: () => boolean) {
     const server = Fastify();
     servers.push(server);
-    registerHealthRoutes(server);
+    registerHealthRoutes(server, isReady);
     return server;
   }
 
-  it('reports the gateway as ready without downstream dependencies', async () => {
-    const server = createServer();
+  it('reports not-ready until the service is accepting work', async () => {
+    let ready = false;
+    const server = createServer(() => ready);
 
-    const response = await server.inject('/ready');
+    const startingResponse = await server.inject('/ready');
+    expect(startingResponse.statusCode).toBe(503);
+    expect(startingResponse.json()).toEqual({ ready: false });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ ready: true });
+    ready = true;
+    const readyResponse = await server.inject('/ready');
+    expect(readyResponse.statusCode).toBe(200);
+    expect(readyResponse.json()).toEqual({ ready: true });
+
+    ready = false;
+    const drainingResponse = await server.inject('/ready');
+    expect(drainingResponse.statusCode).toBe(503);
+    expect(drainingResponse.json()).toEqual({ ready: false });
   });
 
   it('reports health without dependencies', async () => {

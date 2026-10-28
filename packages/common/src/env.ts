@@ -10,14 +10,14 @@ export function getRequiredEnv(name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
 
-  return value;
+  return value.trim();
 }
 
 export function getNumberEnv(name: string, fallback: number): number {
   const value = process.env[name];
   if (!value || value.trim() === '') return fallback;
 
-  const parsed = Number(value);
+  const parsed = Number(value.trim());
   if (Number.isNaN(parsed)) return fallback;
 
   return parsed;
@@ -27,7 +27,11 @@ export function getBooleanEnv(name: string, fallback: boolean): boolean {
   const value = process.env[name];
   if (!value || value.trim() === '') return fallback;
 
-  return value === 'true' || value === '1';
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'true' || normalized === '1' || normalized === 'yes') return true;
+  if (normalized === 'false' || normalized === '0' || normalized === 'no') return false;
+
+  return fallback;
 }
 
 export function createConfig<TSchema extends EnvSchema>(
