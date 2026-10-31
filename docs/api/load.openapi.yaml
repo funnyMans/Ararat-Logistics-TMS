@@ -29,9 +29,21 @@ paths:
       description: >-
         A well-formed request produces a durable accepted or rejected
         submission resource. Booking-rule failures are represented in the
-        response body and do not become transport errors.
+        response body and do not become transport errors. Before accepting a
+        submission, Load authorizes the caller for every row's area; authorization
+        failures create no submission.
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
+      x-tms-authorization:
+        decision: D-513
+        principal: authenticated human
+        allow:
+          roles: [broker]
+          scope: the leaf area derived from each row's first pickup must be included in the caller's active broker area grants
+        onSuccess: caller becomes handling broker for each created Load
+        correctionScope: correctionOfSubmissionId must identify a rejected submission created by the caller
+        unauthorizedScope: 403 without creating a submission
+        invalidAreaScope: 400 without creating a submission
       requestBody:
         required: true
         content:
@@ -80,6 +92,14 @@ paths:
       operationId: getBookingSubmission
       tags: [Booking]
       summary: Retrieve a durable booking submission outcome
+      x-tms-authorization:
+        decision: D-513
+        principal: authenticated human
+        allow:
+          creator: accepted or rejected submission
+          otherActors: accepted submissions only, when authorized for every Load row
+        currentGrantsRequired: true
+        concealment: return 404 when missing or not visible
       parameters:
         - $ref: '#/components/parameters/SubmissionId'
       responses:
@@ -91,8 +111,6 @@ paths:
                 $ref: '#/components/schemas/BookingSubmissionResult'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -106,6 +124,15 @@ paths:
       operationId: getLoad
       tags: [Loads]
       summary: Retrieve the current Load and revision
+      x-tms-authorization:
+        decision: D-513
+        principal: authenticated human
+        allow:
+          handlingBroker: this Load only
+          areaSupervisor: Loads whose areaId is in the caller's area grants
+          companyWideRoles: [chief_supervisor, transportation_executive]
+        denyByDefault: true
+        concealment: return 404 when missing or not visible
       parameters:
         - $ref: '#/components/parameters/LoadId'
       responses:
@@ -120,8 +147,6 @@ paths:
                 $ref: '#/components/schemas/LoadResource'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -135,6 +160,16 @@ paths:
       operationId: getLoadRevision
       tags: [Loads]
       summary: Retrieve an immutable Load revision
+      x-tms-authorization:
+        decision: D-513
+        principal: authenticated human
+        resource: parent Load
+        allow:
+          handlingBroker: this Load only
+          areaSupervisor: Loads whose areaId is in the caller's area grants
+          companyWideRoles: [chief_supervisor, transportation_executive]
+        denyByDefault: true
+        concealment: return 404 when parent Load or revision is missing or not visible
       parameters:
         - $ref: '#/components/parameters/LoadId'
         - $ref: '#/components/parameters/RevisionId'
@@ -150,8 +185,6 @@ paths:
                 $ref: '#/components/schemas/LoadRevision'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -487,6 +520,28 @@ components:
         with x-tms-expected-shape; do not apply strict schema rejection to
         these nested fields.
       properties:
+        areaId:
+          description: >-
+            Optional consistency assertion only. Load derives the
+            authorization area from the first pickup's normalized geography;
+            a supplied value must match that derived leaf and never selects or
+            overrides it. Load preflights the caller's broker grant for every
+            derived leaf before persisting a submission.
+          x-tms-expected-shape:
+            type: string
+            enum:
+              [
+                la,
+                pacific,
+                mountain,
+                west_north_central,
+                east_north_central,
+                west_south_central,
+                east_south_central,
+                new_england,
+                middle_atlantic,
+                south_atlantic,
+              ]
         customerId:
           description: Registry Customer UUIDv7.
           x-tms-expected-shape:
@@ -684,10 +739,28 @@ components:
         blocksStage: { type: boolean }
     LoadResource:
       type: object
-      required: [loadId, loadReference, lifecycleStatus, currentRevision]
+      required: [loadId, loadReference, areaId, lifecycleStatus, currentRevision]
       properties:
         loadId: { $ref: '#/components/schemas/UuidV7' }
         loadReference: { type: string }
+        areaId:
+          {
+            type: string,
+            description: Leaf zone derived from the first pickup under D-515,
+            enum:
+              [
+                la,
+                pacific,
+                mountain,
+                west_north_central,
+                east_north_central,
+                west_south_central,
+                east_south_central,
+                new_england,
+                middle_atlantic,
+                south_atlantic,
+              ],
+          }
         lifecycleStatus:
           type: string
           enum: [BOOKED, CANCELLATION_PENDING, CANCELLED, COMPLETED]

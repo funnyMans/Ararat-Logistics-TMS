@@ -195,6 +195,29 @@ nullable retain their stated meaning. Canonical Load revisions and emitted
 facts continue to omit fields with no value unless their contract defines a
 meaningful `null`.
 
+### Load booking and read authorization
+
+The initial operation-level authorization matrix is selected in
+[D-513](./trucking/DECISIONS.md#d-513--scope-load-booking-and-read-access)
+and is repeated per operation in the [Load OpenAPI specification](./api/load.openapi.yaml).
+Load must authenticate the human caller, derive each row's `areaId` from the
+first pickup under D-515, and authorize that leaf zone before persisting a
+booking attempt. A supplied `areaId` is optional and acts only as a
+consistency assertion; it cannot select or override the derived zone. An
+invalid or unmappable pickup, or a supplied area that does not match the
+derived value, returns `400`; a derived area outside the caller's broker
+grants returns `403`. Neither creates a submission. Successful rows record
+the caller as their handling broker. A multi-row request may span zones only
+if the caller holds a grant for every derived leaf.
+
+The handling broker, granted area supervisor, and company-wide
+`chief_supervisor`/`transportation_executive` read scopes are distinct.
+Other roles are denied by default. A submission creator may retrieve the
+complete result; another actor may retrieve an accepted result only when
+authorized to read every Load in it. Rejected results and correction links
+are creator-only. Do not return partially filtered stored submission
+results. Missing and non-visible resources both return `404`.
+
 ### Booking request field inventory
 
 `POST /api/v1/booking-submissions` accepts an object with required `rows`
@@ -207,40 +230,41 @@ the valid value shape; booking-critical, conditional, optional, and
 stage-gated validation behavior is specified below and in the field rules
 that follow.
 
-| Object       | Property                      | Required at booking | Valid value shape / rule                                                                                                                                               |
-| ------------ | ----------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Request      | `rows`                        | Yes                 | Array of 1–100 Load row objects.                                                                                                                                       |
-| Request      | `correctionOfSubmissionId`    | No                  | UUIDv7 or `null`; must refer to a rejected attempt.                                                                                                                    |
-| Load row     | `customerId`                  | Yes                 | UUIDv7 Customer profile identifier.                                                                                                                                    |
-| Load row     | `customerReference`           | No                  | String; trimmed to at most 100 Unicode code points; not unique.                                                                                                        |
-| Load row     | `customerRate`                | Yes                 | Object `{amount, currency}`; amount is a positive USD decimal string, currency is an ISO 4217 code (USD only initially).                                               |
-| Load row     | `equipmentProfile`            | No                  | `DRY_VAN`, `REEFER`, `FLATBED`, recognized-but-unsupported `STEP_DECK` or `TANKER`; required before planning.                                                          |
-| Load row     | `specialHandlingCodes`        | No                  | Array containing `OVERSIZE` and/or `HAZMAT`; known unsupported capabilities block planning.                                                                            |
-| Load row     | `totalGrossWeight`            | No                  | Object `{value, unit}`; positive decimal string and `LB` or `KG`; required before planning.                                                                            |
-| Load row     | `temperatureRange`            | No                  | Reefer object `{minimum, maximum, unit}`; required before reefer planning.                                                                                             |
-| Load row     | `reeferMode`                  | No                  | `CONTINUOUS` or `START_STOP`; reefer-only.                                                                                                                             |
-| Load row     | `tarpRequired`                | No                  | Boolean; required before flatbed planning.                                                                                                                             |
-| Load row     | `stops`                       | Yes                 | Ordered array of 2–50 stop objects; at least one pickup and one delivery, pickup first and delivery last.                                                              |
-| Load row     | `freightLines`                | Yes                 | Array of 1–500 freight-line objects.                                                                                                                                   |
-| Stop         | `type`                        | Yes                 | `PICKUP` or `DELIVERY`.                                                                                                                                                |
-| Stop         | `address`                     | Yes                 | Object with required `addressLine1`, `city`, `stateCode`, and `postalCode`; optional `addressLine2`, `countryCode`, and `coordinates`. `countryCode` defaults to `US`. |
-| Stop         | `appointmentWindow`           | Yes                 | Object `{startAt, endAt, timeZone}`; RFC 3339 timestamps with offsets matching the IANA zone, and start before end.                                                    |
-| Stop         | `facilityName`, `contactName` | No                  | Optional strings, each at most 120 Unicode code points after trimming.                                                                                                 |
-| Stop         | `contactPhone`                | No                  | Optional string, at most 32 Unicode code points after trimming; common phone syntax defined below.                                                                     |
-| Stop         | `accessInstructions`          | No                  | Optional string, at most 1,000 Unicode code points after trimming.                                                                                                     |
-| Address      | `addressLine1`                | Yes                 | Non-empty string, at most 200 Unicode code points after trimming.                                                                                                      |
-| Address      | `addressLine2`                | No                  | Optional string, at most 200 Unicode code points; omitted when empty after trimming.                                                                                   |
-| Address      | `city`                        | Yes                 | Non-empty string, at most 120 Unicode code points after trimming.                                                                                                      |
-| Address      | `stateCode`                   | Yes                 | USPS abbreviation for one of the 50 states or DC; canonical uppercase.                                                                                                 |
-| Address      | `postalCode`                  | Yes                 | String containing five digits or hyphenated ZIP+4.                                                                                                                     |
-| Address      | `countryCode`                 | No                  | `US`; canonical uppercase.                                                                                                                                             |
-| Address      | `coordinates`                 | No                  | Optional WGS 84 object `{latitude, longitude}` using JSON numbers, bounded to ±90/±180 and at most six fractional digits.                                              |
-| Freight line | `description`                 | Yes                 | Non-empty string, at most 500 Unicode code points after trimming.                                                                                                      |
-| Freight line | `quantity`                    | Yes                 | Positive integer string counting handling units identified by `handlingUnitCode`; maximum 999,999,999,999.                                                             |
-| Freight line | `handlingUnitCode`            | Yes                 | Controlled handling-unit code listed below.                                                                                                                            |
-| Freight line | `handlingUnitDescription`     | Conditional         | Required for `OTHER`; optional field is not applicable to other codes.                                                                                                 |
-| Freight line | `stackable`                   | Yes                 | Boolean applying to every handling unit counted on this homogeneous freight line.                                                                                      |
-| Freight line | `dimensions`                  | Conditional         | Dimensions `{length, width, height, unit}` of one handling unit; required when stackable before planning and for all freight lines before flatbed planning.            |
+| Object       | Property                      | Required at booking | Valid value shape / rule                                                                                                                                                                                                                                                                                                |
+| ------------ | ----------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Request      | `rows`                        | Yes                 | Array of 1–100 Load row objects.                                                                                                                                                                                                                                                                                        |
+| Request      | `correctionOfSubmissionId`    | No                  | UUIDv7 or `null`; must refer to a rejected attempt.                                                                                                                                                                                                                                                                     |
+| Load row     | `areaId`                      | No (derived)        | Derived from the first pickup under D-515; optional caller value must match. One of `la`, `pacific`, `mountain`, `west_north_central`, `east_north_central`, `west_south_central`, `east_south_central`, `new_england`, `middle_atlantic`, or `south_atlantic`; caller must hold a broker grant for every derived leaf. |
+| Load row     | `customerId`                  | Yes                 | UUIDv7 Customer profile identifier.                                                                                                                                                                                                                                                                                     |
+| Load row     | `customerReference`           | No                  | String; trimmed to at most 100 Unicode code points; not unique.                                                                                                                                                                                                                                                         |
+| Load row     | `customerRate`                | Yes                 | Object `{amount, currency}`; amount is a positive USD decimal string, currency is an ISO 4217 code (USD only initially).                                                                                                                                                                                                |
+| Load row     | `equipmentProfile`            | No                  | `DRY_VAN`, `REEFER`, `FLATBED`, recognized-but-unsupported `STEP_DECK` or `TANKER`; required before planning.                                                                                                                                                                                                           |
+| Load row     | `specialHandlingCodes`        | No                  | Array containing `OVERSIZE` and/or `HAZMAT`; known unsupported capabilities block planning.                                                                                                                                                                                                                             |
+| Load row     | `totalGrossWeight`            | No                  | Object `{value, unit}`; positive decimal string and `LB` or `KG`; required before planning.                                                                                                                                                                                                                             |
+| Load row     | `temperatureRange`            | No                  | Reefer object `{minimum, maximum, unit}`; required before reefer planning.                                                                                                                                                                                                                                              |
+| Load row     | `reeferMode`                  | No                  | `CONTINUOUS` or `START_STOP`; reefer-only.                                                                                                                                                                                                                                                                              |
+| Load row     | `tarpRequired`                | No                  | Boolean; required before flatbed planning.                                                                                                                                                                                                                                                                              |
+| Load row     | `stops`                       | Yes                 | Ordered array of 2–50 stop objects; at least one pickup and one delivery, pickup first and delivery last.                                                                                                                                                                                                               |
+| Load row     | `freightLines`                | Yes                 | Array of 1–500 freight-line objects.                                                                                                                                                                                                                                                                                    |
+| Stop         | `type`                        | Yes                 | `PICKUP` or `DELIVERY`.                                                                                                                                                                                                                                                                                                 |
+| Stop         | `address`                     | Yes                 | Object with required `addressLine1`, `city`, `stateCode`, and `postalCode`; optional `addressLine2`, `countryCode`, and `coordinates`. `countryCode` defaults to `US`.                                                                                                                                                  |
+| Stop         | `appointmentWindow`           | Yes                 | Object `{startAt, endAt, timeZone}`; RFC 3339 timestamps with offsets matching the IANA zone, and start before end.                                                                                                                                                                                                     |
+| Stop         | `facilityName`, `contactName` | No                  | Optional strings, each at most 120 Unicode code points after trimming.                                                                                                                                                                                                                                                  |
+| Stop         | `contactPhone`                | No                  | Optional string, at most 32 Unicode code points after trimming; common phone syntax defined below.                                                                                                                                                                                                                      |
+| Stop         | `accessInstructions`          | No                  | Optional string, at most 1,000 Unicode code points after trimming.                                                                                                                                                                                                                                                      |
+| Address      | `addressLine1`                | Yes                 | Non-empty string, at most 200 Unicode code points after trimming.                                                                                                                                                                                                                                                       |
+| Address      | `addressLine2`                | No                  | Optional string, at most 200 Unicode code points; omitted when empty after trimming.                                                                                                                                                                                                                                    |
+| Address      | `city`                        | Yes                 | Non-empty string, at most 120 Unicode code points after trimming.                                                                                                                                                                                                                                                       |
+| Address      | `stateCode`                   | Yes                 | USPS abbreviation for one of the 50 states or DC; canonical uppercase.                                                                                                                                                                                                                                                  |
+| Address      | `postalCode`                  | Yes                 | String containing five digits or hyphenated ZIP+4.                                                                                                                                                                                                                                                                      |
+| Address      | `countryCode`                 | No                  | `US`; canonical uppercase.                                                                                                                                                                                                                                                                                              |
+| Address      | `coordinates`                 | No                  | Optional WGS 84 object `{latitude, longitude}` using JSON numbers, bounded to ±90/±180 and at most six fractional digits.                                                                                                                                                                                               |
+| Freight line | `description`                 | Yes                 | Non-empty string, at most 500 Unicode code points after trimming.                                                                                                                                                                                                                                                       |
+| Freight line | `quantity`                    | Yes                 | Positive integer string counting handling units identified by `handlingUnitCode`; maximum 999,999,999,999.                                                                                                                                                                                                              |
+| Freight line | `handlingUnitCode`            | Yes                 | Controlled handling-unit code listed below.                                                                                                                                                                                                                                                                             |
+| Freight line | `handlingUnitDescription`     | Conditional         | Required for `OTHER`; optional field is not applicable to other codes.                                                                                                                                                                                                                                                  |
+| Freight line | `stackable`                   | Yes                 | Boolean applying to every handling unit counted on this homogeneous freight line.                                                                                                                                                                                                                                       |
+| Freight line | `dimensions`                  | Conditional         | Dimensions `{length, width, height, unit}` of one handling unit; required when stackable before planning and for all freight lines before flatbed planning.                                                                                                                                                             |
 
 The valid shapes in this inventory describe canonical values, not a blanket
 schema-level rejection rule. Load performs authoritative business
@@ -1775,6 +1799,19 @@ The `503` uses the shared transport-error envelope with
 `error.code: CUSTOMER_STATUS_UNAVAILABLE` and `retryable: true`; its safe
 message states that current Customer status could not be verified. It does
 not expose internal service details or create a submission.
+
+Load consumes the Registry-owned Customer status/legal-name fact projection
+through the versioned message contract in the
+[Counterparty Registry AsyncAPI specification](api/counterparty-registry.asyncapi.yaml).
+Each fact has a per-Customer owner revision and a commit-ordered
+Registry-wide sequence. Registry publishes a completeness watermark every 10
+seconds, only after all facts through its high-water sequence have been
+confirmed to the durable broker. Load marks existing Customer projections
+stale on a sequence gap or after 30 seconds without a watermark, reconciles
+the affected snapshots at or beyond the required watermark, and keeps booking
+fail-closed until the required Customer projection is current. The 30-second
+window monitors change-stream completeness; unchanged fact values do not
+expire by wall-clock age.
 
 A `504` error body uses code `GATEWAY_TIMEOUT` and `retryable: true`; it does
 not assert whether Load committed. Clients must reuse the same idempotency

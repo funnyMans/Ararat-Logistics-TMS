@@ -3,6 +3,7 @@
   "files": [],
   "references": [
     { "path": "./packages/common" },
+    { "path": "./packages/identity-token" },
     { "path": "./services/api-gateway" }
   ]
 }

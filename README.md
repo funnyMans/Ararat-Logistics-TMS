@@ -8,8 +8,10 @@ accepted requirements, evidence, legal conclusions, and implemented
 capabilities are recorded as distinct things.
 
 The initial operating model is a US trucking carrier and brokerage with its
-own fleet, approximately 50–100 trucks, and working areas in LA, West,
-Central, and East. These are current design assumptions, not product limits.
+own fleet, approximately 50–100 trucks, a Los Angeles–Long Beach five-county
+CSA home area, and West, Central, and East operating rollups over
+Census-based geographic leaves. These are current design assumptions, not
+product limits.
 
 ## Documentation map
 
@@ -24,7 +26,7 @@ Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
 [technical workflow](docs/trucking/TECHNICAL_WORKFLOW.md),
 [accepted decision log](docs/trucking/DECISIONS.md),
 [open decisions](docs/trucking/OPEN_QUESTIONS.md),
-[first-slice candidate](docs/trucking/FIRST_SLICE_CANDIDATE.md),
+[selected first business increment](docs/trucking/FIRST_SLICE_CANDIDATE.md),
 [service contracts](docs/contracts.md),
 [monorepo conventions](docs/monorepo.md),
 [local development environment](infra/README.md).
@@ -33,8 +35,9 @@ Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
 
 The implementation currently contains shared Node.js utilities, an API
 gateway with health and observability endpoints, and local development
-observability. The TMS business workflows and the planned Identity service have not yet
-been implemented.
+observability. The gateway can verify Identity-issued tokens when its
+Identity configuration is provided, using a reusable shared verifier. The
+Identity issuer/service and TMS business workflows have not been implemented.
 
 Record validation evidence with the product or operational claim it supports.
 Do not present an unverified assumption, an infrastructure component, or a
@@ -45,7 +48,10 @@ production readiness.
 
 Requirements: Node.js version from [`.nvmrc`](.nvmrc), pnpm from the
 `packageManager` field, and Docker Compose for the local API gateway and
-observability services.
+observability services. The Node/pnpm requirements are for host-side
+workspace commands such as build, lint, and tests; Docker builds and runs the
+gateway in its own pinned Node image. `.nvmrc` keeps local host tooling aligned
+with CI and that image.
 
 ```sh
 cp -n .env.example .env
@@ -55,6 +61,11 @@ pnpm lint
 pnpm test:unit
 docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
+
+The ignored `.env` file may contain settings from an older local setup.
+`infra/docker-compose.dev.yml` currently reads the variables listed in
+[`.env.example`](.env.example); remove or reconcile obsolete entries when
+updating an existing local file.
 
 See the [local development guide](infra/README.md) for the current Compose
 scope, including the test-only PostgreSQL conformance dependency. It is not
@@ -69,8 +80,8 @@ maximum product scope or every future capability in advance. After the
 foundation is accepted, implement business capabilities incrementally, closing
 their applicable scope, ownership, contract, authorization, recovery, and
 acceptance gates before starting each capability. The
-[candidate slice](docs/trucking/FIRST_SLICE_CANDIDATE.md) remains proposed,
-not selected; capability-specific prerequisites are tracked in
+[Load booking/read increment](docs/trucking/FIRST_SLICE_CANDIDATE.md) is
+selected; capability-specific prerequisites are tracked in
 [open decisions](docs/trucking/OPEN_QUESTIONS.md).
 
 This project is available under the [MIT License](LICENSE).

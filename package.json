@@ -3,16 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.25.0",
-  "workspaces": [
-    "packages/*",
-    "services/*"
-  ],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "build:all": "pnpm -w -r exec tsc -b",
-    "start:all": "pnpm -w -r --parallel start",
-    "dev:all": "pnpm -w -r --parallel --filter './services/*' dev",
     "lint": "eslint './**/*.{ts,js,tsx,jsx}' --max-warnings 0",
     "format": "prettier --write './**/*.{ts,js,json,md,tsx,jsx}'",
     "test": "pnpm run test:unit",
@@ -40,12 +33,6 @@
     "docker:gateway-contract": "node scripts/gateway-contract-check.mjs",
     "docker:rebuild": "docker compose -f infra/docker-compose.dev.yml build --no-cache"
   },
-  "lint-staged": {
-    "**/*.{ts,tsx,js,jsx,json,md}": [
-      "prettier --write",
-      "eslint --fix"
-    ]
-  },
   "devDependencies": {
     "@eslint/js": "^9.3.0",
     "@temporalio/client": "1.15.0",
@@ -63,7 +50,6 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.6",
     "husky": "^9.1.7",
-    "lint-staged": "^17.4.1",
     "nats": "2.29.3",
     "prettier": "^3.9.6",
     "turbo": "^2.11.4",

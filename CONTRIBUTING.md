@@ -76,6 +76,9 @@ pnpm test:unit
 docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
 
+Git commits also run the workspace ESLint check through the Husky pre-commit
+hook.
+
 The CI Compose integration job additionally builds the retained images,
 starts the local foundation, and probes health, readiness, tracing headers,
 and metrics. See [`infra/README.md`](infra/README.md) for the local operator

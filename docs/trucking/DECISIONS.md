@@ -6378,6 +6378,202 @@ immutable account of the attempt, while issue-specific services handle
 customer, carrier, technical, or other follow-up without receiving unrelated
 Load detail or expanding TMS into claims or settlement management.
 
+### D-513 — Scope Load booking and read access
+
+**Decision:** Load booking and read operations use default-deny,
+owner-enforced authorization. Each booking row is attributed to one
+operational area from its first pickup's normalized geography under D-515;
+the caller does not choose the authorization area. A broker may submit a
+row only when their active Identity grant includes the derived leaf area.
+The authenticated submitting broker becomes the Load's handling broker. A
+multi-row submission may span areas only when the broker has grants for
+every row's derived area. If any row is outside the caller's grant, reject
+the complete request with `403` and persist no submission. Replays of a
+booking POST also require the caller's current grants for every derived
+area.
+
+The handling broker with an active broker grant for the Load's area may read
+that Load and its revisions. An `area_supervisor` with an active grant may
+read Loads in each of their granted areas. The `chief_supervisor` and
+`transportation_executive` with active grants may read company-wide.
+Area membership alone does not grant another broker access. All other roles,
+including `identity_administrator`, are denied direct Load reads. Delegated
+Load access is not part of this increment; any later delegation must be
+explicit, time-bounded, resource-scoped, and audited under D-506.
+
+The principal that created a booking submission may read its complete,
+versioned submission outcome while holding active broker grants for every
+area in the submission, whether accepted or rejected. Another actor may
+read an accepted submission only when currently authorized for every Load
+row in that result; rejected submissions are visible only to their creator.
+A broker may link a corrected attempt only to a rejected submission they
+created and may do so only while holding active broker grants for every
+area in the original submission. Do not filter individual rows from a
+stored result. Return `404` for a missing or non-visible submission, Load,
+or revision so resource existence is not disclosed.
+
+Before creating a durable submission, authenticate the human caller,
+resolve every row's area from its first pickup, and authorize every derived
+area. An invalid or unmappable pickup geography returns `400`; a derived
+area not granted to the caller returns `403`. If an optional caller-supplied
+`areaId` assertion does not match the derived area, return `400`. None of
+these outcomes creates a submission. Idempotency remains scoped to the
+authenticated principal under D-98. Load may call Counterparty Registry
+only to read the Customer status
+and legal name needed for booking and the immutable revision name snapshot;
+this workload permission grants no Registry writes or unrelated Customer
+data access. It does not define RabbitMQ ACLs or permissions for other
+service interactions.
+
+**Reason:** Explicit area attribution provides an authorization boundary
+without allowing a caller to self-select a more permissive scope. Persisting
+the handling principal and applying all-row checks keeps booking outcomes
+and commercial Load data from becoming visible through role membership or
+mixed-area batch access alone.
+
+### D-514 — Project current Customer booking facts into Load
+
+**Decision:** Counterparty Registry is authoritative for Customer lifecycle
+status and legal name. It publishes a versioned full snapshot for the
+Load-specific booking projection containing only `customerId`, `status`,
+`legalName`, and a per-Customer `ownerRevision`. Increment the revision
+whenever either projected value changes. Each changed fact also receives a
+strictly increasing, commit-ordered Registry-wide `registrySequence`,
+allocated under serialized sequence assignment atomically with the owner
+update and outbox record. Publish facts through the Registry
+transactional outbox to RabbitMQ; Load consumes them into a minimal local
+projection and commits inbox deduplication and projection changes atomically.
+The Registry also publishes a completeness watermark every 10 seconds,
+including when no facts changed. A watermark's high-water sequence states
+that all Customer booking facts through that sequence have been confirmed to
+the durable broker. Registry publishes watermarks only after all earlier
+outbox facts are confirmed. Load tracks the contiguous sequence and marks
+its Customer projection stale on a sequence gap or if no watermark is
+received for 30 seconds. A gap or expired stream-health window marks all
+existing Customer projections stale because the missing sequence cannot
+identify its Customer. Load reconciles each affected Customer with an
+authoritative snapshot at or beyond the required watermark before using its
+facts for booking; it advances its contiguous stream cursor only after all
+existing projections have been reconciled through that watermark. On first
+startup or loss of durable consumer continuity, Load keeps booking gated,
+reconciles all existing projection rows against an observed watermark, and
+initializes its stream cursor only after those snapshots are current.
+Customer fact values themselves have no wall-clock TTL; the 30-second rule
+qualifies completeness of the change stream, not the age of an unchanged
+Customer value. The same full-snapshot contract is used for targeted
+reconciliation. Canonical channels and payloads are in the
+[Registry AsyncAPI specification](../api/counterparty-registry.asyncapi.yaml);
+Load's consumer and reconciliation operations are referenced in the
+[Load AsyncAPI specification](../api/load.asyncapi.yaml).
+
+Load may use only this projection's current status and legal name for
+booking. Ignore duplicate or older per-Customer revisions and Registry
+sequences. If an already-established projection receives a non-consecutive
+later owner revision, mark it stale, retain the last applied revision, and
+request a full authoritative snapshot. A Registry-sequence gap or stale
+stream marks all existing Customer projections stale. Apply a reconciliation
+result only if it is at least as new as both the last applied and observed
+owner revisions and is at or beyond the required Registry sequence;
+otherwise keep the projection stale and reconcile again. A new projection
+may initialize from an authoritative full snapshot at its current revision.
+Do not use a stale projection to authorize booking.
+
+When status is missing, an owner-revision or Registry-sequence gap is
+detected, or the completeness watermark has not been applied within 30
+seconds, Load initiates durable snapshot reconciliation without blocking a
+broker request on cross-service request/reply. While the projection is
+missing or stale, booking returns the existing retryable
+`503 CUSTOMER_STATUS_UNAVAILABLE`, creates no submission, and the unchanged
+request may be retried with the same idempotency key after reconciliation.
+If the authoritative snapshot reports no Customer profile, persist the
+normal `CUSTOMER_NOT_FOUND` booking rejection. A known non-`ACTIVE` status
+is likewise a durable business rejection. Existing accepted Loads are not
+changed by later Customer status updates under D-488.
+
+Load's workload identity may subscribe to Customer booking facts and
+completeness watermarks, request/reply snapshot channels, and may read only
+status and legal name. Registry's workload identity may publish those facts
+and watermarks and answer those snapshot requests. This decision defines the
+message-level permission boundary, not the deployment-specific RabbitMQ ACL
+configuration or the remaining Registry APIs and status-notification
+workflows.
+
+**Reason:** A revisioned local owner-fact projection preserves the
+asynchronous service boundary while allowing booking to use current,
+authoritative Customer facts without exposing Registry writes or making
+every booking depend on a synchronous service call.
+
+### D-515 — Base operating zones on Census geography and explicit leaf grants
+
+**Decision:** Use the U.S. Census Bureau's four statistical regions and nine
+divisions as the common geographic reference, not as a transportation
+industry mandate. For the initial map, use ten non-overlapping leaf zones:
+
+| Leaf zone            | Geographic membership                                                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `la`                 | Los Angeles–Long Beach, California Combined Statistical Area (CSA): Los Angeles, Orange, Riverside, San Bernardino, and Ventura Counties |
+| `pacific`            | The Pacific Division except the five counties assigned to `la`: Alaska, the remainder of California, Hawaii, Oregon, and Washington      |
+| `mountain`           | Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah, and Wyoming                                                                 |
+| `west_north_central` | Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dakota, and South Dakota                                                              |
+| `east_north_central` | Illinois, Indiana, Michigan, Ohio, and Wisconsin                                                                                         |
+| `west_south_central` | Arkansas, Louisiana, Oklahoma, and Texas                                                                                                 |
+| `east_south_central` | Alabama, Kentucky, Mississippi, and Tennessee                                                                                            |
+| `new_england`        | Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, and Vermont                                                              |
+| `middle_atlantic`    | New Jersey, New York, and Pennsylvania                                                                                                   |
+| `south_atlantic`     | Delaware, District of Columbia, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, and West Virginia                  |
+
+The four named operating areas are top-level reporting buckets. `la` is
+itself the LA CSA leaf; `west` contains `pacific` and
+`mountain`; `central` contains both North Central and both South Central
+leaves; `east` contains `new_england`, `middle_atlantic`, and
+`south_atlantic`. These broader buckets support management and reporting;
+they do not implicitly grant access. A broker or supervisor may hold
+multiple Identity grants, each scoped to an individual leaf zone; a grant
+to one leaf does not authorize sibling leaves or its broader bucket.
+
+For booking, Load derives the authorization leaf from the first pickup's
+normalized state and county FIPS codes. The first pickup determines the
+Load's accountable area even when later pickups or deliveries cross zones.
+The derived `areaId` is persisted with the booking and remains stable for
+that Load's history. A caller-supplied area cannot override the geographic
+result. Classification uses Census Division membership and the five-county
+CSA boundary: Los Angeles (state FIPS `06`, county FIPS `037`), Orange
+(`059`), Riverside (`065`), San Bernardino (`071`), and Ventura (`111`).
+Thus, Burbank and Glendale are in `la` (Los Angeles County), and Ontario is
+also in `la` (San Bernardino County). LA means this metropolitan service
+area, not the City of Los Angeles or Los Angeles County alone. ZIP/postal
+code alone is not authoritative for the county-based boundary. Invalid or
+unresolvable pickup geography fails closed before a durable booking
+submission is created. The applicable geography-mapping revision is
+recorded with the Load so future boundary data changes do not silently
+reclassify existing records.
+
+This adopts established statistical geography for a practical, recognizable
+starting map while preserving the operating company's ability to create
+smaller zones and assign several to one broker or supervisor. If operations
+grow, an area may later be subdivided into child zones (for example,
+north/south or state-level zones), with one or more responsible employees
+per zone. Such subdivision changes require a versioned boundary and
+authorization-migration decision; no subdivision or employee-per-zone
+staffing target is required now. The initial map does not define
+parcel-carrier pricing zones, route-planning regions, or coverage outside
+the 50 states and District of Columbia.
+
+**Reason:** Census divisions provide a stable, public state grouping that
+can be aggregated into the company's three broad regions. The Los Angeles
+CSA carve-out includes the wider LA area described by the owners, including
+Ontario, while leaving the remainder of California in Pacific. Explicit
+leaf grants allow fine-grained coverage while keeping broad reporting
+rollups from silently expanding authorization.
+
+**Evidence:** U.S. Census Bureau, [Census Regions and Divisions of the
+United States](https://www.census.gov/geographies/reference-maps/2020/geo/2020-census-regional-classification.html)
+and [Metropolitan and Micropolitan Statistical Areas](https://www.census.gov/programs-surveys/metro-micro/about.html).
+The five-county CSA is a Census statistical geography; it is used as the
+company's operating boundary, not because it is a carrier operating rule.
+Source verification was attempted on 2026-10-31, but Census pages returned
+access denied to the research tool in this environment.
+
 ## Record maintenance
 
 When a decision changes, update this entry and the owning document together.

@@ -85,20 +85,35 @@ this register to show what remains.
    privileged grants by distinct initiator/approver are established. A separate
    `tms_operations_administrator` may prepare recovery, but business-state
    replay requires owner approval. Define the role-to-action matrix,
-   area/load assignment rules, fleet/carrier/individual relationship
-   scopes, delegation and absence coverage, and separation-of-duties rules.
+   versioned geography lookup and unresolved-location handling,
+   fleet/carrier/individual relationship scopes, delegation and absence
+   coverage, and separation-of-duties rules.
    The shared execution-only authority for in-house and contracted drivers
    and the domain-owned write-authority split are selected.
    D-506 selects default-deny authorization, Identity-owned authentication
    and grants, and owner-service authorization combining role with applicable
    area, resource, relationship, Assignment, and lifecycle scope. Explicit
    time-bounded delegation, audit, and selected separation-of-duties rules
-   are also selected. Each protected service must still publish its
-   operation-level role/action/resource matrix before implementing protected
-   writes or enabling its production authorization policy; that is a
-   capability-specific implementation gate, not an open authorization
-   architecture decision or a blocker to platform conformance tests and
-   documented unauthenticated health/readiness endpoints.
+   are also selected. D-513 and D-515 close the initial Load booking/read
+   matrix and its geographic scope: Load derives a leaf zone from the first
+   pickup under the Census-based state/division map with a Los Angeles–
+   Long Beach five-county CSA carve-out;
+   area-scoped brokers submit and become handling brokers; handling brokers,
+   area supervisors, and the specified company-wide supervisory roles have
+   distinct read scopes; submission results require creator or complete
+   resource access. Other protected services must still publish their
+   operation-level role/action/resource matrices before implementing
+   protected writes or enabling their production authorization policies.
+   Detailed delegation and coverage rules remain open outside the explicit
+   Load access granted by D-513. This is a capability-specific implementation
+   gate, not an open authorization architecture decision or a blocker to
+   platform conformance tests and documented unauthenticated
+   health/readiness endpoints.
+   Before implementing Load's geographic resolver, select and validate the
+   versioned county-boundary/geocoding source, address-normalization
+   procedure, and deterministic behavior for unresolved or ambiguous pickup
+   locations. The policy is fail-closed; provider and data-refresh operations
+   remain implementation prerequisites.
 8. **Identity audit and data protection:** Identity audit events are
    append-only and cover account lifecycle, authentication/MFA, recovery,
    sessions, and grants/approvals without storing secrets. Retention is one
@@ -294,11 +309,13 @@ the unresolved details.
 15. **Customer and Carrier boundaries:** The Counterparty Registry, shared
     organization identity with separate Customer/Carrier profiles, initial
     status lifecycle, basic registry fields, applicable DOT/MC references,
-    and Customer-name snapshot on Load revisions are selected. Define
-    complete customer/carrier onboarding and contact lifecycle, exact
+    and Customer-name snapshot on Load revisions are selected. D-514 closes
+    the Load-specific status/legal-name fact projection, freshness,
+    reconciliation, and booking-failure behavior. Define complete customer/carrier
+    onboarding and contact lifecycle, exact
     eligibility facts and verification sources, and status-change
-    notification/revalidation procedures. These gate the dependent
-    Counterparty Registry and Fleet Readiness workflows, not platform
+    notification/revalidation procedures for responsible owners. These gate
+    the dependent Counterparty Registry and Fleet Readiness workflows, not platform
     foundation. D-507 defines their logical record schemas. D-509 selects
     source-backed, versioned, fail-closed planning facts; the fact catalogue
     and each required field's approved source, verifier, and validity period
@@ -313,7 +330,8 @@ the unresolved details.
     remain externally authoritative under D-493. D-494 requires immediate
     notice to responsible owners when an eligibility fact becomes invalid,
     expires, or is superseded; delivery and acknowledgement mechanics, and
-    notices for Registry status changes, remain open. Decision D-488
+    notifications to responsible owners about Registry status changes,
+    remain open. Decision D-488
     establishes that a Customer status change blocks future bookings only;
     already accepted Loads continue unless separately amended or canceled.
     Decision D-489 establishes that a non-active Carrier cannot be selected

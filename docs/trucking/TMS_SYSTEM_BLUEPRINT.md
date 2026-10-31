@@ -20,10 +20,12 @@ Accepted baseline decisions are recorded in the
 ## Project premise
 
 The initial operating model is a US trucking carrier and brokerage with
-approximately 50–100 trucks, centered on LA and operating across West,
-Central, and East areas. The initial system is for one company; these are
-current design assumptions, not product limits or a commitment to support
-multiple companies from the first version.
+approximately 50–100 trucks, centered on the Los Angeles–Long Beach
+five-county CSA and operating across West, Central, and East rollups over
+Census-based geographic leaves.
+The initial system is for one company; these are current design assumptions,
+not product limits or a commitment to support multiple companies from the
+first version.
 
 The product direction is defined by its owners. Assumptions and evidence must
 be recorded separately from owner decisions; only approved TMS
@@ -190,6 +192,14 @@ not a claim that they are configured in the current local stack. See
 [local development guide](../../infra/README.md) for implemented environment
 scope.
 
+Redis is a potential future supporting tool to evaluate for measured
+cross-instance ephemeral needs such as cache acceleration or shared
+rate-limit counters. It is not currently selected, required, or deployed.
+Any proposal must define data expiry, outage behavior, and consistency needs;
+Redis must not become authority for business records, Identity grants or
+sessions, or durable workflow state, and does not replace PostgreSQL,
+RabbitMQ, or Temporal.
+
 The repository currently provides shared Node.js utilities, an API gateway
 health/observability baseline, and local observability tooling. The target
 Counterparty Registry, Fleet Readiness, Identity, Load, Dispatch Planning,
@@ -246,13 +256,14 @@ This sequence does not authorize business services, product-facing business
 routes, fabricated operational data, or third-party integrations. In
 particular, it does not add accounting/QuickBooks, ELD, load-board, general
 fleet-management, yard-management, or legal/compliance systems to the TMS
-foundation. The proposed business vertical slice remains unselected. Complete
-and verify F0–F5 foundation acceptance before TMS business-service
+foundation. The Load booking/read increment is selected as B0. Complete and
+verify F0–F5 foundation acceptance before TMS business-service
 implementation begins. After that gate, close each capability's applicable
 gates in the
 [implementation-readiness matrix](IMPLEMENTATION_READINESS.md) and
-[open-decision register](OPEN_QUESTIONS.md), then select the increment
-through an explicit owner decision. This sequence does not require closing
+[open-decision register](OPEN_QUESTIONS.md) before protected operations are
+implemented. This selection does not authorize unresolved policy choices.
+The sequence does not require closing
 the intentionally open maximum scope or unrelated future capability gates.
 F0–F5 acceptance qualifies only the tested local platform capabilities;
 production qualification remains separate. The near-term operating
@@ -272,28 +283,40 @@ owner decision or unresolved prerequisite changes. Keep agreed design,
 implemented behavior, and verified evidence distinct. Do not mark the whole
 foundation accepted until all F0–F5 evidence required by D-504 is recorded.
 
-The [first-slice candidate](FIRST_SLICE_CANDIDATE.md) is not selected.
-Selection gates and unresolved design questions are tracked in
-[open decisions](OPEN_QUESTIONS.md).
+The selected [Load booking/read increment](FIRST_SLICE_CANDIDATE.md) is
+bounded to durable booking outcomes and reads. Its applicable implementation
+gates and unresolved design questions are tracked in the
+[readiness matrix](IMPLEMENTATION_READINESS.md) and
+[open-decision register](OPEN_QUESTIONS.md).
 
-### Proposed business implementation milestones
+### Business implementation milestones
 
-The following sequence is a recommendation for work after F0–F5, not an
-approved business scope or authorization to implement unresolved policies.
-Milestone B0 is the immediate next step. Confirm the selected increment and
-its acceptance with the owners; then execute only the later milestones and
-capabilities required by that decision. Keep each service's business facts
-and transitions under its documented owner.
+The sequence below follows F0–F5. B0 is selected as the bounded Load
+booking/read increment; later milestones remain a recommended dependency
+order, not authorization to implement unresolved policies. Execute only
+capabilities whose applicable readiness gates are closed. Keep each
+service's business facts and transitions under its documented owner.
 
-| Milestone                                                       | Proposed scope                                                                                                                                                                                                                       | Why this order                                                                                                                                             |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **B0. Select and bound the first increment**                    | Select the first-slice candidate or another bounded path. Specify its actors, starting conditions, trusted facts, permissions, outcomes, and nominal/failure acceptance. Resolve only the applicable open decisions.                 | Prevent implementation convenience from silently becoming product policy; establish a verifiable path without requiring the entire target scope to close.  |
-| **B1. Establish slice-specific identity and authorization**     | Define the operation-level role/action/resource matrix and required workload permissions; implement only the authentication and authorization behavior needed by the selected protected operations.                                  | Protected writes need explicit authority boundaries before their routes or message handlers exist.                                                         |
-| **B2. Close and implement required owner facts**                | Approve source, owner/verifier, validity, and stale/unknown behavior for the selected planning facts; implement only the required Fleet Readiness and Counterparty/Customer-status records and checks under their respective owners. | Planning and booking must consume owned, current facts and fail safely when those facts are unavailable or stale.                                          |
-| **B3. Implement the required Load lifecycle**                   | Implement the selected booking/read path and only the amendment/cancellation transitions required by the increment, including idempotency, durable outcomes, authorization, and dependency-failure behavior.                         | Load's authoritative state is the input boundary for downstream planning and execution.                                                                    |
-| **B4. Implement planning, Capacity Commitment, and Assignment** | Close slice-specific route, service-time, deadhead, ranking, authorization, and recovery gates; implement the owner-defined planning and recoverable Capacity Commitment/Assignment handoff.                                         | This is a central cross-owner boundary with contention and recovery risks; its inputs must be approved rather than represented by unverified placeholders. |
-| **B5. Implement the corresponding Execution path**              | Implement only the selected progress, evidence, exception, and completion/correction behavior, with owner-authored transitions, audit history, and recovery acceptance.                                                              | Completes the operational path and validates upstream contracts and ownership end to end.                                                                  |
-| **B6. Complete slice operations and end-to-end acceptance**     | Add the notifications and read-only operational views required by the selected path; verify nominal and deterministic failure scenarios across owners and record outcomes.                                                           | Makes pending work and recovery actionable without giving projections or notifications authority over source state.                                        |
+| Milestone                                                       | Proposed scope                                                                                                                                                                                                                                                                                                                                                                                                               | Why this order                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **B0. Select and bound the first increment**                    | Selected: the Load booking/read path in [the first business increment](FIRST_SLICE_CANDIDATE.md), including actors, trusted facts, permission boundary, outcomes, acceptance, and exclusions.                                                                                                                                                                                                                                | Establish a verifiable upstream business boundary without requiring the entire target scope to close; preserve remaining authorization and Customer-status gates.                                                                                                             |
+| **B1. Establish slice-specific identity and authorization**     | First define and approve the initial Identity service operations and contracts, then implement that slice in the agreed DDD organization, including real issuance of the selected identity context and receiving-service verification. Only then create the DDD-structured Load service and implement D-513 at its owned operations; do not build a detached authorization module before an issuer or Load operations exist. | Protected operations need real authenticated identity context and owner-enforced authorization. Identity owns authentication and grants; Load owns authorization for Load resources. Remaining service-specific workload ACLs stay scoped to the integrations that need them. |
+| **B2. Close and implement required owner facts**                | D-514 closes the Customer status/legal-name fact, projection freshness, and snapshot recovery contract. Implement only this Counterparty Registry→Load fact path and its owner-correct recovery. Planning facts remain out of scope.                                                                                                                                                                                         | Booking must consume an owned, current Customer status and fail safely when it is unavailable or stale.                                                                                                                                                                       |
+| **B3. Implement the required Load lifecycle**                   | Implement the selected booking/read path, including idempotency, durable outcomes, authorization, and dependency-failure behavior. Amendments and cancellation remain out of scope unless separately selected.                                                                                                                                                                                                               | Load's authoritative state is the input boundary for downstream planning and execution.                                                                                                                                                                                       |
+| **B4. Implement planning, Capacity Commitment, and Assignment** | Close slice-specific route, service-time, deadhead, ranking, authorization, and recovery gates; implement the owner-defined planning and recoverable Capacity Commitment/Assignment handoff.                                                                                                                                                                                                                                 | This is a central cross-owner boundary with contention and recovery risks; its inputs must be approved rather than represented by unverified placeholders.                                                                                                                    |
+| **B5. Implement the corresponding Execution path**              | Implement only the selected progress, evidence, exception, and completion/correction behavior, with owner-authored transitions, audit history, and recovery acceptance.                                                                                                                                                                                                                                                      | Completes the operational path and validates upstream contracts and ownership end to end.                                                                                                                                                                                     |
+| **B6. Complete slice operations and end-to-end acceptance**     | Add the notifications and read-only operational views required by the selected path; verify nominal and deterministic failure scenarios across owners and record outcomes.                                                                                                                                                                                                                                                   | Makes pending work and recovery actionable without giving projections or notifications authority over source state.                                                                                                                                                           |
+
+**Current progress:** B1 is in progress. A reusable `@app/identity-token`
+package verifies the selected RS256 Identity access-token contract, and the
+API gateway uses it on non-health routes when configured, failing closed if
+Identity is not configured. This is verification infrastructure only: no
+Identity service or token issuer exists, and no Load authorization policy has
+been implemented. The next implementation boundary is the approved Identity
+service slice using the agreed DDD organization. Load-owned D-513
+authorization follows only after real Identity context exists and the Load
+service's owned operations are ready. Service-local verification and
+end-to-end acceptance evidence remain outstanding.
 
 Production qualification—including provider HA/DR, measured production
 RPO/RTO, retention, privacy, and deployment controls—remains a separate gate.
@@ -306,9 +329,10 @@ D-504 approves platform foundation as the first implementation phase. This
 is a bounded engineering increment, not a business workflow, a customer
 demonstration, or authorization to start domain-owned TMS operations before
 their specific documentation gates are met. It validates the shared runtime
-capabilities on which later services depend. The later business vertical
-slice remains unselected. TMS business-service implementation begins after
-the F0–F5 foundation acceptance evidence is complete. This ordering makes
+capabilities on which later services depend. The Load booking/read increment
+is selected, but business-service implementation begins only after the F0–F5
+foundation acceptance evidence is complete and the capability-specific gates
+are closed. This ordering makes
 infrastructure readiness a prerequisite to service implementation; it does
 not defer business implementation indefinitely or require the maximum TMS
 scope to be decided first. Each selected capability must still pass its own
