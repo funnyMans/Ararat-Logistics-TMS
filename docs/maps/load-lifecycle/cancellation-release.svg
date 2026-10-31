@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="920" style="height:auto" viewBox="0 0 1300 920" role="img" aria-labelledby="title description">
+  <title id="title">Load cancellation and downstream release</title>
+  <desc id="description">A broker cancellation request moves the Load to CANCELLATION_PENDING. The workflow checks that Execution has not started, then coordinates parallel Dispatch and Capacity Commitment release or replacement with planned Execution voiding. Load becomes CANCELLED only after all applicable confirmations; failures stay visible for reconciliation, and started execution cannot be cancelled.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526477; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 14; }
+      .load { fill: #eaf3fb; stroke: #1769aa; }
+      .work { fill: #fff3dc; stroke: #b87500; }
+      .exec { fill: #e8f5ee; stroke: #24804a; }
+      .success { fill: #e9f5ed; stroke: #24804a; }
+      .fail { fill: #fff4f1; stroke: #b45039; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; fill: #42586c; }
+      .edge { fill: none; stroke: #536579; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 7; }
+      .label { font-size: 13px; font-weight: 700; fill: #40586c; }
+      .lane { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 16; }
+    </style>
+  </defs>
+  <rect width="1300" height="920" fill="#fff"/>
+  <text class="title" x="48" y="58">Cancellation and downstream release</text>
+  <text class="subtitle" x="48" y="86">Cancellation remains pending until every applicable owner confirms its part of the release.</text>
+
+  <rect class="lane" x="30" y="120" width="1240" height="205"/>
+  <text class="label" x="55" y="153">REQUEST AND START GATE</text>
+  <rect class="box" x="55" y="185" width="210" height="92"/>
+  <text class="box-title" x="80" y="220">Broker request</text>
+  <text class="body" x="80" y="247">Authorized cancellation</text>
+  <rect class="box load" x="345" y="185" width="265" height="92"/>
+  <text class="box-title" x="370" y="220">Load</text>
+  <text class="body" x="370" y="247">Commit CANCELLATION_PENDING</text>
+  <rect class="box" x="690" y="185" width="265" height="92"/>
+  <text class="box-title" x="715" y="220">Durable workflow</text>
+  <text class="body" x="715" y="247">Collect required owner outcomes</text>
+  <rect class="box fail" x="1035" y="185" width="210" height="92"/>
+  <text class="box-title" x="1055" y="220">Execution gate</text>
+  <text class="body" x="1055" y="247">Must not be started</text>
+  <path class="edge" d="M265 230 L345 230"/>
+  <path class="edge" d="M610 230 L690 230"/>
+  <path class="edge" d="M955 230 L1035 230"/>
+  <text class="label" x="276" y="212">validate</text>
+  <text class="label" x="624" y="212">202 pending</text>
+
+  <rect class="lane" x="30" y="355" width="1240" height="235"/>
+  <text class="label" x="55" y="388">PARALLEL OWNER WORK</text>
+  <rect class="box work" x="90" y="425" width="470" height="125"/>
+  <text class="box-title" x="115" y="460">Dispatch Planning + Capacity Commitment</text>
+  <text class="body" x="115" y="490">Revalidate the affected plan. Atomically replace the full</text>
+  <text class="body" x="115" y="514">reservation if remaining Loads are feasible; otherwise release.</text>
+  <rect class="box exec" x="740" y="425" width="470" height="125"/>
+  <text class="box-title" x="765" y="460">Execution (if a planned record exists)</text>
+  <text class="body" x="765" y="490">Validate the exact not-started record; void only when its</text>
+  <text class="body" x="765" y="514">start gate permits, and return an authoritative outcome.</text>
+  <path class="edge" d="M1140 277 L1140 345 L325 345 L325 425"/>
+  <path class="edge" d="M1140 277 L1140 425"/>
+  <rect class="box" x="455" y="650" width="390" height="100"/>
+  <text class="box-title" x="480" y="688">Load records owner confirmations</text>
+  <text class="body" x="480" y="718">Retry idempotently; reconcile before recovery</text>
+  <path class="edge" d="M325 550 L325 615 L455 615 L455 700"/>
+  <path class="edge" d="M975 550 L975 615 L845 615 L845 700"/>
+
+  <rect class="lane" x="30" y="775" width="1240" height="115"/>
+  <text class="label" x="55" y="805">RESULT</text>
+  <rect class="box success" x="65" y="820" width="345" height="55"/>
+  <text class="box-title" x="88" y="854">All confirmations → CANCELLED</text>
+  <rect class="box fail" x="475" y="820" width="345" height="55"/>
+  <text class="box-title" x="495" y="854">Missing result → reconcile; stay pending</text>
+  <rect class="box fail" x="885" y="820" width="345" height="55"/>
+  <text class="box-title" x="910" y="854">Started → operational exception</text>
+  <path class="edge" d="M520 750 L520 790 L240 790 L240 820"/>
+  <path class="edge dashed" d="M650 750 L650 820"/>
+  <path class="edge dashed" d="M1140 277 L1250 277 L1250 805 L1060 805 L1060 820"/>
+  <text class="label" x="175" y="786">success</text>
+  <text class="label" x="700" y="786">retry exhausted / inconsistent state</text>
+</svg>

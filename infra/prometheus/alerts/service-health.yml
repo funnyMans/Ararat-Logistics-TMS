@@ -10,24 +10,6 @@ groups:
           summary: 'TMS API gateway is unavailable'
           description: 'The API gateway has failed Prometheus scrapes for more than one minute.'
 
-      - alert: UsersServiceDown
-        expr: up{job="users-service"} == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: 'TMS account-profile service is unavailable'
-          description: 'The account-profile service has failed Prometheus scrapes for more than one minute.'
-
-      - alert: AuthServiceDown
-        expr: up{job="auth-service"} == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: 'TMS authentication service is unavailable'
-          description: 'The authentication service has failed Prometheus scrapes for more than one minute.'
-
       - alert: High5xxRate
         expr: sum by (job) (rate({__name__=~".*_http_requests_total", status_code=~"5.."}[5m])) > 0.1
         for: 5m

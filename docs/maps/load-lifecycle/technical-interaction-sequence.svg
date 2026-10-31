@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1450" style="height:auto" viewBox="0 0 1600 1450" role="img" aria-labelledby="title description">
+  <title id="title">Technical Load interaction sequence</title>
+  <desc id="description">A numbered technical sequence shows external booking over HTTPS, gateway routing, Load database and transactional outbox, RabbitMQ facts, Temporal workflow, Dispatch Planning, atomic Capacity Commitment reservation, Load finalization guard, Assignment activation, Execution, driver/site interactions, closeout, and outside-TMS issue handoff. It distinguishes synchronous HTTP from asynchronous durable messages.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 16; }
+      .card { fill: #fff; stroke: #60798f; stroke-width: 1.8; rx: 10; }
+      .external { fill: #fff7f4; stroke: #b45039; }
+      .edge { fill: #eaf3fb; stroke: #1769aa; }
+      .owner { fill: #fff3dc; stroke: #b87500; }
+      .infra { fill: #f0edfa; stroke: #6853a6; }
+      .movement { fill: #e8f5ee; stroke: #24804a; }
+      .card-title { font-size: 15px; font-weight: 700; }
+      .body { font-size: 12.5px; fill: #42586c; }
+      .small { font-size: 11.5px; fill: #526477; }
+      .step { font-size: 15px; font-weight: 700; fill: #1769aa; }
+      .arrow { fill: none; stroke: #536579; stroke-width: 2; marker-end: url(#arrow); }
+      .arrow-blue { fill: none; stroke: #1769aa; stroke-width: 2.2; marker-end: url(#arrow); }
+      .arrow-dash { fill: none; stroke: #6853a6; stroke-width: 2; stroke-dasharray: 7 6; marker-end: url(#arrow); }
+      .note { font-size: 12px; font-weight: 700; fill: #40586c; }
+    </style>
+  </defs>
+  <rect width="1600" height="1450" fill="#fff"/>
+  <text class="title" x="42" y="52">Technical interaction sequence: one Load</text>
+  <text class="subtitle" x="42" y="79">HTTPS is synchronous at the client edge; owner-to-owner work is durable RabbitMQ messaging coordinated by Temporal.</text>
+
+  <rect class="band" x="28" y="105" width="1544" height="310"/>
+  <text class="note" x="50" y="134">A — CLIENT REQUEST AND DURABLE BOOKING</text>
+  <rect class="card external" x="55" y="165" width="210" height="94"/>
+  <text class="card-title" x="75" y="195">Broker / staff client</text>
+  <text class="body" x="75" y="220">OIDC token + HTTPS POST</text>
+  <text class="small" x="75" y="242">Idempotency-Key</text>
+  <rect class="card edge" x="355" y="165" width="210" height="94"/>
+  <text class="card-title" x="375" y="195">Nginx / API Gateway</text>
+  <text class="body" x="375" y="220">Local Nginx → API Gateway</text>
+  <text class="small" x="375" y="242">Target ingress choice open</text>
+  <rect class="card owner" x="655" y="165" width="210" height="94"/>
+  <text class="card-title" x="675" y="195">Load API</text>
+  <text class="body" x="675" y="220">Validate booking and Customer fact</text>
+  <text class="small" x="675" y="242">Current Customer fact required</text>
+  <rect class="card edge" x="955" y="165" width="230" height="94"/>
+  <text class="card-title" x="975" y="195">Load PostgreSQL</text>
+  <text class="body" x="975" y="220">Submission + Loads + revisions</text>
+  <text class="small" x="975" y="242">Idempotency + outbox, one commit</text>
+  <rect class="card infra" x="1275" y="165" width="245" height="94"/>
+  <text class="card-title" x="1295" y="195">HTTP response</text>
+  <text class="body" x="1295" y="220">201 durable result; identical retry 200</text>
+  <text class="small" x="1295" y="242">No claim of Assignment/capacity</text>
+  <path class="arrow" d="M265 212 L355 212"/>
+  <path class="arrow" d="M565 212 L655 212"/>
+  <path class="arrow" d="M865 212 L955 212"/>
+  <path class="arrow" d="M1185 212 L1275 212"/>
+  <text class="step" x="300" y="194">1</text>
+  <text class="step" x="610" y="194">2</text>
+  <text class="step" x="910" y="194">3</text>
+  <text class="step" x="1220" y="194">4</text>
+  <text class="body" x="65" y="303">Gateway validates signed OIDC context; Load authorizes the resource/action. Identity is not synchronously called for every API request.</text>
+  <text class="body" x="65" y="330">If Customer status is missing or stale, Load returns retryable 503 without creating a submission. Planning uses no synchronous owner call.</text>
+  <text class="body" x="65" y="357">A gateway timeout may follow commit: client retries the same key or GETs the submission. Durable booking may return before RabbitMQ/Temporal recover.</text>
+  <text class="body" x="65" y="389">For contracted capacity, a dispatcher manually communicates tender rounds externally and records Carrier responses/binding in TMS; no portal or capacity reservation is implied.</text>
+
+  <rect class="band" x="28" y="435" width="1544" height="400"/>
+  <text class="note" x="50" y="464">B — OUTBOX, EVENT-TRIGGERED PLANNING, AND ATOMIC RESERVATION</text>
+  <rect class="card owner" x="55" y="495" width="245" height="105"/>
+  <text class="card-title" x="75" y="525">Owner outbox publishers</text>
+  <text class="body" x="75" y="550">Load, Registry, and Fleet</text>
+  <text class="small" x="75" y="574">Each fact shares its owner commit</text>
+  <rect class="card infra" x="355" y="495" width="210" height="105"/>
+  <text class="card-title" x="375" y="525">RabbitMQ</text>
+  <text class="body" x="375" y="550">Owner exchanges and queues</text>
+  <text class="small" x="375" y="574">Confirms; durable delivery</text>
+  <rect class="card infra" x="655" y="495" width="230" height="105"/>
+  <text class="card-title" x="675" y="525">Temporal</text>
+  <text class="body" x="675" y="550">Stable workflow ID per Load</text>
+  <text class="small" x="675" y="574">Progress/timers only, not truth</text>
+  <rect class="card owner" x="955" y="495" width="230" height="105"/>
+  <text class="card-title" x="975" y="525">Dispatch Planning</text>
+  <text class="body" x="975" y="550">Local versioned projections</text>
+  <text class="small" x="975" y="574">Plan only current READY revision</text>
+  <rect class="card owner" x="1275" y="495" width="245" height="105"/>
+  <text class="card-title" x="1295" y="525">Capacity Commitment</text>
+  <text class="body" x="1295" y="550">Atomically hold all resources</text>
+  <text class="small" x="1295" y="574">Owns reservations and outcomes</text>
+  <path class="arrow-blue" d="M300 548 L355 548"/>
+  <path class="arrow-dash" d="M565 530 L655 530"/>
+  <path class="arrow-dash" d="M885 548 L955 548"/>
+  <path class="arrow-dash" d="M1185 548 L1275 548"/>
+  <text class="step" x="325" y="530">5</text>
+  <text class="step" x="610" y="510">6</text>
+  <text class="step" x="920" y="530">7</text>
+  <text class="step" x="1220" y="530">8</text>
+  <text class="small" x="65" y="616">Dashed arrows indicate workflow signals or commands; business facts/commands travel through RabbitMQ, not direct owner-to-owner HTTP calls.</text>
+  <text class="body" x="65" y="631">Each owner publishes its own committed facts: Load emits `load.booked` and `load.planning.readiness.changed`; Registry and Fleet publish versioned facts.</text>
+  <text class="body" x="65" y="657">RabbitMQ delivers durable messages; inboxes deduplicate. Temporal starts/signals only after delivery and its activity publishes `dispatch.load.plan` through RabbitMQ.</text>
+  <text class="body" x="65" y="683">Dispatch consumes Registry/Fleet/Load facts into local projections, verifies freshness, then writes its planning attempt and Trip Plan in its own database.</text>
+  <text class="body" x="65" y="709">Dispatch publishes `capacity.reservation.reserve` through RabbitMQ. Capacity Commitment atomically holds the full resource/time set or none.</text>
+  <text class="body" x="65" y="735">Capacity Commitment publishes `capacity.reservation.reserve.outcome`; Temporal waits for it. A business rejection is not a transport retry.</text>
+  <rect class="card owner" x="655" y="755" width="390" height="58"/>
+  <text class="card-title" x="675" y="780">Load finalization guard → CC confirm → Dispatch activation</text>
+  <text class="small" x="675" y="802">Exact Load revision guarded; confirmed reservation precedes Assignment commit</text>
+
+  <rect class="band" x="28" y="855" width="1544" height="370"/>
+  <text class="note" x="50" y="884">C — ASSIGNMENT, EXECUTION, EXTERNAL OPERATIONS, AND CLOSEOUT</text>
+  <rect class="card owner" x="55" y="915" width="235" height="108"/>
+  <text class="card-title" x="75" y="945">Dispatch Planning</text>
+  <text class="body" x="75" y="970">Persist active Assignment</text>
+  <text class="small" x="75" y="996">Publish immutable fact/outbox</text>
+  <rect class="card movement" x="365" y="915" width="235" height="108"/>
+  <text class="card-title" x="385" y="945">Execution service</text>
+  <text class="body" x="385" y="970">Inbox → planned records</text>
+  <text class="small" x="385" y="996">Idempotent by Assignment ID</text>
+  <rect class="card external" x="675" y="915" width="235" height="108"/>
+  <text class="card-title" x="695" y="945">Driver + shipper/site</text>
+  <text class="body" x="695" y="970">Physical trip and stop events</text>
+  <text class="small" x="695" y="996">Client/API routes partly open</text>
+  <rect class="card movement" x="985" y="915" width="235" height="108"/>
+  <text class="card-title" x="1005" y="945">Execution closeout</text>
+  <text class="body" x="1005" y="970">Actual outcomes, POD/evidence</text>
+  <text class="small" x="1005" y="996">Immutable per-Load closeout fact</text>
+  <rect class="card owner" x="1295" y="915" width="225" height="108"/>
+  <text class="card-title" x="1315" y="945">Load + recipient</text>
+  <text class="body" x="1315" y="970">Load COMPLETED</text>
+  <text class="small" x="1315" y="996">Minimal issue handed outside TMS</text>
+  <path class="arrow-blue" d="M290 970 L365 970"/>
+  <path class="arrow" d="M600 970 L675 970"/>
+  <path class="arrow" d="M910 970 L985 970"/>
+  <path class="arrow-blue" d="M1220 970 L1295 970"/>
+  <text class="step" x="325" y="950">9</text>
+  <text class="step" x="635" y="950">10</text>
+  <text class="step" x="945" y="950">11</text>
+  <text class="step" x="1255" y="950">12</text>
+  <text class="body" x="65" y="1060">`dispatch.assignment.activated` is consumed by Execution; it is a plan, not proof of movement. Execution starts only after exact Assignment, Load, CC, and readiness gates pass.</text>
+  <text class="body" x="65" y="1087">Driver/client milestone and evidence operations use authorized APIs; file bytes use the approved upload-intent flow and private object storage boundary.</text>
+  <text class="body" x="65" y="1114">Execution publishes closeout; Load consumes the owner fact and completes its own lifecycle. Any issue is a minimal record to an out-of-TMS recipient whose identity/routing remains open.</text>
+  <text class="body" x="65" y="1141">A bound tender limits planning to its selected Carrier; Carrier acceptance itself is not capacity. Tender storage/API ownership is open; route provider and issue-receiver contracts are also open.</text>
+
+  <rect class="band" x="28" y="1245" width="1544" height="165"/>
+  <text class="note" x="50" y="1277">CHANNEL LEGEND</text>
+  <path class="arrow" d="M65 1315 L155 1315"/>
+  <text class="body" x="175" y="1320">Synchronous HTTPS at client edge or an explicit response</text>
+  <path class="arrow-blue" d="M620 1315 L710 1315"/>
+  <text class="body" x="730" y="1320">Durable owner command/fact over RabbitMQ</text>
+  <path class="arrow-dash" d="M1120 1315 L1210 1315"/>
+  <text class="body" x="1230" y="1320">Temporal signal / workflow coordination</text>
+  <text class="small" x="65" y="1365">There is no synchronous internal HTTP call chain in the target workflow. A service writes its state, outbox, and local idempotency/inbox state; durable outcomes drive the next owner.</text>
+</svg>

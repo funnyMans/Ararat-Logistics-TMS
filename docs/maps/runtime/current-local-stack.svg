@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="900" style="height:auto" viewBox="0 0 1630 900" role="img" aria-labelledby="title description">
+  <title id="title">Current local Compose stack</title>
+  <desc id="description">The actual local Docker Compose environment contains Nginx on loopback port 8080 proxying to the API Gateway on loopback port 3000. The gateway exposes health, readiness, and metrics only. Prometheus scrapes local services, OpenTelemetry Collector sends traces to Tempo, and Grafana reads Prometheus and Tempo. Loopback-only PostgreSQL and RabbitMQ with named volumes are reserved for test-only foundation conformance; Temporal is also test-only and persists workflow history in its own PostgreSQL container and volume. NATS is test-only ephemeral secondary fan-out with no persistent messages. The conformance test manually republishes from a PostgreSQL fact after restart; no automatic replay worker exists. No PostgreSQL service has a TMS business schema and no broker has application or business routes.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .band { fill: #f5f8fb; stroke: #c9d4df; stroke-width: 1.5; rx: 18; }
+      .box { fill: #fff; stroke: #60798f; stroke-width: 2; rx: 13; }
+      .edge { fill: #eaf3fb; stroke: #1769aa; }
+      .obs { fill: #f0edfa; stroke: #6853a6; }
+      .external { fill: #fff7f4; stroke: #b45039; }
+      .box-title { font-size: 17px; font-weight: 700; }
+      .body { font-size: 13px; fill: #42586c; }
+      .small { font-size: 12px; fill: #526477; }
+      .edge-line { fill: none; stroke: #536579; stroke-width: 2.4; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 6; }
+      .label { font-size: 12px; font-weight: 700; fill: #40586c; }
+    </style>
+  </defs>
+  <rect width="1630" height="900" fill="#fff"/>
+  <text class="title" x="42" y="55">Current local Compose stack</text>
+  <text class="subtitle" x="42" y="82">Repository implementation today — not the target TMS runtime.</text>
+
+  <rect class="band" x="35" y="110" width="1560" height="430"/>
+  <text class="label" x="60" y="143">LOCAL HOST LOOPBACK → DOCKER COMPOSE NETWORK</text>
+  <rect class="box external" x="75" y="190" width="215" height="105"/>
+  <text class="box-title" x="98" y="225">Local client</text>
+  <text class="body" x="98" y="252">http://localhost:8080</text>
+  <text class="small" x="98" y="276">Nginx entry point</text>
+  <rect class="box edge" x="390" y="190" width="215" height="105"/>
+  <text class="box-title" x="413" y="225">Nginx container</text>
+  <text class="body" x="413" y="252">Reverse proxy / rate limit</text>
+  <text class="small" x="413" y="276">Proxy target: api-gateway:3000</text>
+  <rect class="box edge" x="705" y="190" width="245" height="105"/>
+  <text class="box-title" x="728" y="225">API Gateway container</text>
+  <text class="body" x="728" y="252">Health / readiness / metrics</text>
+  <text class="small" x="728" y="276">No product API routes</text>
+  <rect class="box external" x="1050" y="190" width="260" height="105"/>
+  <text class="box-title" x="1073" y="225">No domain targets</text>
+  <text class="body" x="1073" y="252">No Identity or TMS services</text>
+  <text class="small" x="1073" y="276">No business database or schema</text>
+  <path class="edge-line" d="M290 242 L390 242"/>
+  <path class="edge-line" d="M605 242 L705 242"/>
+  <path class="edge-line dashed" d="M950 242 L1050 242"/>
+  <text class="label" x="310" y="222">HTTP</text>
+  <text class="label" x="627" y="222">HTTP</text>
+
+  <rect class="box external" x="75" y="355" width="215" height="105"/>
+  <text class="box-title" x="98" y="390">Grafana</text>
+  <text class="body" x="98" y="417">http://localhost:3005</text>
+  <text class="small" x="98" y="441">Reads metrics and traces</text>
+  <rect class="box obs" x="390" y="355" width="215" height="105"/>
+  <text class="box-title" x="413" y="390">Prometheus</text>
+  <text class="body" x="413" y="417">Scrapes gateway, Tempo,</text>
+  <text class="small" x="413" y="441">collector and itself; :9090</text>
+  <rect class="box obs" x="705" y="355" width="215" height="105"/>
+  <text class="box-title" x="728" y="390">OTel Collector</text>
+  <text class="body" x="728" y="417">Receives gateway traces</text>
+  <text class="small" x="728" y="441">Exports to Tempo</text>
+  <rect class="box obs" x="1020" y="355" width="215" height="105"/>
+  <text class="box-title" x="1043" y="390">Tempo</text>
+  <text class="body" x="1043" y="417">Local trace storage</text>
+  <text class="small" x="1043" y="441">Named volume</text>
+  <rect class="box obs" x="1250" y="355" width="165" height="105"/>
+  <text class="box-title" x="1265" y="390">RabbitMQ</text>
+  <text class="body" x="1265" y="417">Durable test queue</text>
+  <text class="small" x="1265" y="441">AMQP :5672</text>
+  <rect class="box obs" x="1430" y="355" width="165" height="105"/>
+  <text class="box-title" x="1445" y="390">NATS</text>
+  <text class="body" x="1445" y="417">Ephemeral fan-out</text>
+  <text class="small" x="1445" y="441">:4222 / monitor :8222</text>
+  <path class="edge-line dashed" d="M290 395 C335 395 345 390 390 390"/>
+  <path class="edge-line dashed" d="M290 435 L315 435 L315 480 L1260 480 L1260 405 L1235 405"/>
+  <path class="edge-line dashed" d="M605 405 L705 405"/>
+  <path class="edge-line" d="M920 405 L1020 405"/>
+  <path class="edge-line dashed" d="M497 355 L497 305 L705 305 L705 270"/>
+  <text class="label" x="315" y="375">Prometheus query</text>
+  <text class="label" x="610" y="386">metrics scrape</text>
+  <text class="label" x="943" y="386">OTLP traces</text>
+  <path class="edge-line dashed" d="M827 295 L827 355"/>
+  <text class="small" x="525" y="333">Prometheus scrape</text>
+  <text class="small" x="837" y="333">Gateway traces</text>
+  <text class="small" x="75" y="495">Prometheus endpoint: http://localhost:9090</text>
+  <text class="small" x="75" y="513">Test-only PostgreSQL: loopback :5432; named volume; no business schema</text>
+  <text class="small" x="75" y="532">Test-only RabbitMQ: loopback :5672 / management :15672; named volume; no business routes</text>
+  <text class="small" x="820" y="532">NATS: loopback only; no volume/authority; test manually republishes a PG fact</text>
+
+  <rect class="band" x="35" y="550" width="1560" height="275"/>
+  <text class="small" x="75" y="568">Test-only Temporal :7233; workflow history in its own PostgreSQL container and named volume</text>
+  <text class="label" x="60" y="583">PRODUCT SERVICES AND DOMAIN MESSAGING NOT PRESENT</text>
+  <rect class="box external" x="75" y="625" width="230" height="120"/>
+  <text class="box-title" x="98" y="660">Business services</text>
+  <text class="body" x="98" y="689">Identity, Registry, Fleet,</text>
+  <text class="body" x="98" y="712">Load, Dispatch, CC, Execution</text>
+  <rect class="box external" x="365" y="625" width="230" height="120"/>
+  <text class="box-title" x="388" y="660">Data / messaging</text>
+  <text class="body" x="388" y="689">Service-owned PostgreSQL</text>
+  <text class="body" x="388" y="712">NATS is test-only and non-authoritative</text>
+  <rect class="box external" x="655" y="625" width="230" height="120"/>
+  <text class="box-title" x="678" y="660">Client-facing APIs</text>
+  <text class="body" x="678" y="689">Booking, driver, operations,</text>
+  <text class="body" x="678" y="712">GraphQL/Federation, BFF</text>
+  <rect class="box external" x="945" y="625" width="360" height="120"/>
+  <text class="box-title" x="968" y="660">Production deployment choices</text>
+  <text class="body" x="968" y="689">Ingress, orchestrator, replicas, HA,</text>
+  <text class="body" x="968" y="712">provider sizing and network policy</text>
+  <text class="small" x="75" y="790">RabbitMQ, NATS, and Temporal are test-only; the diagram reflects Compose, not a production or business topology.</text>
+</svg>

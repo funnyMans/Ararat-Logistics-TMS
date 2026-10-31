@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1000" style="height:auto" viewBox="0 0 1450 1000" role="img" aria-labelledby="title description">
+  <title id="title">TMS ecosystem and responsibility boundary</title>
+  <desc id="description">The TMS core includes booking, counterparty and fleet readiness facts, manual tendering to existing approved Carriers, planning, capacity commitment, Assignment, Execution, evidence, notifications, and minimal issue handoff. Customers, Carriers, drivers, shippers, route sources, and the receiving issue service sit at the boundary. Marketplace procurement, accounting, billing, payables, settlement, insurance/legal adjudication, standalone CRM/portals, and maintenance work orders are outside current scope.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#536579"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b3a; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #526477; }
+      .core { fill: #f0f6fb; stroke: #1769aa; stroke-width: 2; rx: 18; }
+      .near { fill: #fff7f4; stroke: #b45039; stroke-width: 1.8; rx: 13; }
+      .future { fill: #fff9e9; stroke: #b87500; stroke-width: 1.8; rx: 13; }
+      .owner { fill: #fff; stroke: #60798f; stroke-width: 1.6; rx: 10; }
+      .title2 { font-size: 17px; font-weight: 700; }
+      .body { font-size: 13px; fill: #42586c; }
+      .small { font-size: 12px; fill: #526477; }
+      .label { font-size: 12px; font-weight: 700; fill: #40586c; }
+      .arrow { fill: none; stroke: #536579; stroke-width: 2.2; marker-end: url(#arrow); }
+      .dashed { stroke-dasharray: 8 6; }
+    </style>
+  </defs>
+  <rect width="1450" height="1000" fill="#fff"/>
+  <text class="title" x="42" y="55">TMS ecosystem and responsibility boundary</text>
+  <text class="subtitle" x="42" y="82">The TMS owns bounded transportation work; adjacent parties and systems keep their own records and lifecycles.</text>
+
+  <rect class="near" x="35" y="125" width="310" height="350"/>
+  <text class="title2" x="58" y="160">People and counterparties</text>
+  <rect class="owner" x="60" y="185" width="260" height="62"/>
+  <text class="title2" x="80" y="212">Customer / shipper</text>
+  <text class="small" x="80" y="235">Offers, instructions, pickup/delivery site</text>
+  <rect class="owner" x="60" y="270" width="260" height="62"/>
+  <text class="title2" x="80" y="297">Broker / dispatcher</text>
+  <text class="small" x="80" y="320">Books; coordinates; records manual tenders</text>
+  <rect class="owner" x="60" y="355" width="260" height="62"/>
+  <text class="title2" x="80" y="382">Carrier / contractor</text>
+  <text class="small" x="80" y="405">Existing approved Carrier relationship</text>
+  <rect class="owner" x="60" y="435" width="260" height="30"/>
+  <text class="body" x="80" y="456">Driver performs physical transportation</text>
+
+  <rect class="core" x="390" y="125" width="670" height="650"/>
+  <text class="title2" x="420" y="165">TMS — defined minimum operational boundary</text>
+  <rect class="owner" x="430" y="200" width="275" height="85"/>
+  <text class="title2" x="452" y="232">Intake and reference</text>
+  <text class="body" x="452" y="258">Load booking + revisions; Registry;</text>
+  <text class="body" x="452" y="278">Fleet Readiness and stage follow-up</text>
+  <rect class="owner" x="745" y="200" width="275" height="85"/>
+  <text class="title2" x="767" y="232">Manual Carrier tender</text>
+  <text class="body" x="767" y="258">Record rounds and responses;</text>
+  <text class="body" x="767" y="278">select one binding accepted Carrier</text>
+  <rect class="owner" x="430" y="320" width="275" height="85"/>
+  <text class="title2" x="452" y="352">Planning and protection</text>
+  <text class="body" x="452" y="378">Dispatch Planning → CC reservation</text>
+  <text class="small" x="452" y="397">Tender acceptance is not capacity</text>
+  <rect class="owner" x="745" y="320" width="275" height="85"/>
+  <text class="title2" x="767" y="352">Assignment and Execution</text>
+  <text class="body" x="767" y="378">Owner-confirmed Assignment, actuals,</text>
+  <text class="body" x="767" y="397">evidence, closeout and corrections</text>
+  <rect class="owner" x="430" y="440" width="275" height="85"/>
+  <text class="title2" x="452" y="472">Operations View / Notification</text>
+  <text class="body" x="452" y="498">Read-only projection and action delivery</text>
+  <rect class="owner" x="745" y="440" width="275" height="85"/>
+  <text class="title2" x="767" y="472">Internal review proposals</text>
+  <text class="body" x="767" y="498">Load-linked charges/costs stop at</text>
+  <text class="small" x="767" y="518">internal review; no invoices or payment</text>
+  <rect class="future" x="430" y="570" width="590" height="145"/>
+  <text class="title2" x="452" y="602">Open boundaries and contract gates</text>
+  <text class="body" x="452" y="632">Tender record/API ownership; external channel; route-estimate provider;</text>
+  <text class="body" x="452" y="656">driver/client operations; issue receiver and integration remain open.</text>
+  <text class="body" x="452" y="680">Where no contract is defined, the diagram shows a relationship—not an API.</text>
+
+  <rect class="near" x="1105" y="125" width="310" height="350"/>
+  <text class="title2" x="1128" y="160">Adjacent systems / boundary</text>
+  <rect class="owner" x="1130" y="185" width="260" height="62"/>
+  <text class="title2" x="1150" y="212">Manual external channel</text>
+  <text class="small" x="1150" y="235">Tender communication; no Carrier portal</text>
+  <rect class="owner" x="1130" y="270" width="260" height="62"/>
+  <text class="title2" x="1150" y="297">Route source / provider</text>
+  <text class="small" x="1150" y="320">Provider-neutral provenance; provider open</text>
+  <rect class="owner" x="1130" y="355" width="260" height="62"/>
+  <text class="title2" x="1150" y="382">Issue receiving service</text>
+  <text class="small" x="1150" y="405">Owns assignment, status, resolution</text>
+  <rect class="owner" x="1130" y="435" width="260" height="30"/>
+  <text class="body" x="1150" y="456">Private object storage for evidence</text>
+
+  <path class="arrow" d="M345 215 L390 242"/>
+  <path class="arrow" d="M345 300 L390 242"/>
+  <path class="arrow" d="M345 385 L390 242"/>
+  <path class="arrow" d="M705 242 L745 242"/>
+  <path class="arrow" d="M882 285 L882 320"/>
+  <path class="arrow" d="M705 362 L745 362"/>
+  <path class="arrow" d="M1020 362 L1105 385"/>
+  <path class="arrow dashed" d="M1105 215 L1020 242"/>
+  <path class="arrow dashed" d="M1105 300 L705 362"/>
+  <path class="arrow dashed" d="M1020 482 L1105 450"/>
+  <path class="arrow" d="M1020 362 L1105 385"/>
+
+  <rect class="future" x="35" y="815" width="1380" height="140"/>
+  <text class="title2" x="60" y="850">Explicit exclusions from the current TMS target</text>
+  <text class="body" x="60" y="882">Marketplace/load-board sourcing and automated procurement · shipper procurement platform · billing/invoicing · accounting · AR/AP · Carrier payment and financial settlement</text>
+  <text class="body" x="60" y="907">Insurance/legal claim adjudication · standalone CRM/contact-center case management · maintenance work orders/parts · broad safety/compliance case management</text>
+  <text class="small" x="60" y="936">These external responsibilities may exchange defined facts with TMS in future; this map does not claim an integration exists.</text>
+</svg>

@@ -3,9 +3,7 @@
   "files": [],
   "references": [
     { "path": "./packages/common" },
-    { "path": "./packages/contracts" },
-    { "path": "./services/api-gateway" },
-    { "path": "./services/auth-service" },
-    { "path": "./services/users" }
+    { "path": "./packages/identity-token" },
+    { "path": "./services/api-gateway" }
   ]
 }

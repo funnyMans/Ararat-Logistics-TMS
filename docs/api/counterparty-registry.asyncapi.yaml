@@ -1,0 +1,319 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Counterparty Registry Messages
+  version: 1.0.0
+  description: >-
+    Selected minimal Customer booking fact, completeness-watermark, and
+    snapshot-reconciliation contract consumed by Load. This is not the
+    complete Registry message inventory or its implementation.
+  externalDocs:
+    description: Shared semantic TMS service contracts
+    url: https://github.com/funnyMans/Ararat-Logistics-TMS/blob/dev/docs/contracts.md
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  customerBookingFactChanged:
+    address: counterparty.customer.booking-fact.changed.v1
+    messages:
+      CustomerBookingFactChanged:
+        $ref: '#/components/messages/CustomerBookingFactChanged'
+  customerBookingFactWatermark:
+    address: counterparty.customer.booking-fact.watermark.v1
+    messages:
+      CustomerBookingFactWatermark:
+        $ref: '#/components/messages/CustomerBookingFactWatermark'
+  customerBookingFactSnapshotGet:
+    address: counterparty.customer.booking-fact.snapshot.get.v1
+    messages:
+      CustomerBookingFactSnapshotGet:
+        $ref: '#/components/messages/CustomerBookingFactSnapshotGet'
+  customerBookingFactSnapshotResult:
+    address: counterparty.customer.booking-fact.snapshot.result.v1
+    messages:
+      CustomerBookingFactSnapshotResult:
+        $ref: '#/components/messages/CustomerBookingFactSnapshotResult'
+operations:
+  publishCustomerBookingFactChanged:
+    action: send
+    channel:
+      $ref: '#/channels/customerBookingFactChanged'
+    messages:
+      - $ref: '#/channels/customerBookingFactChanged/messages/CustomerBookingFactChanged'
+  publishCustomerBookingFactWatermark:
+    action: send
+    channel:
+      $ref: '#/channels/customerBookingFactWatermark'
+    messages:
+      - $ref: '#/channels/customerBookingFactWatermark/messages/CustomerBookingFactWatermark'
+  receiveCustomerBookingFactSnapshotGet:
+    action: receive
+    channel:
+      $ref: '#/channels/customerBookingFactSnapshotGet'
+    messages:
+      - $ref: '#/channels/customerBookingFactSnapshotGet/messages/CustomerBookingFactSnapshotGet'
+  sendCustomerBookingFactSnapshotResult:
+    action: send
+    channel:
+      $ref: '#/channels/customerBookingFactSnapshotResult'
+    messages:
+      - $ref: '#/channels/customerBookingFactSnapshotResult/messages/CustomerBookingFactSnapshotResult'
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    FactEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          occurredAt,
+          correlationId,
+          ownerRevision,
+          registrySequence,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        registrySequence:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        payload: { type: object }
+    WatermarkEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    SnapshotRequestEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string }
+        targetService: { type: string }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        payload: { type: object }
+    CustomerBookingFactPayload:
+      type: object
+      required: [customerId, status, legalName]
+      properties:
+        customerId: { $ref: '#/components/schemas/UuidV7' }
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, SUSPENDED, CLOSED]
+        legalName: { type: string, minLength: 1 }
+    CustomerBookingFactWatermarkPayload:
+      type: object
+      required: [highWatermarkSequence]
+      properties:
+        highWatermarkSequence:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+    CustomerBookingFactSnapshotGetPayload:
+      type: object
+      required: [customerId, lastAppliedOwnerRevision, minimumRegistrySequence, reason]
+      properties:
+        customerId: { $ref: '#/components/schemas/UuidV7' }
+        lastAppliedOwnerRevision:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        minimumRegistrySequence:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        observedOwnerRevision:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        reason:
+          type: string
+          enum: [MISSING, REVISION_GAP, REGISTRY_SEQUENCE_GAP, STALE, STREAM_GAP]
+    CustomerBookingFactSnapshotResultPayload:
+      oneOf:
+        - type: object
+          required: [customerId, result, ownerRevision, registrySequence, status, legalName]
+          properties:
+            customerId: { $ref: '#/components/schemas/UuidV7' }
+            result: { type: string, const: FOUND }
+            ownerRevision:
+              type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            registrySequence:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            status:
+              type: string
+              enum: [PENDING, ACTIVE, SUSPENDED, CLOSED]
+            legalName: { type: string, minLength: 1 }
+        - type: object
+          required: [customerId, result, registrySequence]
+          properties:
+            customerId: { $ref: '#/components/schemas/UuidV7' }
+            result: { type: string, const: NOT_FOUND }
+            registrySequence:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+  messages:
+    CustomerBookingFactChanged:
+      name: counterparty.customer.booking-fact.changed
+      title: Customer booking fact changed
+      description: >-
+        Each fact carries a Registry-wide commit-ordered registrySequence.
+        Facts are published in sequence order through the transactional
+        outbox.
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/FactEnvelope'
+          - type: object
+            properties:
+              messageType: { const: counterparty.customer.booking-fact.changed }
+              sourceService: { const: counterparty-registry }
+              targetService: { const: load }
+              payload: { $ref: '#/components/schemas/CustomerBookingFactPayload' }
+    CustomerBookingFactWatermark:
+      name: counterparty.customer.booking-fact.watermark
+      title: Customer booking-fact completeness watermark
+      description: >-
+        Published every 10 seconds, including when no fact changed. The
+        high-water sequence confirms that all Customer booking facts through
+        that sequence have been confirmed to the durable broker.
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/WatermarkEnvelope'
+          - type: object
+            properties:
+              messageType: { const: counterparty.customer.booking-fact.watermark }
+              sourceService: { const: counterparty-registry }
+              targetService: { const: load }
+              payload: { $ref: '#/components/schemas/CustomerBookingFactWatermarkPayload' }
+    CustomerBookingFactSnapshotGet:
+      name: counterparty.customer.booking-fact.snapshot.get
+      title: Customer booking fact snapshot request
+      description: >-
+        The Registry returns an authoritative full snapshot at or beyond
+        minimumRegistrySequence, or NOT_FOUND with the current Registry
+        sequence.
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/SnapshotRequestEnvelope'
+          - type: object
+            properties:
+              messageType: { const: counterparty.customer.booking-fact.snapshot.get }
+              sourceService: { const: load }
+              targetService: { const: counterparty-registry }
+              payload: { $ref: '#/components/schemas/CustomerBookingFactSnapshotGetPayload' }
+    CustomerBookingFactSnapshotResult:
+      name: counterparty.customer.booking-fact.snapshot.result
+      title: Customer booking fact snapshot result
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: counterparty.customer.booking-fact.snapshot.result }
+              sourceService: { const: counterparty-registry }
+              targetService: { const: load }
+              payload: { $ref: '#/components/schemas/CustomerBookingFactSnapshotResultPayload' }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    This specification covers only the selected Customer booking-fact
+    projection and reconciliation exchange. Counterparty Registry onboarding,
+    contact lifecycle, other read operations, and status-change notifications
+    remain outside this contract.
+  - >-
+    Per-service RabbitMQ authentication and broker ACL configuration must be
+    approved before enabling production service identities.

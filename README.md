@@ -1,62 +1,57 @@
 # Trucking Transportation Management System
 
-This repository is a **software-engineering study project**: we are
-designing and building a realistic Transportation Management System (TMS)
-for a trucking company that we define ourselves. We are the owners of the
-model, not a customer proxy. We use real-world operating practices and legal
-constraints to challenge our assumptions, combine useful patterns into a
-coherent model, and learn by implementing and testing it. This is not a
-customer-validated or production-ready business system.
+This repository is the product and engineering baseline for an owner-led
+Transportation Management System (TMS) initiative. The owners define the
+product direction and are establishing its business model, target scope,
+measurable acceptance, and system architecture. Product assumptions,
+accepted requirements, evidence, legal conclusions, and implemented
+capabilities are recorded as distinct things.
 
-The company model is a US trucking operation with its own fleet and
-brokerage, initially sized around 50–100 trucks. Its working areas are LA
-(the home area), West, Central, and East. The scale and organization are
-design inputs, not product limits. We aim for a model that can grow without
-locking us into hard structures that require wholesale redesign; any
-organizational or legal assumption must be examined against real operations
-and applicable law.
+The initial operating model is a US trucking carrier and brokerage with its
+own fleet, approximately 50–100 trucks, a Los Angeles–Long Beach five-county
+CSA home area, and West, Central, and East operating rollups over
+Census-based geographic leaves. These are current design assumptions, not
+product limits.
 
-## Start here
+## Documentation map
 
-1. [TMS vision and company model](docs/trucking/VISION.md) — what we are
-   studying, the defined company, and product boundary.
-2. [Roles and authority](docs/trucking/RESPONSIBILITIES.md) — the operating
-   roles, area accountability, and decision rights.
-3. [Operating workflow](docs/trucking/WORKFLOW.md) — the target load,
-   assignment, execution, and capacity model, including later automation.
-4. [TMS architecture](docs/trucking/MVP_ARCHITECTURE.md) — Load, Dispatch,
-   and Execution ownership and service relationships.
-5. [First-slice charter](docs/trucking/MVP_START.md) — the ready-load
-   coordination workflow, acceptance scenarios, and deliberate exclusions.
-6. [Decisions and open questions](docs/trucking/OPEN_QUESTIONS.md) — what to
-   resolve when implementation reaches it.
-7. [Development roadmap](docs/README_NEXT_STEPS.md) — modeling gates and the
-   sequence from cleanup to later automation.
-8. [Architecture principles](docs/PROJECT_IDEOLOGY.md) and
-   [monorepo conventions](docs/monorepo.md).
-9. [Local development infrastructure](infra/README.md) and
-   [HTTP service contracts](docs/SERVICE_CONTRACT.md).
+Start with the [documentation guide](docs/README.md) for the documentation
+hierarchy, business/technical separation, and product-establishment path. The
+[TMS system blueprint](docs/trucking/TMS_SYSTEM_BLUEPRINT.md) summarizes
+the currently agreed system scope and architecture.
 
-## Current state
+Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
+[business operating model](docs/trucking/OPERATING_MODEL.md),
+[roles and authority](docs/trucking/RESPONSIBILITIES.md),
+[technical workflow](docs/trucking/TECHNICAL_WORKFLOW.md),
+[accepted decision log](docs/trucking/DECISIONS.md),
+[open decisions](docs/trucking/OPEN_QUESTIONS.md),
+[selected first business increment](docs/trucking/FIRST_SLICE_CANDIDATE.md),
+[service contracts](docs/contracts.md),
+[monorepo conventions](docs/monorepo.md),
+[local development environment](infra/README.md).
 
-The architecture and company operating model are being established before
-the TMS product services are built. The retained code is limited to the
-shared Node.js runtime, API gateway, account/profile and authentication
-foundation, database and local developer tooling that can serve the TMS.
-The Load, Dispatch, and Execution services are the planned domain core; they
-are not yet implemented.
+## Current implementation
 
-Do not treat a configured component, passing local check, scenario, or
-company hypothesis as evidence of customer fit, compliance, or production
-readiness. The system should become more realistic through explicit
-decisions, source-backed assumptions, executable scenarios, and measured
-behavior—not through infrastructure or automation added speculatively.
+The implementation currently contains shared Node.js utilities, an API
+gateway with health and observability endpoints, and local development
+observability. The gateway can verify Identity-issued tokens when its
+Identity configuration is provided, using a reusable shared verifier. The
+Identity issuer/service and TMS business workflows have not been implemented.
+
+Record validation evidence with the product or operational claim it supports.
+Do not present an unverified assumption, an infrastructure component, or a
+passing local check as evidence of market fit, legal compliance, or
+production readiness.
 
 ## Development
 
 Requirements: Node.js version from [`.nvmrc`](.nvmrc), pnpm from the
-`packageManager` field, and Docker Compose for local PostgreSQL and
-observability services.
+`packageManager` field, and Docker Compose for the local API gateway and
+observability services. The Node/pnpm requirements are for host-side
+workspace commands such as build, lint, and tests; Docker builds and runs the
+gateway in its own pinned Node image. `.nvmrc` keeps local host tooling aligned
+with CI and that image.
 
 ```sh
 cp -n .env.example .env
@@ -67,25 +62,26 @@ pnpm test:unit
 docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
 
-Local infrastructure instructions and current Compose scope are documented
-in [`infra/README.md`](infra/README.md). The development stack is for local
-engineering, not deployment.
+The ignored `.env` file may contain settings from an older local setup.
+`infra/docker-compose.dev.yml` currently reads the variables listed in
+[`.env.example`](.env.example); remove or reconcile obsolete entries when
+updating an existing local file.
 
-## Scope discipline
+See the [local development guide](infra/README.md) for the current Compose
+scope, including the test-only PostgreSQL conformance dependency. It is not
+an application database or a deployment environment.
 
-The first product workflow starts from a transportation commitment already
-ready for operations and covers authorized capacity assignment, execution
-progress, exception handoff, and completion. The operating model also
-defines a later assignment approach: driver and dispatcher priorities inform
-candidate ranking; the accountable supervisor weighs those preferences
-against company benefit and authorizes the decision. Matching, one-click
-approval, removing assigned capacity from competing candidates, and eventual
-preassignment or automatic assignment are later stages, after the concepts,
-authority, and evaluation criteria are explicit.
+## Product-establishment discipline
 
-Customer booking, automated optimization, HOS/legal calculation, broad
-carrier/customer portals, billing, and settlement are not part of the first
-workflow. They remain possible later TMS capabilities only where business
-practice, law, and a tested workflow justify them.
+The approved implementation sequence is to complete and verify platform
+foundation milestones F0–F5 before starting TMS business-service
+implementation. This does not require resolving the intentionally open
+maximum product scope or every future capability in advance. After the
+foundation is accepted, implement business capabilities incrementally, closing
+their applicable scope, ownership, contract, authorization, recovery, and
+acceptance gates before starting each capability. The
+[Load booking/read increment](docs/trucking/FIRST_SLICE_CANDIDATE.md) is
+selected; capability-specific prerequisites are tracked in
+[open decisions](docs/trucking/OPEN_QUESTIONS.md).
 
 This project is available under the [MIT License](LICENSE).

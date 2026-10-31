@@ -1,85 +1,60 @@
-# TMS monorepo and service structure
+# Repository structure and engineering conventions
 
-This repository contains the TMS study system. Its domain boundaries are
-Load, Dispatch, and Execution. Keep
-generated artifacts out of `src/`, and use only the layers that make each
-service's business responsibility easier to understand and test.
+This page documents the current repository rather than prescribing a
+generic layout for future TMS services. For product boundaries and
+implementation status, see the [documentation guide](README.md) and
+[system blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md).
 
-## Root conventions
+## Current packages
 
-- `package.json` — workspace-level scripts and dependency management
-- `pnpm-workspace.yaml` — workspace membership
-- `tsconfig.base.json` — shared TypeScript compiler settings
-- `eslint.config.mjs` — single active lint configuration
-- `docs/` — TMS company model, architecture, contracts, and development guidance
-- `infra/` — runtime infrastructure and compose files
+- `packages/common/` contains shared logging, tracing, health, metrics,
+  configuration, and service-bootstrap utilities.
+- `packages/identity-token/` provides the Identity JWT verification contract
+  for independent validation by each receiving service. It verifies
+  RS256/JWKS signatures and selected claims; it does not issue tokens or
+  authorize domain resources.
+- `services/api-gateway/` currently exposes gateway health/readiness and
+  observability. Its non-health HTTP routes now require an Identity-issued
+  bearer token when Identity JWKS settings are configured; it still has no
+  TMS business routes and does not make domain authorization decisions.
+- `infra/` contains the local gateway and observability environment.
+- `docs/` contains product, business, architecture, and engineering
+  documentation.
 
-## Shared packages
+The Identity service and TMS business services are not implemented. The
+shared token verifier is a library, not an Identity service. Create a domain
+service only when its approved responsibility and contracts are ready, and
+use the agreed `app`, `domain`, `interface`, and `infra` organization without
+adding unused scaffolding.
 
-- `packages/common/` — shared logger, tracing, health, config, and bootstrap helpers
-- `packages/contracts/` — stable TMS transport types and runtime validation shared by multiple owners
-- `services/api-gateway/` — authenticated public API entrypoint and route composition
-- `services/auth-service/` — credentials, JWT access, refresh rotation/revocation, and role grants
-- `services/users/` — workforce/person profile records, with no independent role authority
+The gateway consumes the shared `@app/identity-token` verifier, which
+receiving domain services can also use locally. It accepts
+`IDENTITY_ISSUER`, `IDENTITY_AUDIENCE`, and
+`IDENTITY_JWKS_URI` as one configuration set. If configured, it verifies
+RS256 signatures and the selected identity-token claims with a five-minute
+JWKS cache. JWKS URLs must use HTTPS; HTTP is accepted only for loopback
+endpoints in the test environment. Until the Identity issuer is deployed,
+application routes fail closed as unavailable; `/health`, `/ready`, and the
+existing `/metrics` scrape endpoint remain public. Domain services must
+independently verify identity tokens and enforce their own resource
+authorization when those services are implemented.
 
-## TMS domain services
+## Workspace and build
 
-The target domain services are `services/loads/`, `services/dispatch/`, and
-`services/execution/`. Add them after the model and contracts are settled.
-Each should look like this:
+- `package.json` owns workspace-level scripts and package management.
+- `pnpm-workspace.yaml` includes `packages/*` and `services/*`.
+- `tsconfig.base.json` holds shared TypeScript compiler settings.
+- `turbo.json` owns dependency-aware build and development task ordering.
+- Run builds through root `pnpm build`; Turbo builds workspace dependencies
+  before dependent packages.
+- Running a service package script directly assumes its workspace
+  dependencies have already been built.
 
-- `package.json`
-- `Dockerfile`
-- `tsconfig.json`
-- `prisma/schema.prisma`
-- `src/server.ts` — process entry point
-- `src/bootstrap.ts` — app assembly and dependency wiring
-- `src/domain/` — entities, value objects, and domain rules
-- `src/app/` — use cases, commands, queries, and orchestration
-- `src/infrastructure/` — DB, config, clients, security, metrics, and external adapters
-- `src/interfaces/http/` — controllers, routes, and request/response handling
-- `tests/` — unit and integration tests
+## Tests and generated output
 
-## DDD rules
-
-- `domain/` owns business language and invariants
-- `app/` owns orchestration and use cases
-- `infrastructure/` owns adapters and external dependencies
-- `interfaces/http/` owns transport concerns only
-- `bootstrap.ts` is the single assembly point for each service
-- `server.ts` is always the runtime entrypoint for the process
-
-## Generated client rules
-
-- Prisma clients are generated into a service-local output folder such as `generated/`
-- Do not keep generated client output under `src/`
-- Ensure each service's `prebuild`/`predev` scripts generate its own Prisma client
-
-## Workspace build orchestration
-
-- Run builds through the root `pnpm build` command so Turbo builds shared
-  workspace dependencies before dependent services.
-- Service lifecycle hooks may clean that service's output and generate its own
-  Prisma client, but must not recursively build shared workspace packages.
-  Turbo owns dependency ordering; recursive package builds can race by deleting
-  shared `dist/` output while another service is compiling.
-- Docker builder stages use `pnpm exec turbo run build --filter=<service>...`
-  to build the selected service together with its workspace dependencies.
-- `pnpm dev` uses the same dependency graph for shared packages before starting
-  service watchers. Running a service package script directly assumes its
-  workspace dependencies have already been built.
-
-## Test placement
-
-- Keep all service tests under `services/<service>/tests/`
-- Use `*.test.ts` naming for unit and integration coverage
-- Keep infrastructure or environment-specific checks separated by purpose
-
-## Standardization checklist
-
-- One runtime server entrypoint per service
-- One bootstrap assembly entrypoint per service
-- One config module per service
-- One Prisma schema per service
-- One generated Prisma client location per service
-- No stale `index.ts` launchers for service runtimes
+- Keep service tests under that service's `tests/` directory.
+- Name Vitest files `*.test.ts`; separate integration and environment checks
+  by purpose.
+- Keep generated artifacts out of `src/`.
+- Add datastore, migration, and generated-client conventions only when an
+  approved service actually introduces them.
