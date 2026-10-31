@@ -23,6 +23,12 @@ pnpm build
 docker compose -f infra/docker-compose.dev.yml up -d --build
 ```
 
+The commands above use host-side Node.js/pnpm for dependency installation
+and workspace builds; Compose builds and runs the gateway in a separate
+container image with its own Node.js/pnpm installation. If you only need the
+running containers, the host dependencies are not needed for application
+runtime, but are required for host-side linting, tests, and workspace scripts.
+
 The gateway is available at `http://localhost:3000`; the local Nginx entry
 point is `http://localhost:8080`. Grafana is at `http://localhost:3005` and
 Prometheus at `http://localhost:9090`. The conformance-only PostgreSQL

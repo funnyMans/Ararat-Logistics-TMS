@@ -48,7 +48,10 @@ production readiness.
 
 Requirements: Node.js version from [`.nvmrc`](.nvmrc), pnpm from the
 `packageManager` field, and Docker Compose for the local API gateway and
-observability services.
+observability services. The Node/pnpm requirements are for host-side
+workspace commands such as build, lint, and tests; Docker builds and runs the
+gateway in its own pinned Node image. `.nvmrc` keeps local host tooling aligned
+with CI and that image.
 
 ```sh
 cp -n .env.example .env
