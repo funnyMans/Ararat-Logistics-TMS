@@ -84,8 +84,8 @@ this register to show what remains.
 7. **Authorization model:** Role grants and two-person approval for
    privileged grants by distinct initiator/approver are established. A separate
    `tms_operations_administrator` may prepare recovery, but business-state
-   replay requires owner approval. Define the role-to-action matrix,
-   versioned geography lookup and unresolved-location handling,
+   replay requires owner approval. Define the role-to-action matrix and
+   provider-specific geography normalization, confidence, and operations,
    fleet/carrier/individual relationship scopes, delegation and absence
    coverage, and separation-of-duties rules.
    The shared execution-only authority for in-house and contracted drivers
@@ -109,11 +109,14 @@ this register to show what remains.
    gate, not an open authorization architecture decision or a blocker to
    platform conformance tests and documented unauthenticated
    health/readiness endpoints.
-   Before implementing Load's geographic resolver, select and validate the
-   versioned county-boundary/geocoding source, address-normalization
-   procedure, and deterministic behavior for unresolved or ambiguous pickup
-   locations. The policy is fail-closed; provider and data-refresh operations
-   remain implementation prerequisites.
+   The Load geocoding direction is selected: use an integrated provider
+   behind a Load-owned port to resolve normalized pickup addresses to state
+   and county FIPS. Do not use ZIP-only lookup as an authorization fallback;
+   unresolved or ambiguous results fail closed. Before production use, select
+   and validate the exact provider, normalization procedure, provider/data
+   versioning and refresh controls, privacy/retention terms, timeout and
+   availability behavior, and confidence/ambiguity handling. A future route
+   integration remains a separate planning contract and capability gate.
 8. **Identity audit and data protection:** Identity audit events are
    append-only and cover account lifecycle, authentication/MFA, recovery,
    sessions, and grants/approvals without storing secrets. Retention is one

@@ -11,7 +11,7 @@ import { SubmitBooking } from '../../src/application/commands/submit-booking';
 import type {
   LoadCustomerBookingFactReader,
   LoadBookingSubmissionRepository,
-  LoadPickupAreaResolver,
+  LoadPickupGeographyResolver,
 } from '../../src/application/ports/load-booking-ports';
 import { registerLoadRoutes } from '../../src/interfaces/http/register-load-routes';
 
@@ -73,16 +73,19 @@ describe('Load read routes', () => {
       findRevision: vi.fn(async () => null),
       findBookingSubmission: vi.fn(async () => null),
     };
-    const areaResolver: LoadPickupAreaResolver = {
-      resolveFirstPickupAreas: vi.fn(async () => ['la']),
+    const areaResolver: LoadPickupGeographyResolver = {
+      resolveFirstPickupGeographies: vi.fn(async () => [{ stateFips: '06', countyFips: '037' }]),
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
-        submissionId: 'submission-1',
-        replayed: false,
-        representation: { status: 'accepted' },
-      })),
+      findIdempotentSubmission: vi.fn(async () => null),
+      createSubmission: vi.fn(
+        async (_identity, _request, _areaIds, _mappingRevisions, _customerFacts) => ({
+          submissionId: 'submission-1',
+          replayed: false,
+          representation: { status: 'accepted' },
+        })
+      ),
     };
     const server = createServer(
       repository,
@@ -96,7 +99,7 @@ describe('Load read routes', () => {
       payload: { rows: [{}] },
     });
     expect(noToken.statusCode).toBe(401);
-    expect(areaResolver.resolveFirstPickupAreas).not.toHaveBeenCalled();
+    expect(areaResolver.resolveFirstPickupGeographies).not.toHaveBeenCalled();
 
     const response = await server.inject({
       method: 'POST',
@@ -111,6 +114,7 @@ describe('Load read routes', () => {
       brokerIdentity,
       { rows: [{ areaId: 'la' }], idempotencyKey: 'key-1' },
       ['la'],
+      ['d-515-initial-v1'],
       {}
     );
 
@@ -118,6 +122,11 @@ describe('Load read routes', () => {
       submissionId: 'submission-1',
       replayed: true,
       representation: { status: 'accepted' },
+    });
+    vi.mocked(bookingRepository.findSubmission).mockResolvedValue({
+      creatorPrincipalId: brokerIdentity.sub,
+      outcome: 'accepted',
+      loadAreas: ['la'],
     });
     const replay = await server.inject({
       method: 'POST',
@@ -135,16 +144,19 @@ describe('Load read routes', () => {
       findRevision: vi.fn(async () => null),
       findBookingSubmission: vi.fn(async () => null),
     };
-    const areaResolver: LoadPickupAreaResolver = {
-      resolveFirstPickupAreas: vi.fn(async () => ['la']),
+    const areaResolver: LoadPickupGeographyResolver = {
+      resolveFirstPickupGeographies: vi.fn(async () => [{ stateFips: '06', countyFips: '037' }]),
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
-        submissionId: 'submission-1',
-        replayed: false,
-        representation: { status: 'accepted' },
-      })),
+      findIdempotentSubmission: vi.fn(async () => null),
+      createSubmission: vi.fn(
+        async (_identity, _request, _areaIds, _mappingRevisions, _customerFacts) => ({
+          submissionId: 'submission-1',
+          replayed: false,
+          representation: { status: 'accepted' },
+        })
+      ),
     };
     const server = createServer(
       repository,
@@ -159,7 +171,7 @@ describe('Load read routes', () => {
       payload: { rows: [{}] },
     });
     expect(response.statusCode).toBe(400);
-    expect(areaResolver.resolveFirstPickupAreas).not.toHaveBeenCalled();
+    expect(areaResolver.resolveFirstPickupGeographies).not.toHaveBeenCalled();
     expect(bookingRepository.createSubmission).not.toHaveBeenCalled();
   });
 
@@ -169,16 +181,19 @@ describe('Load read routes', () => {
       findRevision: vi.fn(async () => null),
       findBookingSubmission: vi.fn(async () => null),
     };
-    const areaResolver: LoadPickupAreaResolver = {
-      resolveFirstPickupAreas: vi.fn(async () => ['pacific']),
+    const areaResolver: LoadPickupGeographyResolver = {
+      resolveFirstPickupGeographies: vi.fn(async () => [{ stateFips: '41', countyFips: '001' }]),
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
-        submissionId: 'submission-1',
-        replayed: false,
-        representation: { status: 'accepted' },
-      })),
+      findIdempotentSubmission: vi.fn(async () => null),
+      createSubmission: vi.fn(
+        async (_identity, _request, _areaIds, _mappingRevisions, _customerFacts) => ({
+          submissionId: 'submission-1',
+          replayed: false,
+          representation: { status: 'accepted' },
+        })
+      ),
     };
     const server = createServer(
       repository,
@@ -202,16 +217,19 @@ describe('Load read routes', () => {
       findRevision: vi.fn(async () => null),
       findBookingSubmission: vi.fn(async () => null),
     };
-    const areaResolver: LoadPickupAreaResolver = {
-      resolveFirstPickupAreas: vi.fn(async () => ['la']),
+    const areaResolver: LoadPickupGeographyResolver = {
+      resolveFirstPickupGeographies: vi.fn(async () => [{ stateFips: '06', countyFips: '037' }]),
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
-        submissionId: 'submission-1',
-        replayed: false,
-        representation: { status: 'accepted' },
-      })),
+      findIdempotentSubmission: vi.fn(async () => null),
+      createSubmission: vi.fn(
+        async (_identity, _request, _areaIds, _mappingRevisions, _customerFacts) => ({
+          submissionId: 'submission-1',
+          replayed: false,
+          representation: { status: 'accepted' },
+        })
+      ),
     };
     const staleCustomerFacts: LoadCustomerBookingFactReader = {
       getUsableOrRequestReconciliation: vi.fn(async () => ({ available: false })),

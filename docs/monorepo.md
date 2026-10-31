@@ -19,10 +19,13 @@ implementation status, see the [documentation guide](README.md) and
   TMS business routes and does not make domain authorization decisions.
 - `services/load-service/` contains the first DDD-structured Load boundary
   for local token verification and D-513-protected Load/revision/submission
-  reads, plus a booking authorization preflight. Its D-514 slice now includes
-  the durable Customer fact inbox/projection, snapshot-request outbox and
-  recovery worker, and a fail-closed booking fact gate. It still requires an
-  injected D-515 area resolver and a durable booking repository.
+  reads and the B3 booking path. It includes a D-515 provider port and
+  Census/CSA classifier, durable booking/idempotency/rejection persistence,
+  immutable initial revisions, and the complete `load.booked` outbox fact.
+  Its D-514 slice includes the durable Customer fact inbox/projection,
+  snapshot-request outbox and recovery worker, and a fail-closed booking fact
+  gate. Runtime wiring and a concrete, approved D-515 provider adapter remain
+  open.
 - `services/counterparty-registry/` implements only the D-514 Customer
   booking-fact owner write, sequenced transactional outbox, completeness
   watermark relay, and authoritative snapshot response. It is not the full

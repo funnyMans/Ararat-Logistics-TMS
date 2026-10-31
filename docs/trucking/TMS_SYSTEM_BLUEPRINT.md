@@ -317,14 +317,21 @@ separate implementation and production gate. The shared
 hook are implemented. The DDD-structured Load service now contains local token
 verification hooks, protected read-route/application boundaries, a
 Load-owned D-513 policy, and a booking authorization preflight that checks
-derived areas and correction ownership before dispatching a write. It has no
-concrete D-515 geography resolver, persistence adapter, or durable booking
-write implementation. B2 now has bounded Counterparty Registry owner-fact
-production, durable outbox/watermark/snapshot behavior, and Load's persistent
+derived areas and correction ownership before dispatching a write. D-515's
+provider port and deterministic Census/CSA classifier are implemented; the
+exact provider adapter and operational controls remain open. The initial Load
+booking schema migration, transactional writer, contract-driven evaluator,
+authorization-aware idempotency/replay, canonical read adapter, and complete
+`load.booked` transactional outbox envelope are implemented and covered by
+unit and PostgreSQL integration tests. Load's confirm-based outbox relay
+preserves pending facts after publication failure and is covered by worker
+and PostgreSQL retry tests. B2 now
+has bounded Counterparty Registry owner-fact production, durable
+outbox/watermark/snapshot behavior, and Load's persistent
 fact inbox, projection, reconciliation outbox, recovery worker, and booking
-gate. The services still need deployment-managed migrations, RabbitMQ
-topology/credentials, runtime wiring, and a durable Load booking writer that
-stores the accepted or rejected Customer outcome. Do not move D-513 decisions into the gateway or a
+gate. The Load service still needs deployment-managed migration execution,
+RabbitMQ topology/credentials, runtime wiring, and an approved concrete
+geocoding provider adapter. Do not move D-513 decisions into the gateway or a
 detached shared module. No Identity issuer/service exists, and Identity HTTP
 operations/contracts remain open for real issuance; the Load verifier fails
 closed until it is configured. Real issuance and end-to-end production

@@ -2,6 +2,7 @@ export { LoadAccessAuthorizer } from './application/authorization/load-access-au
 export {
   BookingCorrectionNotFoundError,
   CustomerStatusUnavailableError,
+  IdempotencyConflictError,
   InvalidBookingAreaError,
   InvalidBookingSubmissionError,
   SubmitBooking,
@@ -13,6 +14,11 @@ export type {
   BookingSubmissionAccess,
   LoadResourceAccess,
 } from './domain/authorization/load-access-policy';
+export { deriveLoadOperatingArea } from './domain/authorization/load-operating-area';
+export type {
+  LoadOperatingArea,
+  PickupCountyGeography,
+} from './domain/authorization/load-operating-area';
 export { registerLoadRoutes } from './interfaces/http/register-load-routes';
 export type {
   BookingSubmissionReadResult,
@@ -22,10 +28,12 @@ export type {
 export type {
   CustomerBookingFactResult,
   CustomerBookingFactLookup,
+  LoadBookingOutboxRepository,
   LoadBookingSubmissionRepository,
   LoadCustomerBookingFactReader,
   LoadBookingSubmissionResult,
-  LoadPickupAreaResolver,
+  LoadOutboxPublisher,
+  LoadPickupGeographyResolver,
 } from './application/ports/load-booking-ports';
 export {
   applyCustomerBookingFact,
@@ -35,6 +43,12 @@ export {
   emptyCustomerBookingProjection,
   expireCustomerBookingWatermark,
 } from './domain/customer-booking/customer-booking-projection';
+export { evaluateBookingSubmission } from './domain/booking/booking-evaluation';
+export type {
+  BookingEvaluation,
+  BookingIssue,
+  NormalizedBookingRow,
+} from './domain/booking/booking-evaluation';
 export type {
   CustomerBookingFact,
   CustomerBookingFactChanged,
@@ -46,10 +60,13 @@ export type {
   SnapshotRequestReason,
 } from './domain/customer-booking/customer-booking-projection';
 export { PostgresCustomerBookingProjectionRepository } from './infrastructure/persistence/postgres-customer-booking-projection-repository';
+export { PostgresLoadBookingRepository } from './infrastructure/persistence/postgres-load-booking-repository';
 export type { CustomerBookingSnapshotPublisher } from './infrastructure/persistence/postgres-customer-booking-projection-repository';
 export { CustomerBookingFactConsumer } from './infrastructure/messaging/customer-booking-fact-consumer';
 export { CustomerBookingRecoveryWorker } from './infrastructure/messaging/customer-booking-recovery-worker';
 export { RabbitCustomerBookingPublisher } from './infrastructure/messaging/rabbit-customer-booking-publisher';
+export { LoadBookingOutboxWorker } from './infrastructure/messaging/load-booking-outbox-worker';
+export { RabbitLoadOutboxPublisher } from './infrastructure/messaging/rabbit-load-outbox-publisher';
 export {
   customerBookingFactChangedSchema,
   customerBookingFactSnapshotResultSchema,

@@ -5,6 +5,7 @@ import { LoadResourceNotFoundError, LoadReads } from '../../../application/queri
 import {
   BookingCorrectionNotFoundError,
   CustomerStatusUnavailableError,
+  IdempotencyConflictError,
   InvalidBookingAreaError,
   InvalidBookingSubmissionError,
   SubmitBooking,
@@ -42,6 +43,15 @@ function sendLoadError(error: unknown, reply: FastifyReply): unknown {
       error: {
         code: 'BOOKING_CORRECTION_NOT_FOUND',
         message: 'The rejected booking submission was not found.',
+      },
+    });
+  }
+
+  if (error instanceof IdempotencyConflictError) {
+    return reply.status(409).send({
+      error: {
+        code: 'IDEMPOTENCY_KEY_REUSED',
+        message: 'The Idempotency-Key was already used with different booking content.',
       },
     });
   }

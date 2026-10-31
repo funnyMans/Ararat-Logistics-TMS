@@ -6548,6 +6548,19 @@ submission is created. The applicable geography-mapping revision is
 recorded with the Load so future boundary data changes do not silently
 reclassify existing records.
 
+**Implementation direction:** Use an integrated geocoding provider to resolve
+the normalized first-pickup street address to state and county FIPS codes.
+Keep the provider behind a Load-owned port so the booking policy applies the
+D-515 Census/CSA classification and persists its mapping revision
+independently of the vendor. A ZIP/postal-to-county lookup may be used only
+as a non-authoritative hint or cache key; ZIP alone must never determine the
+authorization leaf or act as a fallback when provider resolution is
+ambiguous or unavailable. Such cases fail closed before creating a durable
+submission. A future lane-routing integration may reuse the selected
+provider or its credentials only after its routing capability, data
+provenance, and separate planning contract are validated; geocoding does not
+itself establish lane feasibility or route estimates.
+
 This adopts established statistical geography for a practical, recognizable
 starting map while preserving the operating company's ability to create
 smaller zones and assign several to one broker or supervisor. If operations
@@ -6564,7 +6577,9 @@ can be aggregated into the company's three broad regions. The Los Angeles
 CSA carve-out includes the wider LA area described by the owners, including
 Ontario, while leaving the remainder of California in Pacific. Explicit
 leaf grants allow fine-grained coverage while keeping broad reporting
-rollups from silently expanding authorization.
+rollups from silently expanding authorization. Provider-backed address
+geocoding supplies the county-level fact required for this boundary; a
+postal ZIP is not a sufficiently precise substitute.
 
 **Evidence:** U.S. Census Bureau, [Census Regions and Divisions of the
 United States](https://www.census.gov/geographies/reference-maps/2020/geo/2020-census-regional-classification.html)

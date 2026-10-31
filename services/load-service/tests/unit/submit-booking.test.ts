@@ -10,10 +10,16 @@ import type { BookingSubmissionAccess } from '../../src/domain/authorization/loa
 import type {
   LoadBookingSubmissionRepository,
   LoadCustomerBookingFactReader,
-  LoadPickupAreaResolver,
+  LoadPickupGeographyResolver,
 } from '../../src/application/ports/load-booking-ports';
 
 const customerId = '018f47a2-7b3c-7abc-8def-123456789abc';
+const correctionSubmissionId = '018f47a2-7b3c-7abc-8def-123456789abd';
+const missingSubmissionId = '018f47a2-7b3c-7abc-8def-123456789abe';
+const areaGeographies = {
+  la: { stateFips: '06', countyFips: '037' },
+  pacific: { stateFips: '41', countyFips: '001' },
+} as const;
 
 const brokerIdentity: IdentityTokenClaims = {
   iss: 'https://identity.example.test',
@@ -36,7 +42,7 @@ const rejectedSubmission = {
 };
 
 function createSut(
-  resolvedAreas: Array<string | null> = ['la'],
+  resolvedAreas: Array<'la' | 'pacific' | null> = ['la'],
   correction: BookingSubmissionAccess | null = rejectedSubmission,
   customerLookup: Awaited<
     ReturnType<LoadCustomerBookingFactReader['getUsableOrRequestReconciliation']>
@@ -51,23 +57,28 @@ function createSut(
     },
   }
 ) {
-  const areaResolver: LoadPickupAreaResolver = {
-    resolveFirstPickupAreas: vi.fn(async () => resolvedAreas),
+  const pickupGeographyResolver: LoadPickupGeographyResolver = {
+    resolveFirstPickupGeographies: vi.fn(async () =>
+      resolvedAreas.map((area) => (area ? areaGeographies[area] : null))
+    ),
   };
   const repository: LoadBookingSubmissionRepository = {
     findSubmission: vi.fn(async () => correction),
-    createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
-      submissionId: 'submission-1',
-      replayed: false,
-      representation: { status: 'accepted' },
-    })),
+    findIdempotentSubmission: vi.fn(async () => null),
+    createSubmission: vi.fn(
+      async (_identity, _request, _areaIds, _mappingRevisions, _customerFacts) => ({
+        submissionId: 'submission-1',
+        replayed: false,
+        representation: { status: 'accepted' },
+      })
+    ),
   };
   const customerFacts: LoadCustomerBookingFactReader = {
     getUsableOrRequestReconciliation: vi.fn(async () => customerLookup),
   };
   return {
-    submitBooking: new SubmitBooking(areaResolver, repository, customerFacts),
-    areaResolver,
+    submitBooking: new SubmitBooking(pickupGeographyResolver, repository, customerFacts),
+    pickupGeographyResolver,
     repository,
     customerFacts,
   };
@@ -75,14 +86,16 @@ function createSut(
 
 describe('SubmitBooking authorization', () => {
   it('derives areas before authorization and submits only after all grants pass', async () => {
-    const { submitBooking, areaResolver, repository } = createSut(['la', 'pacific']);
+    const { submitBooking, pickupGeographyResolver, repository } = createSut(['la', 'pacific']);
     const request = { idempotencyKey: 'key-1', rows: [{}, {}] };
 
     await expect(submitBooking.execute(brokerIdentity, request)).rejects.toMatchObject({
       statusCode: 403,
       code: 'AREA_ACCESS_DENIED',
     });
-    expect(areaResolver.resolveFirstPickupAreas).toHaveBeenCalledWith(request.rows);
+    expect(pickupGeographyResolver.resolveFirstPickupGeographies).toHaveBeenCalledWith(
+      request.rows
+    );
     expect(repository.createSubmission).not.toHaveBeenCalled();
   });
 
@@ -98,6 +111,21 @@ describe('SubmitBooking authorization', () => {
     expect(repository.createSubmission).not.toHaveBeenCalled();
   });
 
+  it('treats a null caller-supplied area as omitted and uses the derived area', async () => {
+    const { submitBooking, repository } = createSut(['la']);
+    const request = { idempotencyKey: 'key-1', rows: [{ areaId: null }] };
+
+    await submitBooking.execute(brokerIdentity, request);
+
+    expect(repository.createSubmission).toHaveBeenCalledWith(
+      brokerIdentity,
+      request,
+      ['la'],
+      ['d-515-initial-v1'],
+      {}
+    );
+  });
+
   it('requires the caller to own a rejected correction and its original areas', async () => {
     const { submitBooking, repository } = createSut(['la'], {
       ...rejectedSubmission,
@@ -108,10 +136,10 @@ describe('SubmitBooking authorization', () => {
       submitBooking.execute(brokerIdentity, {
         idempotencyKey: 'key-1',
         rows: [{}],
-        correctionOfSubmissionId: 'submission-1',
+        correctionOfSubmissionId: correctionSubmissionId,
       })
     ).rejects.toMatchObject({ statusCode: 404, code: 'LOAD_ACCESS_DENIED' });
-    expect(repository.findSubmission).toHaveBeenCalledWith('submission-1');
+    expect(repository.findSubmission).toHaveBeenCalledWith(correctionSubmissionId);
     expect(repository.createSubmission).not.toHaveBeenCalled();
   });
 
@@ -122,7 +150,7 @@ describe('SubmitBooking authorization', () => {
       submitBooking.execute(brokerIdentity, {
         idempotencyKey: 'key-1',
         rows: [{}],
-        correctionOfSubmissionId: 'missing-submission',
+        correctionOfSubmissionId: missingSubmissionId,
       })
     ).rejects.toBeInstanceOf(BookingCorrectionNotFoundError);
   });
@@ -132,7 +160,7 @@ describe('SubmitBooking authorization', () => {
 
     await expect(
       submitBooking.execute(brokerIdentity, { idempotencyKey: 'key-1', rows: [{}] })
-    ).rejects.toThrow('The pickup area resolver returned an incomplete result.');
+    ).rejects.toThrow('The pickup geocoder returned an incomplete result.');
     expect(repository.createSubmission).not.toHaveBeenCalled();
   });
 
@@ -154,7 +182,34 @@ describe('SubmitBooking authorization', () => {
       replayed: false,
       representation: { status: 'accepted' },
     });
-    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {});
+    expect(repository.createSubmission).toHaveBeenCalledWith(
+      brokerIdentity,
+      request,
+      ['la'],
+      ['d-515-initial-v1'],
+      {}
+    );
+  });
+
+  it('authorizes a stored idempotent result before returning it', async () => {
+    const { submitBooking, repository, pickupGeographyResolver } = createSut();
+    vi.mocked(repository.findIdempotentSubmission).mockResolvedValue({
+      result: {
+        submissionId: 'submission-1',
+        replayed: true,
+        representation: { outcome: 'rejected' },
+      },
+      authorization: {
+        creatorPrincipalId: brokerIdentity.sub,
+        outcome: 'rejected',
+        loadAreas: ['pacific'],
+      },
+    });
+
+    await expect(
+      submitBooking.execute(brokerIdentity, { idempotencyKey: 'key-1', rows: [{}] })
+    ).rejects.toMatchObject({ statusCode: 403, code: 'AREA_ACCESS_DENIED' });
+    expect(pickupGeographyResolver.resolveFirstPickupGeographies).not.toHaveBeenCalled();
   });
 
   it('looks up each distinct UUIDv7 Customer only after authorization', async () => {
@@ -172,6 +227,7 @@ describe('SubmitBooking authorization', () => {
       brokerIdentity,
       request,
       ['la', 'la'],
+      ['d-515-initial-v1', 'd-515-initial-v1'],
       {
         [customerId]: {
           result: 'FOUND',
@@ -208,9 +264,15 @@ describe('SubmitBooking authorization', () => {
 
     await submitBooking.execute(brokerIdentity, request);
 
-    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {
-      [customerId]: { result: 'NOT_FOUND', registrySequence: 4 },
-    });
+    expect(repository.createSubmission).toHaveBeenCalledWith(
+      brokerIdentity,
+      request,
+      ['la'],
+      ['d-515-initial-v1'],
+      {
+        [customerId]: { result: 'NOT_FOUND', registrySequence: 4 },
+      }
+    );
   });
 
   it('does not request a Registry lookup for malformed identifiers', async () => {
@@ -220,6 +282,12 @@ describe('SubmitBooking authorization', () => {
     await submitBooking.execute(brokerIdentity, request);
 
     expect(customerFacts.getUsableOrRequestReconciliation).not.toHaveBeenCalled();
-    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {});
+    expect(repository.createSubmission).toHaveBeenCalledWith(
+      brokerIdentity,
+      request,
+      ['la'],
+      ['d-515-initial-v1'],
+      {}
+    );
   });
 });
