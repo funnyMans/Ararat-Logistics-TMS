@@ -10,9 +10,11 @@ boundaries.
 ## Business scope
 
 The initial product model describes a US trucking carrier and brokerage with
-a home area in LA and West, Central, and East operating areas. Its current
-scale and organization are design assumptions, not an industry standard or
-product limit.
+a Los Angeles–Long Beach five-county CSA home area and West, Central, and
+East operating rollups. The [Census-based area map](DECISIONS.md#d-515--base-operating-zones-on-census-geography-and-explicit-leaf-grants)
+provides ten smaller geographic leaves; brokers and supervisors may be
+granted one or more leaves. The Census classification is a common geographic
+reference, not an industry operating standard or product limit.
 
 The operating path connects a broker's commercial commitment to capacity
 protection, a distinct Assignment, execution, and an auditable operational

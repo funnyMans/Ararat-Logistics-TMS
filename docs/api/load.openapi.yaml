@@ -39,7 +39,7 @@ paths:
         principal: authenticated human
         allow:
           roles: [broker]
-          scope: every row areaId must be included in the caller's active broker area grants
+          scope: the leaf area derived from each row's first pickup must be included in the caller's active broker area grants
         onSuccess: caller becomes handling broker for each created Load
         correctionScope: correctionOfSubmissionId must identify a rejected submission created by the caller
         unauthorizedScope: 403 without creating a submission
@@ -522,11 +522,26 @@ components:
       properties:
         areaId:
           description: >-
-            Authorization area. Load preflights the caller's broker grant for
-            every row before persisting a submission.
+            Optional consistency assertion only. Load derives the
+            authorization area from the first pickup's normalized geography;
+            a supplied value must match that derived leaf and never selects or
+            overrides it. Load preflights the caller's broker grant for every
+            derived leaf before persisting a submission.
           x-tms-expected-shape:
             type: string
-            enum: [la, west, central, east]
+            enum:
+              [
+                la,
+                pacific,
+                mountain,
+                west_north_central,
+                east_north_central,
+                west_south_central,
+                east_south_central,
+                new_england,
+                middle_atlantic,
+                south_atlantic,
+              ]
         customerId:
           description: Registry Customer UUIDv7.
           x-tms-expected-shape:
@@ -728,7 +743,24 @@ components:
       properties:
         loadId: { $ref: '#/components/schemas/UuidV7' }
         loadReference: { type: string }
-        areaId: { type: string, enum: [la, west, central, east] }
+        areaId:
+          {
+            type: string,
+            description: Leaf zone derived from the first pickup under D-515,
+            enum:
+              [
+                la,
+                pacific,
+                mountain,
+                west_north_central,
+                east_north_central,
+                west_south_central,
+                east_south_central,
+                new_england,
+                middle_atlantic,
+                south_atlantic,
+              ],
+          }
         lifecycleStatus:
           type: string
           enum: [BOOKED, CANCELLATION_PENDING, CANCELLED, COMPLETED]

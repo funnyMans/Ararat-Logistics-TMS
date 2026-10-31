@@ -20,10 +20,12 @@ Accepted baseline decisions are recorded in the
 ## Project premise
 
 The initial operating model is a US trucking carrier and brokerage with
-approximately 50–100 trucks, centered on LA and operating across West,
-Central, and East areas. The initial system is for one company; these are
-current design assumptions, not product limits or a commitment to support
-multiple companies from the first version.
+approximately 50–100 trucks, centered on the Los Angeles–Long Beach
+five-county CSA and operating across West, Central, and East rollups over
+Census-based geographic leaves.
+The initial system is for one company; these are current design assumptions,
+not product limits or a commitment to support multiple companies from the
+first version.
 
 The product direction is defined by its owners. Assumptions and evidence must
 be recorded separately from owner decisions; only approved TMS

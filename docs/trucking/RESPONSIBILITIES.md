@@ -12,9 +12,14 @@ resource/relationship scope. Detailed action-to-role matrices, delegation
 rules, and technical enforcement remain capability-specific prerequisites
 before protected writes are implemented.
 
-An account may have multiple grants. Grants may be area-scoped to `la`,
-`west`, `central`, or `east` where the role permits it. Area scope does not
-replace load, assignment, or relationship checks.
+An account may have multiple area grants. Area grants use the ten leaf-zone
+IDs established in [D-515](DECISIONS.md#d-515--base-operating-zones-on-census-geography-and-explicit-leaf-grants):
+`la`, `pacific`, `mountain`, `west_north_central`,
+`east_north_central`, `west_south_central`, `east_south_central`,
+`new_england`, `middle_atlantic`, and `south_atlantic`. The `west`,
+`central`, and `east` labels are reporting/management rollups, not grant
+scopes; access to multiple leaves requires explicit grants for each.
+Area scope does not replace load, assignment, or relationship checks.
 
 ## Role boundaries
 
@@ -42,8 +47,8 @@ The responsible dispatcher for the assigned driver and the Load's area
 supervisor (or documented supervisory coverage) may also upload delivery
 evidence. Submission authority does not confer approval authority.
 
-Area-scoped grants use `la`, `west`, `central`, or `east`. Area supervisors
-and brokers require an area; fleet dispatchers may optionally have one.
+Area-scoped grants use leaf zones from D-515. Area supervisors and brokers
+require one or more leaf grants; fleet dispatchers may optionally have them.
 Other grants do not accept an area scope.
 
 Operational KPI dashboards are visible company-wide to the transportation

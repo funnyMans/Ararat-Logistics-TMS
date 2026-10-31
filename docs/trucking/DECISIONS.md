@@ -6381,15 +6381,16 @@ Load detail or expanding TMS into claims or settlement management.
 ### D-513 — Scope Load booking and read access
 
 **Decision:** Load booking and read operations use default-deny,
-owner-enforced authorization. Each booking row identifies one operational
-area (`la`, `west`, `central`, or `east`); the area is an authorization
-attribute, not inferred from stop geography. A broker may submit a row only
-when their active Identity grant includes that area. The authenticated
-submitting broker becomes the Load's handling broker. A multi-row submission
-may span areas only when the broker has grants for every row. If any row is
-outside the caller's grant, reject the complete request with `403` and
-persist no submission. Replays of a booking POST also require the caller's
-current grants for every submitted area.
+owner-enforced authorization. Each booking row is attributed to one
+operational area from its first pickup's normalized geography under D-515;
+the caller does not choose the authorization area. A broker may submit a
+row only when their active Identity grant includes the derived leaf area.
+The authenticated submitting broker becomes the Load's handling broker. A
+multi-row submission may span areas only when the broker has grants for
+every row's derived area. If any row is outside the caller's grant, reject
+the complete request with `403` and persist no submission. Replays of a
+booking POST also require the caller's current grants for every derived
+area.
 
 The handling broker with an active broker grant for the Load's area may read
 that Load and its revisions. An `area_supervisor` with an active grant may
@@ -6411,21 +6412,24 @@ area in the original submission. Do not filter individual rows from a
 stored result. Return `404` for a missing or non-visible submission, Load,
 or revision so resource existence is not disclosed.
 
-Before creating a durable submission, authenticate the human caller and
-authorize every row's area. Missing or malformed area scope returns `400`;
-an area not granted to the caller returns `403`. Neither outcome creates a
-submission. Idempotency remains scoped to the authenticated principal under
-D-98. Load may call Counterparty Registry only to read the Customer status
+Before creating a durable submission, authenticate the human caller,
+resolve every row's area from its first pickup, and authorize every derived
+area. An invalid or unmappable pickup geography returns `400`; a derived
+area not granted to the caller returns `403`. If an optional caller-supplied
+`areaId` assertion does not match the derived area, return `400`. None of
+these outcomes creates a submission. Idempotency remains scoped to the
+authenticated principal under D-98. Load may call Counterparty Registry
+only to read the Customer status
 and legal name needed for booking and the immutable revision name snapshot;
 this workload permission grants no Registry writes or unrelated Customer
 data access. It does not define RabbitMQ ACLs or permissions for other
 service interactions.
 
 **Reason:** Explicit area attribution provides an authorization boundary
-without inventing geographic boundaries. Persisting the handling principal
-and applying all-row checks keeps booking outcomes and commercial Load data
-from becoming visible through role membership or mixed-area batch access
-alone.
+without allowing a caller to self-select a more permissive scope. Persisting
+the handling principal and applying all-row checks keeps booking outcomes
+and commercial Load data from becoming visible through role membership or
+mixed-area batch access alone.
 
 ### D-514 — Project current Customer booking facts into Load
 
@@ -6498,6 +6502,77 @@ workflows.
 asynchronous service boundary while allowing booking to use current,
 authoritative Customer facts without exposing Registry writes or making
 every booking depend on a synchronous service call.
+
+### D-515 — Base operating zones on Census geography and explicit leaf grants
+
+**Decision:** Use the U.S. Census Bureau's four statistical regions and nine
+divisions as the common geographic reference, not as a transportation
+industry mandate. For the initial map, use ten non-overlapping leaf zones:
+
+| Leaf zone            | Geographic membership                                                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `la`                 | Los Angeles–Long Beach, California Combined Statistical Area (CSA): Los Angeles, Orange, Riverside, San Bernardino, and Ventura Counties |
+| `pacific`            | The Pacific Division except the five counties assigned to `la`: Alaska, the remainder of California, Hawaii, Oregon, and Washington      |
+| `mountain`           | Arizona, Colorado, Idaho, Montana, Nevada, New Mexico, Utah, and Wyoming                                                                 |
+| `west_north_central` | Iowa, Kansas, Minnesota, Missouri, Nebraska, North Dakota, and South Dakota                                                              |
+| `east_north_central` | Illinois, Indiana, Michigan, Ohio, and Wisconsin                                                                                         |
+| `west_south_central` | Arkansas, Louisiana, Oklahoma, and Texas                                                                                                 |
+| `east_south_central` | Alabama, Kentucky, Mississippi, and Tennessee                                                                                            |
+| `new_england`        | Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, and Vermont                                                              |
+| `middle_atlantic`    | New Jersey, New York, and Pennsylvania                                                                                                   |
+| `south_atlantic`     | Delaware, District of Columbia, Florida, Georgia, Maryland, North Carolina, South Carolina, Virginia, and West Virginia                  |
+
+The four named operating areas are top-level reporting buckets. `la` is
+itself the LA CSA leaf; `west` contains `pacific` and
+`mountain`; `central` contains both North Central and both South Central
+leaves; `east` contains `new_england`, `middle_atlantic`, and
+`south_atlantic`. These broader buckets support management and reporting;
+they do not implicitly grant access. A broker or supervisor may hold
+multiple Identity grants, each scoped to an individual leaf zone; a grant
+to one leaf does not authorize sibling leaves or its broader bucket.
+
+For booking, Load derives the authorization leaf from the first pickup's
+normalized state and county FIPS codes. The first pickup determines the
+Load's accountable area even when later pickups or deliveries cross zones.
+The derived `areaId` is persisted with the booking and remains stable for
+that Load's history. A caller-supplied area cannot override the geographic
+result. Classification uses Census Division membership and the five-county
+CSA boundary: Los Angeles (state FIPS `06`, county FIPS `037`), Orange
+(`059`), Riverside (`065`), San Bernardino (`071`), and Ventura (`111`).
+Thus, Burbank and Glendale are in `la` (Los Angeles County), and Ontario is
+also in `la` (San Bernardino County). LA means this metropolitan service
+area, not the City of Los Angeles or Los Angeles County alone. ZIP/postal
+code alone is not authoritative for the county-based boundary. Invalid or
+unresolvable pickup geography fails closed before a durable booking
+submission is created. The applicable geography-mapping revision is
+recorded with the Load so future boundary data changes do not silently
+reclassify existing records.
+
+This adopts established statistical geography for a practical, recognizable
+starting map while preserving the operating company's ability to create
+smaller zones and assign several to one broker or supervisor. If operations
+grow, an area may later be subdivided into child zones (for example,
+north/south or state-level zones), with one or more responsible employees
+per zone. Such subdivision changes require a versioned boundary and
+authorization-migration decision; no subdivision or employee-per-zone
+staffing target is required now. The initial map does not define
+parcel-carrier pricing zones, route-planning regions, or coverage outside
+the 50 states and District of Columbia.
+
+**Reason:** Census divisions provide a stable, public state grouping that
+can be aggregated into the company's three broad regions. The Los Angeles
+CSA carve-out includes the wider LA area described by the owners, including
+Ontario, while leaving the remainder of California in Pacific. Explicit
+leaf grants allow fine-grained coverage while keeping broad reporting
+rollups from silently expanding authorization.
+
+**Evidence:** U.S. Census Bureau, [Census Regions and Divisions of the
+United States](https://www.census.gov/geographies/reference-maps/2020/geo/2020-census-regional-classification.html)
+and [Metropolitan and Micropolitan Statistical Areas](https://www.census.gov/programs-surveys/metro-micro/about.html).
+The five-county CSA is a Census statistical geography; it is used as the
+company's operating boundary, not because it is a carrier operating rule.
+Source verification was attempted on 2026-10-31, but Census pages returned
+access denied to the research tool in this environment.
 
 ## Record maintenance
 

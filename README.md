@@ -8,8 +8,10 @@ accepted requirements, evidence, legal conclusions, and implemented
 capabilities are recorded as distinct things.
 
 The initial operating model is a US trucking carrier and brokerage with its
-own fleet, approximately 50–100 trucks, and working areas in LA, West,
-Central, and East. These are current design assumptions, not product limits.
+own fleet, approximately 50–100 trucks, a Los Angeles–Long Beach five-county
+CSA home area, and West, Central, and East operating rollups over
+Census-based geographic leaves. These are current design assumptions, not
+product limits.
 
 ## Documentation map
 
