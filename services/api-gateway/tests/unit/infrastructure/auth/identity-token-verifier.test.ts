@@ -49,6 +49,7 @@ describe('identity access-token verification', () => {
       issuer,
       audience,
       jwksUri: `http://127.0.0.1:${port}/.well-known/jwks.json`,
+      environment: 'test',
     });
 
     token = async (claims = {}, options = {}) => {
@@ -101,6 +102,35 @@ describe('identity access-token verification', () => {
     });
   });
 
+  it('requires HTTPS JWKS URLs outside test loopback endpoints', () => {
+    expect(() =>
+      createIdentityTokenVerifier({
+        issuer,
+        audience,
+        jwksUri: 'http://identity.example.test/.well-known/jwks.json',
+        environment: 'test',
+      })
+    ).toThrow('IDENTITY_JWKS_URI must use HTTPS');
+
+    expect(() =>
+      createIdentityTokenVerifier({
+        issuer,
+        audience,
+        jwksUri: 'http://127.0.0.1/.well-known/jwks.json',
+        environment: 'production',
+      })
+    ).toThrow('IDENTITY_JWKS_URI must use HTTPS');
+
+    expect(() =>
+      createIdentityTokenVerifier({
+        issuer,
+        audience,
+        jwksUri: 'https://identity.example.test/.well-known/jwks.json',
+        environment: 'production',
+      })
+    ).not.toThrow();
+  });
+
   it('rejects a token signed with an unconfigured algorithm', async () => {
     await expect(verifier.verify(await token({}, { alg: 'RS384' }))).rejects.toMatchObject({
       code: 'INVALID_ACCESS_TOKEN',
@@ -147,6 +177,7 @@ describe('identity access-token verification', () => {
       issuer,
       audience,
       jwksUri: 'http://127.0.0.1:1/.well-known/jwks.json',
+      environment: 'test',
     });
 
     await expect(unavailableVerifier.verify(await token())).rejects.toMatchObject({

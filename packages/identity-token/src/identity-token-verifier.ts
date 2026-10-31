@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { z } from 'zod';
 import { createRemoteJWKSet, customFetch, errors, jwtVerify } from 'jose';
 
@@ -53,16 +54,42 @@ export type IdentityTokenVerifierOptions = {
   issuer: string;
   audience: string;
   jwksUri: string;
+  environment: 'development' | 'test' | 'production';
 };
+
+function isLoopbackHostname(hostname: string): boolean {
+  const address =
+    hostname.startsWith('[') && hostname.endsWith(']') ? hostname.slice(1, -1) : hostname;
+
+  if (address.toLowerCase() === 'localhost') {
+    return true;
+  }
+
+  const ipVersion = isIP(address);
+  return (
+    (ipVersion === 4 && Number(address.split('.')[0]) === 127) ||
+    (ipVersion === 6 && address === '::1')
+  );
+}
 
 export function createIdentityTokenVerifier({
   issuer,
   audience,
   jwksUri,
+  environment,
 }: IdentityTokenVerifierOptions): {
   verify: (token: string) => Promise<IdentityTokenClaims>;
 } {
-  const jwks = createRemoteJWKSet(new URL(jwksUri), {
+  const jwksUrl = new URL(jwksUri);
+  const isTestLoopbackHttp =
+    environment === 'test' && jwksUrl.protocol === 'http:' && isLoopbackHostname(jwksUrl.hostname);
+  if (jwksUrl.protocol !== 'https:' && !isTestLoopbackHttp) {
+    throw new Error(
+      'IDENTITY_JWKS_URI must use HTTPS except for loopback HTTP in the test environment.'
+    );
+  }
+
+  const jwks = createRemoteJWKSet(jwksUrl, {
     cacheMaxAge: 5 * 60 * 1000,
     [customFetch]: async (input, init) => {
       try {

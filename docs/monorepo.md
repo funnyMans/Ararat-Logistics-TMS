@@ -32,11 +32,12 @@ receiving domain services can also use locally. It accepts
 `IDENTITY_ISSUER`, `IDENTITY_AUDIENCE`, and
 `IDENTITY_JWKS_URI` as one configuration set. If configured, it verifies
 RS256 signatures and the selected identity-token claims with a five-minute
-JWKS cache. Until the Identity issuer is deployed, application routes fail
-closed as unavailable; `/health`, `/ready`, and the existing `/metrics`
-scrape endpoint remain public. Domain services must independently verify
-identity tokens and enforce their own resource authorization when those
-services are implemented.
+JWKS cache. JWKS URLs must use HTTPS; HTTP is accepted only for loopback
+endpoints in the test environment. Until the Identity issuer is deployed,
+application routes fail closed as unavailable; `/health`, `/ready`, and the
+existing `/metrics` scrape endpoint remain public. Domain services must
+independently verify identity tokens and enforce their own resource
+authorization when those services are implemented.
 
 ## Workspace and build
 

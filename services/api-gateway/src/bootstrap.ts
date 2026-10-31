@@ -26,6 +26,7 @@ export function createServer(): {
           issuer: config.IDENTITY_ISSUER,
           audience: config.IDENTITY_AUDIENCE,
           jwksUri: config.IDENTITY_JWKS_URI,
+          environment: config.NODE_ENV,
         })
       : undefined;
 
