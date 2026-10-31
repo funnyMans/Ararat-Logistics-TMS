@@ -17,15 +17,21 @@ implementation status, see the [documentation guide](README.md) and
   observability. Its non-health HTTP routes now require an Identity-issued
   bearer token when Identity JWKS settings are configured; it still has no
   TMS business routes and does not make domain authorization decisions.
+- `services/load-service/` contains the first DDD-structured Load boundary
+  for local token verification and D-513-protected Load/revision/submission
+  reads, plus a booking authorization preflight. The preflight requires an
+  injected D-515 area resolver and booking repository; neither a concrete
+  geography adapter nor a persistence-backed booking write is implemented.
 - `infra/` contains the local gateway and observability environment.
 - `docs/` contains product, business, architecture, and engineering
   documentation.
 
-The Identity service and TMS business services are not implemented. The
-shared token verifier is a library, not an Identity service. Create a domain
-service only when its approved responsibility and contracts are ready, and
-use the agreed `app`, `domain`, `interface`, and `infra` organization without
-adding unused scaffolding.
+The Identity service and most TMS business capabilities are not implemented.
+The shared token verifier is a library, not an Identity service, and Load
+operations require injected persistence/geography adapters. Create domain
+behavior only within its approved service boundary, using the agreed `app`,
+`domain`, `interface`, and `infra` organization without adding unused
+scaffolding.
 
 The gateway consumes the shared `@app/identity-token` verifier, which
 receiving domain services can also use locally. It accepts
@@ -37,7 +43,9 @@ endpoints in the test environment. Until the Identity issuer is deployed,
 application routes fail closed as unavailable; `/health`, `/ready`, and the
 existing `/metrics` scrape endpoint remain public. Domain services must
 independently verify identity tokens and enforce their own resource
-authorization when those services are implemented.
+authorization. The Load service follows this rule through its local
+verification hook and D-513 policy; protected routes fail closed until an
+Identity issuer is configured.
 
 ## Workspace and build
 
