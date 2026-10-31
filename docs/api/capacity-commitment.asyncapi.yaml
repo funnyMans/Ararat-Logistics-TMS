@@ -1,0 +1,477 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Capacity Commitment Messages
+  version: 1.0.0
+  description: >-
+    Capacity Commitment-owned command schemas and reservation outcomes for
+    Dispatch Planning. The contract covers reservation, confirmation,
+    release, and complete replacement messages currently specified in
+    docs/contracts.md.
+  externalDocs:
+    description: Shared semantic TMS service contracts
+    url: ../contracts.md
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  reserve:
+    address: capacity.reservation.reserve.v1
+    messages:
+      Reserve:
+        $ref: '#/components/messages/Reserve'
+  reserveOutcome:
+    address: capacity.reservation.reserve.outcome.v1
+    messages:
+      ReserveOutcome:
+        $ref: '#/components/messages/ReserveOutcome'
+  confirm:
+    address: capacity.reservation.confirm.v1
+    messages:
+      Confirm:
+        $ref: '#/components/messages/Confirm'
+  confirmOutcome:
+    address: capacity.reservation.confirm.outcome.v1
+    messages:
+      ConfirmOutcome:
+        $ref: '#/components/messages/ConfirmOutcome'
+  release:
+    address: capacity.reservation.release.v1
+    messages:
+      Release:
+        $ref: '#/components/messages/Release'
+  releaseOutcome:
+    address: capacity.reservation.release.outcome.v1
+    messages:
+      ReleaseOutcome:
+        $ref: '#/components/messages/ReleaseOutcome'
+  replace:
+    address: capacity.reservation.replace.v1
+    messages:
+      Replace:
+        $ref: '#/components/messages/Replace'
+  replaceOutcome:
+    address: capacity.reservation.replace.outcome.v1
+    messages:
+      ReplaceOutcome:
+        $ref: '#/components/messages/ReplaceOutcome'
+operations:
+  receiveReserve:
+    action: receive
+    channel: { $ref: '#/channels/reserve' }
+    messages:
+      - $ref: '#/channels/reserve/messages/Reserve'
+  publishReserveOutcome:
+    action: send
+    channel: { $ref: '#/channels/reserveOutcome' }
+    messages:
+      - $ref: '#/channels/reserveOutcome/messages/ReserveOutcome'
+  receiveConfirm:
+    action: receive
+    channel: { $ref: '#/channels/confirm' }
+    messages:
+      - $ref: '#/channels/confirm/messages/Confirm'
+  publishConfirmOutcome:
+    action: send
+    channel: { $ref: '#/channels/confirmOutcome' }
+    messages:
+      - $ref: '#/channels/confirmOutcome/messages/ConfirmOutcome'
+  receiveRelease:
+    action: receive
+    channel: { $ref: '#/channels/release' }
+    messages:
+      - $ref: '#/channels/release/messages/Release'
+  publishReleaseOutcome:
+    action: send
+    channel: { $ref: '#/channels/releaseOutcome' }
+    messages:
+      - $ref: '#/channels/releaseOutcome/messages/ReleaseOutcome'
+  receiveReplace:
+    action: receive
+    channel: { $ref: '#/channels/replace' }
+    messages:
+      - $ref: '#/channels/replace/messages/Replace'
+  publishReplaceOutcome:
+    action: send
+    channel: { $ref: '#/channels/replaceOutcome' }
+    messages:
+      - $ref: '#/channels/replaceOutcome/messages/ReplaceOutcome'
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    CommandEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          commandId,
+          idempotencyKey,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: dispatch-planning }
+        targetService: { type: string, const: capacity-commitment }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        idempotencyKey: { type: string, minLength: 1 }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string }
+        schemaVersion: { type: string, const: 1.0.0 }
+        sourceService: { type: string, const: capacity-commitment }
+        targetService: { type: string, const: dispatch-planning }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        initiatingPrincipalId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { type: object }
+    Segment:
+      type: object
+      required:
+        [
+          sequenceNumber,
+          startStopId,
+          endStopId,
+          timeWindow,
+          powerUnitId,
+          trailerId,
+          driverIds,
+          resourceReadinessRevisions,
+        ]
+      properties:
+        sequenceNumber: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        startStopId: { $ref: '#/components/schemas/UuidV7' }
+        endStopId: { $ref: '#/components/schemas/UuidV7' }
+        timeWindow:
+          type: object
+          required: [startAt, endAt]
+          properties:
+            startAt: { type: string, format: date-time, pattern: 'Z$' }
+            endAt: { type: string, format: date-time, pattern: 'Z$' }
+        powerUnitId: { $ref: '#/components/schemas/UuidV7' }
+        trailerId: { $ref: '#/components/schemas/UuidV7' }
+        driverIds:
+          type: array
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/UuidV7' }
+        resourceReadinessRevisions:
+          type: array
+          minItems: 3
+          maxItems: 4
+          uniqueItems: true
+          items:
+            type: object
+            required: [resourceType, resourceId, ownerRevision]
+            properties:
+              resourceType: { type: string, enum: [POWER_UNIT, TRAILER, DRIVER] }
+              resourceId: { $ref: '#/components/schemas/UuidV7' }
+              ownerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    ReservePayload:
+      type: object
+      required: [planningAttemptId, tripPlanId, tripPlanRevision, segments]
+      properties:
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        segments:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Segment' }
+    ReserveOutcomePayload:
+      type: object
+      required: [commandId, planningAttemptId, tripPlanId, tripPlanRevision, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        outcome: { type: string, enum: [RESERVED, REJECTED] }
+        reservationId: { $ref: '#/components/schemas/UuidV7' }
+        reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        state: { type: string, const: HELD }
+        expiresAt: { type: string, format: date-time }
+        reasonCode:
+          type: string
+          enum:
+            [
+              RESOURCE_UNAVAILABLE,
+              STALE_READINESS_REVISION,
+              SEGMENT_TIME_CONFLICT,
+              INCOMPATIBLE_RESOURCE,
+              TRIP_PLAN_REVISION_STALE,
+            ]
+        message: { type: string }
+        affectedSegments:
+          type: array
+          items:
+            type: object
+            required: [sequenceNumber]
+            properties:
+              sequenceNumber: { type: integer, minimum: 1 }
+              resourceType: { type: string, enum: [POWER_UNIT, TRAILER, DRIVER] }
+              resourceId: { $ref: '#/components/schemas/UuidV7' }
+        replanMayResolve: { type: boolean }
+      oneOf:
+        - properties:
+            outcome: { const: RESERVED }
+          required: [reservationId, reservationRevision, state, expiresAt]
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+    ReservationMutationPayload:
+      type: object
+      required: [reservationId, reservationRevision, tripPlanId, tripPlanRevision]
+      properties:
+        reservationId: { $ref: '#/components/schemas/UuidV7' }
+        reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+    ConfirmOutcomePayload:
+      type: object
+      required: [commandId, reservationId, tripPlanId, tripPlanRevision, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        reservationId: { $ref: '#/components/schemas/UuidV7' }
+        reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        outcome: { type: string, enum: [CONFIRMED, REJECTED] }
+        state: { type: string, const: CONFIRMED }
+        reasonCode:
+          {
+            type: string,
+            enum:
+              [
+                RESERVATION_NOT_FOUND,
+                RESERVATION_NOT_HELD,
+                RESERVATION_REVISION_MISMATCH,
+                TRIP_PLAN_REVISION_MISMATCH,
+              ],
+          }
+        message: { type: string }
+      oneOf:
+        - properties:
+            outcome: { const: CONFIRMED }
+          required: [reservationRevision, state]
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+    ReleaseOutcomePayload:
+      type: object
+      required: [commandId, tripPlanId, tripPlanRevision, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        outcome: { type: string, enum: [RELEASED, REJECTED] }
+        reservationId: { $ref: '#/components/schemas/UuidV7' }
+        reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        state: { type: string, enum: [RELEASED, HELD, CONFIRMED] }
+        reasonCode:
+          {
+            type: string,
+            enum:
+              [
+                RESERVATION_NOT_FOUND,
+                RESERVATION_NOT_ACTIVE,
+                RESERVATION_REVISION_MISMATCH,
+                TRIP_PLAN_REVISION_MISMATCH,
+              ],
+          }
+        message: { type: string }
+      oneOf:
+        - properties:
+            outcome: { const: RELEASED }
+            state: { const: RELEASED }
+          required: [reservationId, reservationRevision, state]
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+    ReplacePayload:
+      allOf:
+        - $ref: '#/components/schemas/ReservationMutationPayload'
+        - type: object
+          required: [segments]
+          properties:
+            segments:
+              type: array
+              minItems: 1
+              items: { $ref: '#/components/schemas/Segment' }
+    ReplaceOutcomePayload:
+      type: object
+      required: [commandId, tripPlanId, tripPlanRevision, outcome]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanId: { $ref: '#/components/schemas/UuidV7' }
+        tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        outcome: { type: string, enum: [REPLACED, REJECTED] }
+        oldReservationId: { $ref: '#/components/schemas/UuidV7' }
+        oldReservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        oldReservationState: { type: string, enum: [SUPERSEDED, HELD, CONFIRMED] }
+        newReservationId: { $ref: '#/components/schemas/UuidV7' }
+        newReservationRevision: { type: integer, const: 1 }
+        newReservationState: { type: string, enum: [HELD, CONFIRMED] }
+        expiresAt: { type: string, format: date-time }
+        reasonCode:
+          type: string
+          enum:
+            [
+              RESERVATION_NOT_FOUND,
+              RESERVATION_NOT_ACTIVE,
+              RESERVATION_REVISION_MISMATCH,
+              TRIP_PLAN_REVISION_MISMATCH,
+              RESOURCE_UNAVAILABLE,
+              STALE_READINESS_REVISION,
+              SEGMENT_TIME_CONFLICT,
+              INCOMPATIBLE_RESOURCE,
+            ]
+        message: { type: string }
+      oneOf:
+        - properties:
+            outcome: { const: REPLACED }
+            oldReservationState: { const: SUPERSEDED }
+          required:
+            [
+              oldReservationId,
+              oldReservationRevision,
+              oldReservationState,
+              newReservationId,
+              newReservationRevision,
+              newReservationState,
+            ]
+        - properties:
+            outcome: { const: REJECTED }
+          required: [reasonCode, message]
+  messages:
+    Reserve:
+      name: capacity.reservation.reserve
+      title: Reserve complete Trip Plan capacity
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.reserve }
+              payload: { $ref: '#/components/schemas/ReservePayload' }
+    ReserveOutcome:
+      name: capacity.reservation.reserve.outcome
+      title: Reservation outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.reserve.outcome }
+              payload: { $ref: '#/components/schemas/ReserveOutcomePayload' }
+    Confirm:
+      name: capacity.reservation.confirm
+      title: Confirm held reservation
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.confirm }
+              payload: { $ref: '#/components/schemas/ReservationMutationPayload' }
+    ConfirmOutcome:
+      name: capacity.reservation.confirm.outcome
+      title: Reservation confirmation outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.confirm.outcome }
+              payload: { $ref: '#/components/schemas/ConfirmOutcomePayload' }
+    Release:
+      name: capacity.reservation.release
+      title: Release complete reservation
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.release }
+              payload: { $ref: '#/components/schemas/ReservationMutationPayload' }
+    ReleaseOutcome:
+      name: capacity.reservation.release.outcome
+      title: Reservation release outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.release.outcome }
+              payload: { $ref: '#/components/schemas/ReleaseOutcomePayload' }
+    Replace:
+      name: capacity.reservation.replace
+      title: Replace reservation with complete remaining segment set
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/CommandEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.replace }
+              payload: { $ref: '#/components/schemas/ReplacePayload' }
+    ReplaceOutcome:
+      name: capacity.reservation.replace.outcome
+      title: Reservation replacement outcome
+      contentType: application/json
+      payload:
+        allOf:
+          - $ref: '#/components/schemas/OutcomeEnvelope'
+          - type: object
+            properties:
+              messageType: { const: capacity.reservation.replace.outcome }
+              payload: { $ref: '#/components/schemas/ReplaceOutcomePayload' }
+x-contract-status: partial
+x-unresolved-contracts:
+  - >-
+    Additional Capacity Commitment message inventories and owner-specific
+    snapshot reconciliation payloads remain open in OPEN_QUESTIONS.md items
+    17 and 18.

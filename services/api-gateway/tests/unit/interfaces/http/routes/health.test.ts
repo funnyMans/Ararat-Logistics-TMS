@@ -10,45 +10,42 @@ describe('api gateway health routes', () => {
     vi.unstubAllGlobals();
   });
 
-  function createServer() {
+  function createServer(isReady?: () => boolean) {
     const server = Fastify();
     servers.push(server);
-    registerHealthRoutes(server, {
-      usersServiceUrl: 'http://users',
-      authServiceUrl: 'http://auth',
-    });
+    registerHealthRoutes(server, isReady);
     return server;
   }
 
-  it('reports ready when the account and authentication services are ready', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(Response.json({ ready: true })))
-    );
-    const server = createServer();
+  it('reports not-ready until the service is accepting work', async () => {
+    let ready = false;
+    const server = createServer(() => ready);
 
-    const response = await server.inject('/ready');
+    const startingResponse = await server.inject('/ready');
+    expect(startingResponse.statusCode).toBe(503);
+    expect(startingResponse.json()).toEqual({ ready: false });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ ready: true });
-    expect(fetch).toHaveBeenCalledTimes(2);
+    ready = true;
+    const readyResponse = await server.inject('/ready');
+    expect(readyResponse.statusCode).toBe(200);
+    expect(readyResponse.json()).toEqual({ ready: true });
+
+    ready = false;
+    const drainingResponse = await server.inject('/ready');
+    expect(drainingResponse.statusCode).toBe(503);
+    expect(drainingResponse.json()).toEqual({ ready: false });
   });
 
-  it('reports which dependency blocks readiness', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string | URL | Request) =>
-        Promise.resolve(Response.json({ ready: String(url).startsWith('http://users') }))
-      )
-    );
+  it('reports health without dependencies', async () => {
     const server = createServer();
 
-    const response = await server.inject('/ready');
+    const response = await server.inject('/health');
 
-    expect(response.statusCode).toBe(503);
-    expect(response.json()).toEqual({
-      ready: false,
-      details: { users: true, auth: false },
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      service: 'api-gateway',
+      status: 'ok',
+      dependencies: {},
     });
   });
 });
