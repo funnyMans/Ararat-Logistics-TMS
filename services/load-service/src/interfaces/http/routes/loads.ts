@@ -1,8 +1,10 @@
+import { randomUUIDv7 } from 'node:crypto';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import { LoadAccessDeniedError } from '../../../domain/authorization/load-access-policy';
 import { LoadResourceNotFoundError, LoadReads } from '../../../application/queries/load-reads';
 import {
   BookingCorrectionNotFoundError,
+  CustomerStatusUnavailableError,
   InvalidBookingAreaError,
   InvalidBookingSubmissionError,
   SubmitBooking,
@@ -40,6 +42,17 @@ function sendLoadError(error: unknown, reply: FastifyReply): unknown {
       error: {
         code: 'BOOKING_CORRECTION_NOT_FOUND',
         message: 'The rejected booking submission was not found.',
+      },
+    });
+  }
+
+  if (error instanceof CustomerStatusUnavailableError) {
+    return reply.status(503).send({
+      error: {
+        code: 'CUSTOMER_STATUS_UNAVAILABLE',
+        message: 'Current Customer status could not be verified.',
+        retryable: true,
+        requestId: randomUUIDv7(),
       },
     });
   }

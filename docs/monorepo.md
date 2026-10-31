@@ -19,19 +19,26 @@ implementation status, see the [documentation guide](README.md) and
   TMS business routes and does not make domain authorization decisions.
 - `services/load-service/` contains the first DDD-structured Load boundary
   for local token verification and D-513-protected Load/revision/submission
-  reads, plus a booking authorization preflight. The preflight requires an
-  injected D-515 area resolver and booking repository; neither a concrete
-  geography adapter nor a persistence-backed booking write is implemented.
+  reads, plus a booking authorization preflight. Its D-514 slice now includes
+  the durable Customer fact inbox/projection, snapshot-request outbox and
+  recovery worker, and a fail-closed booking fact gate. It still requires an
+  injected D-515 area resolver and a durable booking repository.
+- `services/counterparty-registry/` implements only the D-514 Customer
+  booking-fact owner write, sequenced transactional outbox, completeness
+  watermark relay, and authoritative snapshot response. It is not the full
+  Counterparty Registry API or Carrier implementation.
 - `infra/` contains the local gateway and observability environment.
 - `docs/` contains product, business, architecture, and engineering
   documentation.
 
 The Identity service and most TMS business capabilities are not implemented.
-The shared token verifier is a library, not an Identity service, and Load
-operations require injected persistence/geography adapters. Create domain
-behavior only within its approved service boundary, using the agreed `app`,
-`domain`, `interface`, and `infra` organization without adding unused
-scaffolding.
+The shared token verifier is a library, not an Identity service. The new
+Registry and Load persistence/messaging components require deployment-managed
+migrations, broker topology, service credentials, and runtime wiring; local
+conformance infrastructure is not an application deployment. Create domain
+behavior only within its approved service boundary, using the established
+`application`, `domain`, `interfaces`, and `infrastructure` organization
+without adding unused scaffolding.
 
 The gateway consumes the shared `@app/identity-token` verifier, which
 receiving domain services can also use locally. It accepts
@@ -57,6 +64,11 @@ Identity issuer is configured.
   before dependent packages.
 - Running a service package script directly assumes its workspace
   dependencies have already been built.
+- Service-owned SQL migrations live under each service's `migrations/`
+  directory and are applied by the deployment migration job, never on
+  application startup. `pnpm test:integration:customer-booking` exercises the
+  D-514 PostgreSQL adapters using isolated schemas in local conformance
+  PostgreSQL; it does not qualify production database or broker deployment.
 
 ## Tests and generated output
 
@@ -64,5 +76,5 @@ Identity issuer is configured.
 - Name Vitest files `*.test.ts`; separate integration and environment checks
   by purpose.
 - Keep generated artifacts out of `src/`.
-- Add datastore, migration, and generated-client conventions only when an
-  approved service actually introduces them.
+- Keep datastore adapters within their owning service; do not share tables or
+  migrations across service databases.

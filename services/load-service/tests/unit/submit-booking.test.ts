@@ -2,14 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IdentityTokenClaims } from '@app/identity-token';
 import {
   BookingCorrectionNotFoundError,
+  CustomerStatusUnavailableError,
   InvalidBookingAreaError,
   SubmitBooking,
 } from '../../src/application/commands/submit-booking';
 import type { BookingSubmissionAccess } from '../../src/domain/authorization/load-access-policy';
 import type {
   LoadBookingSubmissionRepository,
+  LoadCustomerBookingFactReader,
   LoadPickupAreaResolver,
 } from '../../src/application/ports/load-booking-ports';
+
+const customerId = '018f47a2-7b3c-7abc-8def-123456789abc';
 
 const brokerIdentity: IdentityTokenClaims = {
   iss: 'https://identity.example.test',
@@ -33,23 +37,39 @@ const rejectedSubmission = {
 
 function createSut(
   resolvedAreas: Array<string | null> = ['la'],
-  correction: BookingSubmissionAccess | null = rejectedSubmission
+  correction: BookingSubmissionAccess | null = rejectedSubmission,
+  customerLookup: Awaited<
+    ReturnType<LoadCustomerBookingFactReader['getUsableOrRequestReconciliation']>
+  > = {
+    available: true,
+    fact: {
+      result: 'FOUND',
+      status: 'ACTIVE',
+      legalName: 'Customer One',
+      ownerRevision: 1,
+      registrySequence: 1,
+    },
+  }
 ) {
   const areaResolver: LoadPickupAreaResolver = {
     resolveFirstPickupAreas: vi.fn(async () => resolvedAreas),
   };
   const repository: LoadBookingSubmissionRepository = {
     findSubmission: vi.fn(async () => correction),
-    createSubmission: vi.fn(async () => ({
+    createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
       submissionId: 'submission-1',
       replayed: false,
       representation: { status: 'accepted' },
     })),
   };
+  const customerFacts: LoadCustomerBookingFactReader = {
+    getUsableOrRequestReconciliation: vi.fn(async () => customerLookup),
+  };
   return {
-    submitBooking: new SubmitBooking(areaResolver, repository),
+    submitBooking: new SubmitBooking(areaResolver, repository, customerFacts),
     areaResolver,
     repository,
+    customerFacts,
   };
 }
 
@@ -134,6 +154,72 @@ describe('SubmitBooking authorization', () => {
       replayed: false,
       representation: { status: 'accepted' },
     });
-    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la']);
+    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {});
+  });
+
+  it('looks up each distinct UUIDv7 Customer only after authorization', async () => {
+    const { submitBooking, customerFacts, repository } = createSut(['la', 'la']);
+    const request = {
+      idempotencyKey: 'key-1',
+      rows: [{ customerId }, { customerId }],
+    };
+
+    await submitBooking.execute(brokerIdentity, request);
+
+    expect(customerFacts.getUsableOrRequestReconciliation).toHaveBeenCalledTimes(1);
+    expect(customerFacts.getUsableOrRequestReconciliation).toHaveBeenCalledWith(customerId);
+    expect(repository.createSubmission).toHaveBeenCalledWith(
+      brokerIdentity,
+      request,
+      ['la', 'la'],
+      {
+        [customerId]: {
+          result: 'FOUND',
+          status: 'ACTIVE',
+          legalName: 'Customer One',
+          ownerRevision: 1,
+          registrySequence: 1,
+        },
+      }
+    );
+  });
+
+  it('fails closed without creating a submission when the Customer fact is unavailable', async () => {
+    const { submitBooking, repository, customerFacts } = createSut(['la'], rejectedSubmission, {
+      available: false,
+    });
+
+    await expect(
+      submitBooking.execute(brokerIdentity, {
+        idempotencyKey: 'key-1',
+        rows: [{ customerId }],
+      })
+    ).rejects.toBeInstanceOf(CustomerStatusUnavailableError);
+    expect(customerFacts.getUsableOrRequestReconciliation).toHaveBeenCalledWith(customerId);
+    expect(repository.createSubmission).not.toHaveBeenCalled();
+  });
+
+  it('passes authoritative not-found and inactive facts to durable submission evaluation', async () => {
+    const { submitBooking, repository } = createSut(['la'], rejectedSubmission, {
+      available: true,
+      fact: { result: 'NOT_FOUND', registrySequence: 4 },
+    });
+    const request = { idempotencyKey: 'key-1', rows: [{ customerId }] };
+
+    await submitBooking.execute(brokerIdentity, request);
+
+    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {
+      [customerId]: { result: 'NOT_FOUND', registrySequence: 4 },
+    });
+  });
+
+  it('does not request a Registry lookup for malformed identifiers', async () => {
+    const { submitBooking, customerFacts, repository } = createSut();
+    const request = { idempotencyKey: 'key-1', rows: [{ customerId: 'not-a-uuid' }] };
+
+    await submitBooking.execute(brokerIdentity, request);
+
+    expect(customerFacts.getUsableOrRequestReconciliation).not.toHaveBeenCalled();
+    expect(repository.createSubmission).toHaveBeenCalledWith(brokerIdentity, request, ['la'], {});
   });
 });

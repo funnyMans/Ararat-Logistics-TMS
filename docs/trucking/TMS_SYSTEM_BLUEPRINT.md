@@ -319,7 +319,12 @@ verification hooks, protected read-route/application boundaries, a
 Load-owned D-513 policy, and a booking authorization preflight that checks
 derived areas and correction ownership before dispatching a write. It has no
 concrete D-515 geography resolver, persistence adapter, or durable booking
-write implementation. Do not move D-513 decisions into the gateway or a
+write implementation. B2 now has bounded Counterparty Registry owner-fact
+production, durable outbox/watermark/snapshot behavior, and Load's persistent
+fact inbox, projection, reconciliation outbox, recovery worker, and booking
+gate. The services still need deployment-managed migrations, RabbitMQ
+topology/credentials, runtime wiring, and a durable Load booking writer that
+stores the accepted or rejected Customer outcome. Do not move D-513 decisions into the gateway or a
 detached shared module. No Identity issuer/service exists, and Identity HTTP
 operations/contracts remain open for real issuance; the Load verifier fails
 closed until it is configured. Real issuance and end-to-end production

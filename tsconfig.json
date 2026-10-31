@@ -5,6 +5,7 @@
     { "path": "./packages/common" },
     { "path": "./packages/identity-token" },
     { "path": "./services/api-gateway" },
-    { "path": "./services/load-service" }
+    { "path": "./services/load-service" },
+    { "path": "./services/counterparty-registry" }
   ]
 }

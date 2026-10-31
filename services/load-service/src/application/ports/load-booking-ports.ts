@@ -10,8 +10,29 @@ export interface LoadBookingSubmissionRepository {
   createSubmission(
     identity: IdentityTokenClaims,
     request: LoadBookingSubmissionRequest,
-    areaIds: string[]
+    areaIds: string[],
+    customerFacts: Record<string, CustomerBookingFactResult>
   ): Promise<LoadBookingSubmissionResult>;
+}
+
+export type CustomerBookingFactResult =
+  | {
+      result: 'FOUND';
+      status: 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
+      legalName: string;
+      ownerRevision: number;
+      registrySequence: number;
+    }
+  | {
+      result: 'NOT_FOUND';
+      registrySequence: number;
+    };
+
+export type CustomerBookingFactLookup =
+  { available: true; fact: CustomerBookingFactResult } | { available: false };
+
+export interface LoadCustomerBookingFactReader {
+  getUsableOrRequestReconciliation(customerId: string): Promise<CustomerBookingFactLookup>;
 }
 
 export type LoadBookingSubmissionRequest = {

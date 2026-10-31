@@ -9,6 +9,7 @@ import { LoadReads } from '../../src/application/queries/load-reads';
 import type { LoadReadRepository } from '../../src/application/ports/load-read-repository';
 import { SubmitBooking } from '../../src/application/commands/submit-booking';
 import type {
+  LoadCustomerBookingFactReader,
   LoadBookingSubmissionRepository,
   LoadPickupAreaResolver,
 } from '../../src/application/ports/load-booking-ports';
@@ -29,6 +30,18 @@ const brokerIdentity: IdentityTokenClaims = {
 };
 
 const loadRepresentation = { id: 'load-1', areaId: 'la', status: 'BOOKED' };
+const customerFactReader: LoadCustomerBookingFactReader = {
+  getUsableOrRequestReconciliation: vi.fn(async () => ({
+    available: true,
+    fact: {
+      result: 'FOUND',
+      status: 'ACTIVE',
+      legalName: 'Customer One',
+      ownerRevision: 1,
+      registrySequence: 1,
+    },
+  })),
+};
 
 describe('Load read routes', () => {
   const servers: Array<ReturnType<typeof Fastify>> = [];
@@ -65,7 +78,7 @@ describe('Load read routes', () => {
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async () => ({
+      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
         submissionId: 'submission-1',
         replayed: false,
         representation: { status: 'accepted' },
@@ -74,7 +87,7 @@ describe('Load read routes', () => {
     const server = createServer(
       repository,
       true,
-      new SubmitBooking(areaResolver, bookingRepository)
+      new SubmitBooking(areaResolver, bookingRepository, customerFactReader)
     );
 
     const noToken = await server.inject({
@@ -97,7 +110,8 @@ describe('Load read routes', () => {
     expect(bookingRepository.createSubmission).toHaveBeenCalledWith(
       brokerIdentity,
       { rows: [{ areaId: 'la' }], idempotencyKey: 'key-1' },
-      ['la']
+      ['la'],
+      {}
     );
 
     vi.mocked(bookingRepository.createSubmission).mockResolvedValue({
@@ -126,7 +140,7 @@ describe('Load read routes', () => {
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async () => ({
+      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
         submissionId: 'submission-1',
         replayed: false,
         representation: { status: 'accepted' },
@@ -135,7 +149,7 @@ describe('Load read routes', () => {
     const server = createServer(
       repository,
       true,
-      new SubmitBooking(areaResolver, bookingRepository)
+      new SubmitBooking(areaResolver, bookingRepository, customerFactReader)
     );
 
     const response = await server.inject({
@@ -160,7 +174,7 @@ describe('Load read routes', () => {
     };
     const bookingRepository: LoadBookingSubmissionRepository = {
       findSubmission: vi.fn(async () => null),
-      createSubmission: vi.fn(async () => ({
+      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
         submissionId: 'submission-1',
         replayed: false,
         representation: { status: 'accepted' },
@@ -169,7 +183,7 @@ describe('Load read routes', () => {
     const server = createServer(
       repository,
       true,
-      new SubmitBooking(areaResolver, bookingRepository)
+      new SubmitBooking(areaResolver, bookingRepository, customerFactReader)
     );
 
     const response = await server.inject({
@@ -179,6 +193,53 @@ describe('Load read routes', () => {
       payload: { rows: [{}] },
     });
     expect(response.statusCode).toBe(403);
+    expect(bookingRepository.createSubmission).not.toHaveBeenCalled();
+  });
+
+  it('returns the retryable Customer status error without persisting when facts are stale', async () => {
+    const repository: LoadReadRepository = {
+      findLoad: vi.fn(async () => null),
+      findRevision: vi.fn(async () => null),
+      findBookingSubmission: vi.fn(async () => null),
+    };
+    const areaResolver: LoadPickupAreaResolver = {
+      resolveFirstPickupAreas: vi.fn(async () => ['la']),
+    };
+    const bookingRepository: LoadBookingSubmissionRepository = {
+      findSubmission: vi.fn(async () => null),
+      createSubmission: vi.fn(async (_identity, _request, _areaIds, _customerFacts) => ({
+        submissionId: 'submission-1',
+        replayed: false,
+        representation: { status: 'accepted' },
+      })),
+    };
+    const staleCustomerFacts: LoadCustomerBookingFactReader = {
+      getUsableOrRequestReconciliation: vi.fn(async () => ({ available: false })),
+    };
+    const server = createServer(
+      repository,
+      true,
+      new SubmitBooking(areaResolver, bookingRepository, staleCustomerFacts)
+    );
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/api/v1/booking-submissions',
+      headers: { authorization: 'Bearer test-token', 'idempotency-key': 'key-1' },
+      payload: {
+        rows: [{ areaId: 'la', customerId: '018f47a2-7b3c-7abc-8def-123456789abc' }],
+      },
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json().error).toMatchObject({
+      code: 'CUSTOMER_STATUS_UNAVAILABLE',
+      message: 'Current Customer status could not be verified.',
+      retryable: true,
+    });
+    expect(response.json().error.requestId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    );
     expect(bookingRepository.createSubmission).not.toHaveBeenCalled();
   });
 

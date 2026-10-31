@@ -1567,6 +1567,37 @@ contacts by organization, external references by type/value, and profile
 history by profile/sequence. Status change, owner revision, history, and
 outbox fact commit atomically.
 
+The B2 Registry migration implements only the rows needed by this selected
+fact path: the serialized stream state, legal name and Customer profile,
+Customer status transitions, transactional message outbox, and snapshot
+request inbox/quarantine. It does not claim to implement Carrier profiles,
+contacts, external references, the broader Registry API, or onboarding
+workflows. Run the migration through the deployment migration job; neither
+service runs schema changes on application startup.
+
+Load owns a separate projection schema and never foreign-keys into Registry:
+
+| Load table                               | Persisted purpose                                                                                                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load_customer_booking_projection_state` | Singleton initialization, contiguous and observed Registry sequences, last watermark sequence/receipt time, global stale state, and active reconciliation watermark. |
+| `load_customer_booking_facts`            | Per-Customer `FOUND`/`NOT_FOUND`, status and legal name when found, last applied owner revision, Registry sequence, stale flag, and highest observed owner revision. |
+| `load_customer_booking_fact_inbox`       | Message-ID and normalized content hash for atomic consumer deduplication.                                                                                            |
+| `load_customer_booking_fact_quarantine`  | Changed content under a previously received message ID and unmatched snapshot replies; quarantined delivery is durably recorded before acknowledgement.              |
+| `load_customer_booking_snapshot_outbox`  | Durable, deduplicated full-snapshot requests, including their required sequence/revision, correlation ID, and publish state.                                         |
+
+Load serializes consumer changes through the singleton stream row. Inbox
+deduplication, projection changes, and any reconciliation requests commit in
+one PostgreSQL transaction before the broker delivery is acknowledged. A
+snapshot response is applied only against its published request and required
+sequence; the contiguous cursor advances after every existing projection is
+current through the reconciliation watermark. The recovery worker marks all
+facts stale after 30 seconds without a received watermark, then publishes
+durable snapshot requests. Booking reads only fresh facts and returns the
+existing retryable status-unavailable response for missing or stale ones.
+These tables and workers are service-owned components, not proof that
+deployment migrations, broker queues, credentials, or runtime supervision
+have been provisioned.
+
 ### Fleet Readiness logical schema
 
 Fleet Readiness owns operational driver/equipment profiles, contracted
