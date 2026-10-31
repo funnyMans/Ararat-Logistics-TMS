@@ -35,8 +35,9 @@ Quick links: [TMS responsibility map](docs/trucking/TMS_SCOPE.md),
 
 The implementation currently contains shared Node.js utilities, an API
 gateway with health and observability endpoints, and local development
-observability. The TMS business workflows and the planned Identity service have not yet
-been implemented.
+observability. The gateway can verify Identity-issued tokens when its
+Identity configuration is provided, using a reusable shared verifier. The
+Identity issuer/service and TMS business workflows have not been implemented.
 
 Record validation evidence with the product or operational claim it supports.
 Do not present an unverified assumption, an infrastructure component, or a
@@ -57,6 +58,11 @@ pnpm lint
 pnpm test:unit
 docker compose -f infra/docker-compose.dev.yml config --quiet
 ```
+
+The ignored `.env` file may contain settings from an older local setup.
+`infra/docker-compose.dev.yml` currently reads the variables listed in
+[`.env.example`](.env.example); remove or reconcile obsolete entries when
+updating an existing local file.
 
 See the [local development guide](infra/README.md) for the current Compose
 scope, including the test-only PostgreSQL conformance dependency. It is not
