@@ -2,8 +2,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
   IdentityProviderUnavailableError,
   IdentityTokenVerificationError,
-} from '../../../infrastructure/auth/identity-token-verifier';
-import type { IdentityTokenClaims } from '../../../infrastructure/auth/identity-token-verifier';
+} from '@app/identity-token';
+import type { IdentityTokenClaims } from '@app/identity-token';
 
 declare module 'fastify' {
   interface FastifyRequest {

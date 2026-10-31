@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { exportJWK, generateKeyPair, SignJWT } from 'jose';
 import type { KeyLike } from 'jose';
-import { createIdentityTokenVerifier } from '../../../../src/infrastructure/auth/identity-token-verifier';
+import { createIdentityTokenVerifier } from '@app/identity-token';
 
 describe('identity access-token verification', () => {
   const issuer = 'https://identity.example.test';
@@ -59,7 +59,7 @@ describe('identity access-token verification', () => {
         auth_time: now,
         amr: ['pwd', 'otp'],
         grantVersion: 1,
-        grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west' }],
+        grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west_north_central' }],
         ...claims,
       })
         .setProtectedHeader({
@@ -97,7 +97,7 @@ describe('identity access-token verification', () => {
       sid: 'session-1',
       jti: 'token-1',
       grantVersion: 1,
-      grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west' }],
+      grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west_north_central' }],
     });
   });
 

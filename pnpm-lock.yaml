@@ -116,11 +116,23 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4
 
+  packages/identity-token:
+    dependencies:
+      jose:
+        specifier: ^6.1.0
+        version: 6.2.13
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
+
   services/api-gateway:
     dependencies:
       '@app/common':
         specifier: workspace:*
         version: link:../../packages/common
+      '@app/identity-token':
+        specifier: workspace:*
+        version: link:../../packages/identity-token
       '@opentelemetry/api':
         specifier: ^1.9.1
         version: 1.9.1
@@ -130,13 +142,13 @@ importers:
       fastify:
         specifier: ^5.12.1
         version: 5.12.1
-      jose:
-        specifier: ^6.1.0
-        version: 6.2.13
       zod:
         specifier: ^4.5.4
         version: 4.5.4
     devDependencies:
+      jose:
+        specifier: ^6.1.0
+        version: 6.2.13
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
@@ -2171,11 +2183,6 @@ packages:
   lightningcss@1.33.0:
     resolution: {integrity: sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==}
     engines: {node: '>= 12.0.0'}
-
-  lint-staged@17.4.1:
-    resolution: {integrity: sha512-FmJeudcalbSfg1du+JCfvi5vS6Qt08KgbfLWiHinbef+2JJwUZwAWVoaO1AcJVUTWPfk0t30PMQNwPAeCzYQ+Q==}
-    engines: {node: '>=22.22.1'}
-    hasBin: true
 
   locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}

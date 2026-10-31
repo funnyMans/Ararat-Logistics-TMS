@@ -9,6 +9,10 @@ implementation status, see the [documentation guide](README.md) and
 
 - `packages/common/` contains shared logging, tracing, health, metrics,
   configuration, and service-bootstrap utilities.
+- `packages/identity-token/` provides the Identity JWT verification contract
+  for independent validation by each receiving service. It verifies
+  RS256/JWKS signatures and selected claims; it does not issue tokens or
+  authorize domain resources.
 - `services/api-gateway/` currently exposes gateway health/readiness and
   observability. Its non-health HTTP routes now require an Identity-issued
   bearer token when Identity JWKS settings are configured; it still has no
@@ -17,13 +21,15 @@ implementation status, see the [documentation guide](README.md) and
 - `docs/` contains product, business, architecture, and engineering
   documentation.
 
-The Identity service and the TMS business services are not implemented.
-Their ownership and responsibilities are target product boundaries, not
-existing workspace packages. Define a service's structure when its target
-responsibility and contracts are approved; do not create empty packages to
-mirror conceptual nouns.
+The Identity service and TMS business services are not implemented. The
+shared token verifier is a library, not an Identity service. Create a domain
+service only when its approved responsibility and contracts are ready, and
+use the agreed `app`, `domain`, `interface`, and `infra` organization without
+adding unused scaffolding.
 
-The gateway accepts `IDENTITY_ISSUER`, `IDENTITY_AUDIENCE`, and
+The gateway consumes the shared `@app/identity-token` verifier, which
+receiving domain services can also use locally. It accepts
+`IDENTITY_ISSUER`, `IDENTITY_AUDIENCE`, and
 `IDENTITY_JWKS_URI` as one configuration set. If configured, it verifies
 RS256 signatures and the selected identity-token claims with a five-minute
 JWKS cache. Until the Identity issuer is deployed, application routes fail

@@ -33,7 +33,7 @@ export class IdentityTokenVerificationError extends Error {
   readonly retryable = false;
 
   constructor() {
-    super('Bearer token is missing, invalid, or expired.');
+    super('****** is missing, invalid, or expired.');
     this.name = 'IdentityTokenVerificationError';
   }
 }

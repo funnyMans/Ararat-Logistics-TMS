@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   IdentityProviderUnavailableError,
   IdentityTokenVerificationError,
-} from '../../../../../src/infrastructure/auth/identity-token-verifier';
-import type { IdentityTokenClaims } from '../../../../../src/infrastructure/auth/identity-token-verifier';
+} from '@app/identity-token';
+import type { IdentityTokenClaims } from '@app/identity-token';
 import { registerIdentityAuthentication } from '../../../../../src/interfaces/http/hooks/identity-authentication';
 import { registerHealthRoutes } from '../../../../../src/interfaces/http/routes/health';
 import { registerServiceMetrics } from '@app/common';
@@ -20,7 +20,7 @@ const claims: IdentityTokenClaims = {
   auth_time: 1,
   amr: ['pwd'],
   grantVersion: 1,
-  grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west' }],
+  grants: [{ role: 'broker', scopeType: 'area', scopeId: 'west_north_central' }],
 };
 
 describe('identity authentication hook', () => {

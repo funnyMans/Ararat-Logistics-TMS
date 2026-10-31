@@ -1,8 +1,8 @@
 import Fastify from 'fastify';
 import type { FastifyBaseLogger, FastifyInstance } from 'fastify';
 import { createLogger, createServiceBootstrap, registerServiceMetrics } from '@app/common';
+import { createIdentityTokenVerifier } from '@app/identity-token';
 import { config } from './infrastructure/config';
-import { createIdentityTokenVerifier } from './infrastructure/auth/identity-token-verifier';
 import { registerIdentityAuthentication } from './interfaces/http/hooks/identity-authentication';
 import { registerHealthRoutes } from './interfaces/http/routes/health';
 
