@@ -1,0 +1,287 @@
+asyncapi: 3.0.0
+info:
+  title: TMS Operational Economics Messages
+  version: 1.0.0
+  description: >-
+    Target message contract for independent Load, equipment-combination, and
+    driver/team estimates. Economics does not calculate Load/Trio pairs;
+    Dispatch Planning composes the matching matrix.
+  externalDocs:
+    description: Operational Economics service boundary and calculation ownership
+    url: ../trucking/OPERATIONAL_ECONOMICS_SERVICE.md
+x-contract-status: target-draft
+x-unresolved-contracts:
+  - Financial/Accounting aggregate schemas, dimensions, revisions, and the input delivery contract.
+  - Other source-owner change subscriptions and their authoritative input payloads.
+  - Final input/result schemas, status/reason codes, and batch-size limits.
+  - Deployment exchange, queue, binding, ACL, retry, and parking policy.
+servers:
+  rabbitmq:
+    host: '{brokerHost}'
+    protocol: amqp
+    protocolVersion: '0-9-1'
+    description: RabbitMQ cluster; topology is deployment-managed.
+    variables:
+      brokerHost:
+        default: broker.example.invalid
+        description: Deployment-specific broker host.
+channels:
+  estimateRead:
+    address: economics.estimate.read.v1
+    messages:
+      EstimateRead:
+        $ref: '#/components/messages/EstimateRead'
+  estimateReadOutcome:
+    address: economics.estimate.read.outcome.v1
+    messages:
+      EstimateReadOutcome:
+        $ref: '#/components/messages/EstimateReadOutcome'
+  estimateUpdated:
+    address: economics.estimate.updated.v1
+    messages:
+      EstimateUpdated:
+        $ref: '#/components/messages/EstimateUpdated'
+operations:
+  receiveEstimateRead:
+    action: receive
+    channel: { $ref: '#/channels/estimateRead' }
+    messages:
+      - $ref: '#/channels/estimateRead/messages/EstimateRead'
+  publishEstimateReadOutcome:
+    action: send
+    channel: { $ref: '#/channels/estimateReadOutcome' }
+    messages:
+      - $ref: '#/channels/estimateReadOutcome/messages/EstimateReadOutcome'
+  publishEstimateUpdated:
+    action: send
+    channel: { $ref: '#/channels/estimateUpdated' }
+    messages:
+      - $ref: '#/channels/estimateUpdated/messages/EstimateUpdated'
+components:
+  schemas:
+    UuidV7:
+      type: string
+      format: uuid
+      pattern: '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    EstimateScope:
+      oneOf:
+        - $ref: '#/components/schemas/LoadEstimateScope'
+        - $ref: '#/components/schemas/EquipmentCombinationEstimateScope'
+        - $ref: '#/components/schemas/DriverEstimateScope'
+        - $ref: '#/components/schemas/DriverTeamEstimateScope'
+      discriminator:
+        propertyName: type
+    LoadEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, loadId, loadRevision]
+      properties:
+        type: { type: string, const: load }
+        loadId: { $ref: '#/components/schemas/UuidV7' }
+        loadRevision: { type: string, minLength: 1 }
+    EquipmentCombinationEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, powerUnitId, powerUnitRevision, trailerId, trailerRevision]
+      properties:
+        type: { type: string, const: equipment_combination }
+        powerUnitId: { $ref: '#/components/schemas/UuidV7' }
+        powerUnitRevision: { type: string, minLength: 1 }
+        trailerId: { $ref: '#/components/schemas/UuidV7' }
+        trailerRevision: { type: string, minLength: 1 }
+    DriverEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, driverId, driverRevision]
+      properties:
+        type: { type: string, const: driver }
+        driverId: { $ref: '#/components/schemas/UuidV7' }
+        driverRevision: { type: string, minLength: 1 }
+    DriverTeamEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, drivers]
+      properties:
+        type: { type: string, const: driver_team }
+        drivers:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: object
+            required: [driverId, driverRevision]
+            properties:
+              driverId: { $ref: '#/components/schemas/UuidV7' }
+              driverRevision: { type: string, minLength: 1 }
+    EstimateProvenance:
+      type: object
+      required: [source, reference, revision, observedAt]
+      properties:
+        source: { type: string, minLength: 1 }
+        reference: { type: string, minLength: 1 }
+        revision: { type: string, minLength: 1 }
+        effectiveAt: { type: string, format: date-time }
+        observedAt: { type: string, format: date-time }
+    EstimateRecord:
+      type: object
+      required:
+        [
+          estimateId,
+          scope,
+          status,
+          modelVersion,
+          inputSchemaVersion,
+          resultSchemaVersion,
+          inputSnapshot,
+          result,
+          provenance,
+          generatedAt,
+          recordedAt,
+        ]
+      properties:
+        estimateId: { $ref: '#/components/schemas/UuidV7' }
+        scope: { $ref: '#/components/schemas/EstimateScope' }
+        status:
+          type: string
+          enum: [AVAILABLE, INCOMPLETE, STALE]
+          description: Proposed status values; final reason/status catalogue remains open.
+        modelVersion: { type: string, minLength: 1 }
+        inputSchemaVersion: { type: string, minLength: 1 }
+        resultSchemaVersion: { type: string, minLength: 1 }
+        inputSnapshot: { type: object, additionalProperties: true }
+        result: { type: object, additionalProperties: true }
+        provenance:
+          type: array
+          items: { $ref: '#/components/schemas/EstimateProvenance' }
+        generatedAt: { type: string, format: date-time }
+        recordedAt: { type: string, format: date-time }
+    CommandEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          issuedAt,
+          correlationId,
+          commandId,
+          idempotencyKey,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string, const: economics.estimate.read }
+        schemaVersion: { type: string, const: '1.0.0' }
+        sourceService: { type: string, const: dispatch-planning }
+        targetService: { type: string, const: operational-economics }
+        issuedAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        idempotencyKey: { type: string, minLength: 1 }
+        payload: { $ref: '#/components/schemas/EstimateReadPayload' }
+    OutcomeEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string, const: economics.estimate.read.outcome }
+        schemaVersion: { type: string, const: '1.0.0' }
+        sourceService: { type: string, const: operational-economics }
+        targetService: { type: string, const: dispatch-planning }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        payload: { $ref: '#/components/schemas/EstimateReadOutcomePayload' }
+    FactEnvelope:
+      type: object
+      required:
+        [
+          messageId,
+          messageType,
+          schemaVersion,
+          sourceService,
+          targetService,
+          occurredAt,
+          correlationId,
+          causationId,
+          ownerRevision,
+          payload,
+        ]
+      properties:
+        messageId: { $ref: '#/components/schemas/UuidV7' }
+        messageType: { type: string, const: economics.estimate.updated }
+        schemaVersion: { type: string, const: '1.0.0' }
+        sourceService: { type: string, const: operational-economics }
+        targetService: { type: string, const: dispatch-planning }
+        occurredAt: { type: string, format: date-time }
+        correlationId: { $ref: '#/components/schemas/UuidV7' }
+        causationId: { $ref: '#/components/schemas/UuidV7' }
+        ownerRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        payload: { $ref: '#/components/schemas/EstimateUpdatedPayload' }
+    EstimateReadPayload:
+      type: object
+      required: [planningAttemptId, scopes]
+      properties:
+        planningAttemptId:
+          allOf:
+            - $ref: '#/components/schemas/UuidV7'
+          description: Correlation context only; not part of estimate identity.
+        scopes:
+          type: array
+          minItems: 1
+          description: >-
+            Exact independent estimate subjects/revisions; never Load/Trio
+            pairs. The applicable batch-size limit remains to be approved.
+          items: { $ref: '#/components/schemas/EstimateScope' }
+    EstimateReadOutcomePayload:
+      type: object
+      required: [commandId, planningAttemptId, estimates, missingOrStale]
+      properties:
+        commandId: { $ref: '#/components/schemas/UuidV7' }
+        planningAttemptId: { $ref: '#/components/schemas/UuidV7' }
+        estimates:
+          type: array
+          items: { $ref: '#/components/schemas/EstimateRecord' }
+        missingOrStale:
+          type: array
+          items:
+            type: object
+            required: [scope, reason]
+            properties:
+              scope: { $ref: '#/components/schemas/EstimateScope' }
+              reason: { type: string, minLength: 1 }
+    EstimateUpdatedPayload:
+      type: object
+      required: [estimate]
+      properties:
+        estimate: { $ref: '#/components/schemas/EstimateRecord' }
+  messages:
+    EstimateRead:
+      name: EstimateRead
+      title: Read independent estimate scopes
+      contentType: application/json
+      payload: { $ref: '#/components/schemas/CommandEnvelope' }
+    EstimateReadOutcome:
+      name: EstimateReadOutcome
+      title: Independent estimate read outcome
+      contentType: application/json
+      payload: { $ref: '#/components/schemas/OutcomeEnvelope' }
+    EstimateUpdated:
+      name: EstimateUpdated
+      title: Independent estimate changed
+      contentType: application/json
+      payload: { $ref: '#/components/schemas/FactEnvelope' }

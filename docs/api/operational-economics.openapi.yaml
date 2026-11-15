@@ -1,0 +1,302 @@
+openapi: 3.1.0
+info:
+  title: Operational Economics Internal Estimate Record API
+  version: 1.0.0
+  description: >
+    Internal persistence API for versioned estimate artifacts. It does not
+    calculate estimates or own Dispatch Planning matrices.
+x-contract-status: internal-scaffold
+x-unresolved-contracts:
+  - Approved estimate inputs, result fields, and calculation models.
+  - Production authentication, authorization, and exposure policy.
+servers:
+  - url: http://operational-economics:8080
+paths:
+  /internal/v1/estimate-records:
+    post:
+      operationId: createEconomicEstimateRecord
+      summary: Persist an immutable estimate artifact
+      description: >
+        Internal persistence operation only. Calculation inputs and result
+        schemas remain provisional until the cost and time models are approved.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EconomicEstimateRecordInput'
+      responses:
+        '201':
+          description: A new record was persisted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EconomicEstimateRecord'
+        '200':
+          description: An identical retry returned the existing record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EconomicEstimateRecord'
+        '400':
+          $ref: '#/components/responses/ApiError'
+        '409':
+          description: The estimate ID already exists with different content.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '413':
+          $ref: '#/components/responses/ApiError'
+        '415':
+          $ref: '#/components/responses/ApiError'
+        '503':
+          $ref: '#/components/responses/ApiError'
+    get:
+      operationId: listEconomicEstimateRecords
+      summary: List estimate records for a Load
+      parameters:
+        - name: loadId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: trioId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque cursor returned by the previous page.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching immutable estimate records, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [estimates, hasMore]
+                properties:
+                  estimates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EconomicEstimateRecord'
+                  hasMore:
+                    type: boolean
+                  nextCursor:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ApiError'
+        '503':
+          $ref: '#/components/responses/ApiError'
+  /internal/v1/estimate-records/{estimateId}:
+    get:
+      operationId: getEconomicEstimateRecord
+      summary: Retrieve an exact estimate record
+      parameters:
+        - name: estimateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The immutable estimate record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EconomicEstimateRecord'
+        '400':
+          $ref: '#/components/responses/ApiError'
+        '404':
+          $ref: '#/components/responses/ApiError'
+        '503':
+          $ref: '#/components/responses/ApiError'
+  /health:
+    get:
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Process is running.
+  /ready:
+    get:
+      operationId: getReadiness
+      responses:
+        '200':
+          description: Startup and PostgreSQL are ready.
+        '503':
+          description: Startup or PostgreSQL is unavailable.
+  /metrics:
+    get:
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Prometheus text-format metrics.
+          content:
+            text/plain:
+              schema:
+                type: string
+        '503':
+          description: PostgreSQL probe is unavailable.
+components:
+  responses:
+    ApiError:
+      description: Request or service error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    EconomicEstimateRecordInput:
+      type: object
+      additionalProperties: false
+      required:
+        - contractVersion
+        - estimateId
+        - scope
+        - modelVersion
+        - inputSchemaVersion
+        - resultSchemaVersion
+        - inputs
+        - result
+        - provenance
+        - generatedAt
+      properties:
+        contractVersion:
+          const: '1.0.0'
+        estimateId:
+          type: string
+          format: uuid
+        scope:
+          oneOf:
+            - $ref: '#/components/schemas/LoadEstimateScope'
+            - $ref: '#/components/schemas/CandidateEstimateScope'
+          discriminator:
+            propertyName: type
+        modelVersion:
+          type: string
+          minLength: 1
+          maxLength: 100
+        inputSchemaVersion:
+          type: string
+          minLength: 1
+          maxLength: 100
+        resultSchemaVersion:
+          type: string
+          minLength: 1
+          maxLength: 100
+        inputs:
+          type: object
+          additionalProperties: true
+        result:
+          type: object
+          additionalProperties: true
+        provenance:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/EstimateProvenance'
+        generatedAt:
+          type: string
+          format: date-time
+    EconomicEstimateRecord:
+      allOf:
+        - $ref: '#/components/schemas/EconomicEstimateRecordInput'
+        - type: object
+          required: [recordedAt]
+          properties:
+            recordedAt:
+              type: string
+              format: date-time
+    LoadEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, loadId, loadRevision]
+      properties:
+        type:
+          const: load
+        loadId:
+          type: string
+          format: uuid
+        loadRevision:
+          type: string
+          minLength: 1
+          maxLength: 128
+    CandidateEstimateScope:
+      type: object
+      additionalProperties: false
+      required: [type, loadId, loadRevision, trioId, trioRevision]
+      properties:
+        type:
+          const: candidate
+        loadId:
+          type: string
+          format: uuid
+        loadRevision:
+          type: string
+          minLength: 1
+          maxLength: 128
+        trioId:
+          type: string
+          format: uuid
+        trioRevision:
+          type: string
+          minLength: 1
+          maxLength: 128
+    EstimateProvenance:
+      type: object
+      additionalProperties: false
+      required: [source, reference, revision, observedAt]
+      properties:
+        source:
+          type: string
+          minLength: 1
+          maxLength: 100
+        reference:
+          type: string
+          minLength: 1
+          maxLength: 500
+        revision:
+          type: string
+          minLength: 1
+          maxLength: 128
+        observedAt:
+          type: string
+          format: date-time
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                required: [path, message]
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
