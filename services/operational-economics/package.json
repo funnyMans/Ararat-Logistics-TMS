@@ -1,0 +1,19 @@
+{
+  "name": "service-operational-economics",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node dist/runtime.js",
+    "migrate": "node dist/migrate.js",
+    "prebuild": "pnpm run clean",
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "pg": "^8.23.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
+  }
+}
