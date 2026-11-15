@@ -437,32 +437,176 @@ the unresolved details.
     selected. Specify exact lease and finalization-guard protocols, remaining
     conflicting-edit behavior, Trip Plan amendment and reservation
     replacement, and revalidation outcomes under concurrent changes.
-21. **Planning and matching policy:** Decisions D-499, D-498, and D-511 and the
-    [shared planning contract](../contracts.md#initial-dispatch-planning-policy)
+21. **Planning policy implementation prerequisites:** Decisions D-499,
+    D-498, D-511, D-516, and
+    [D-527](DECISIONS.md#d-527--use-complexity--zone--and-mileage-aware-balanced-matching),
+    together with the
+    [shared planning contract](../contracts.md#initial-dispatch-planning-policy),
     define hard-gate categories, fail-closed treatment of missing/stale facts,
-    deterministic lexicographic ranking, 12-hour short/long classification,
-    driver-specific return-home classification, the four directional/
-    duration profiles, the 14-day/five-Load rolling reservation limit,
-    dispatcher ranking of only the final chain Load, daily ranking cutoffs,
-    full-chain safe reallocation, immediate replan from early Execution
-    closeout location, and atomic CC contention behavior. D-500
-    adds provider-neutral route estimates with provenance, explicit versioned
-    service-time assumptions, a 15-minute review acknowledgement/escalation
-    rule, and a fail-closed boundary for unapproved legal or safety gates.
-    Existing ordered resource segments, one- or two-driver teams,
-    15-minute availability freshness, and explicit maintenance-status expiry
-    remain in force. The numeric deadhead allowance for replacement Loads,
-    approved initial route-estimate source, and calibrated service-time
-    values remain to be selected and validated. D-509 selects the
-    provider-neutral adapter, one approved source at a time, immutable
-    provenance, source-backed versioned facts, and fail-closed handling.
-    Complete each Fleet Readiness fact definition, evidence source,
-    verifier, and validity period under item 15; obtain authoritative legal
-    review before enabling applicable automated gates. Define measurable
-    acceptance for Dispatch before implementing it. Do not claim regulatory
-    compliance or complete trailer packing from the initial matching policy.
-    Source selection, deadhead allowance, and calibration block dependent
-    automated planning, not platform foundation or unrelated service work.
+    the D-515 LA homeland zone, mileage-based trip-length inputs, the
+    14-day/five-Load rolling reservation limit, atomic CC behavior, and bounded
+    planning cycles. D-527 supersedes D-516's ordinal matching,
+    requirement-level partition, preference/fallback passes, coverage
+    priority, upgrade ordering, and same-day Assignment timing. Retain
+    D-516's frozen eligibility snapshot, CC authority, and atomic replacement
+    safeguards where compatible.
+
+    Before matching implementation, approve: (a) authoritative Load
+    requirement fields and evidence for assigning the four D-527 complexity
+    levels; (b) evidence-backed Trio mapping to independently supported
+    primary and auxiliary levels from driver, tractor, and trailer facts,
+    including how revisions affect membership and an in-progress cycle;
+    (c) any additional classes, equipment variants, and exceptions;
+    (d) exact capability evidence and allocation treatment for surplus and
+    already-reserved Trios under D-527's same-level-first, nearest-higher-
+    level surplus sequence, including any reservation states outside its
+    lower-class-held and same-class-held sublevels;
+    (e) the matching-index formula is selected: multiply pair-specific
+    contribution per committed hour by contribution per total operational
+    mile, using a negative score when both rates are negative, zero when
+    either rate is zero, and review when their signs conflict. Fixed monthly
+    overhead is excluded from matching and accounted for separately. The
+    system/dispatcher rank blend is selected at 60/40. Normalize each list
+    linearly to 0-100 rank points; the original system list supplies system
+    points and the dispatcher-submitted list supplies dispatcher points.
+    Tie handling within an ordering remains open. Score priority governs
+    while submitted lists remain; after exhaustion, remainder allocation
+    maximizes coverage first and then aggregate signed index among
+    equal-coverage variations. Dispatcher-removed Loads may still be selected
+    at fallback and submitted to CC without another dispatcher confirmation
+    if hard gates pass. A 10% margin and stop/day/HOS tie-breaks are deferred.
+    Still define auditable variable-cost inputs and their sources and allocation methods;
+    validate revenue, expense, time, and mileage calculations against company
+    operating/accounting data; and approve any future coefficients for
+    measurable non-monetary execution factors. Version one remains limited
+    to monetary technical inputs and must not apply subjective complexity
+    weights. The service boundary is selected: planned Financial/Accounting
+    owns actual financial facts and context/time cost aggregates; Economics
+    consumes them for planning-specific estimates. See
+    [the service specification](OPERATIONAL_ECONOMICS_SERVICE.md). Exact
+    source-system mappings, aggregate dimensions/formulas, per-scope
+    estimate formulas/fields, freshness rules, read-model dimensions, and
+    production message details remain open;
+    (f) evidence-backed technical criteria and their ordering for LA-
+    destined Load/Trio matching and remaining-capacity allocation; remaining
+    conflicts across sole stages and any strong resource-review hold that
+    blocks final Assignment activation; and (g) the authoritative
+    route-mileage source and multi-Load chain accounting for the cumulative
+    3,400-mile away-trip limit, farther-away test, and exemption/reset at LA
+    departure/return.
+
+    Before allocator implementation, define CC rejection and stale-snapshot
+    handling. Distinguish transient technical failures, business capacity
+    conflicts, and changed source revisions. Recommended starting behavior:
+    retry transient failures at most twice after the initial idempotent
+    request; do not retry an unchanged business-conflict claim, but refresh
+    capacity and reallocate; restart the cycle from a fresh snapshot if
+    cycle inputs become stale, rather than mixing revisions.
+
+    D-527 settles the Reservation lifecycle and guarded Assignment
+    activation: create new Reservations in non-morning scheduled or
+    authorized exception allocation cycles, replace only through CC's
+    atomic operation, and activate Assignments only from valid confirmed
+    Reservations after exact-revision guard and hard-gate checks. The
+    morning cycle remains forecast-only for new capacity. Other matching
+    details above remain open prerequisites, not a numeric or executable
+    matcher specification.
+
+    Defer market-competition tiers until operating data identifies the zones
+    in which the company concentrates its work. Do not invent trip-duration
+    bands; use actual duration only where schedule or feasibility requires it.
+
+    Existing secondary candidate gates and planning criteria to review when
+    finalizing category filters are: Carrier/equipment/driver suitability;
+    current readiness and legal/safety facts; pickup/delivery geography and
+    route; appointment windows, schedule buffer, calibrated stop times and
+    long-trip rest-place capability; load dimensions and weight within the
+    initial planner's stated limits; complete resource-window capacity;
+    the 14-day horizon and five-Load chain limit; minimum pickup notice; and
+    strong explicit driver/resource objections. D-499's resource-plan
+    ranking—appointment buffer, deadhead/repositioning, valid preferences,
+    unnecessary changes and segments, then stable IDs—applies only among
+    hard-gate-passing plans and is not itself the new Load/Trio benefit score.
+    D-517's 100-mile replacement-Load deadhead allowance remains a separate
+    recovery rule.
+
+    D-517 selects the initial `America/Los_Angeles` schedule, four daily
+    allocation times at 10:00, 13:00, 16:00, and
+    19:00, followed by the next-day 07:00 closing/morning run; a 15-minute
+    preference cutoff applies to allocation cycles. D-521 configures the
+    sequence for all seven days, including holidays unless an explicit
+    operation-calendar closure applies. The 100-mile replacement-load
+    deadhead limit remains.
+    D-522 sets a four-hour minimum pickup notice for both scheduled and
+    emergency cycles and marks Loads with under four hours to the fulfillment
+    deadline as `EMERGENCY` in the morning run; this label does not waive
+    pickup notice. The authoritative Load field/source for fulfillment
+    deadline and missing-deadline behavior still require definition. D-527
+    routes zero-technically-feasible unassigned Loads with under 72 hours
+    to deadline externally at the first daily cycle, and technically
+    feasible Loads still unassigned after the 19:00 cycle externally for
+    next-morning follow-up. Under
+    D-523, an authorized dispatcher requests an
+    emergency cycle only when waiting for the next scheduled cycle would miss
+    the latest-safe planning time; an area supervisor approves, with the
+    chief supervisor as fallback. The four-hour minimum is not waived.
+
+    D-518 selects Trimble Maps / PC*Miler as the initial source behind the
+    provider-neutral route adapter. Representative-lane and actual-outcome
+    validation, vehicle/load profile completeness, and immutable request/
+    response provenance must be demonstrated before route-dependent
+    automated finalization. Routing output is not legal or safety authority.
+    D-519 selects calibration from the company's completed-trip history,
+    with versioned assumptions and dispatcher review until the evidence is
+    sufficient. The history cohort, stop categories, calibrated values, and
+    evidence sufficiency must still be established and approved.
+
+    D-520 selects manual evidence review and defers live integrations for
+    the initial planning-critical Fleet Readiness catalogue. The fact-by-fact
+    definitions, authoritative sources, verifiers, evidence references,
+    validity periods, revision/freshness rules, and consuming gate behavior
+    remain to be completed under item 15. Obtain qualified authoritative
+    review before enabling legal or safety gates. Missing, stale, invalid, or
+    superseded facts remain fail-closed; do not treat an aggregate Carrier
+    flag as proof.
+
+    D-524 selects zero hard-gate violations and zero double commitments,
+    deterministic fixtures for the approved matching policy, representative
+    historical replay,
+    and nominal/failure/recovery scenarios as Dispatch enablement evidence.
+    Define and record the replay cohort, results, known limits, and any
+    operational-quality thresholds before enablement. The external
+    contractor offer/acceptance/commitment lifecycle and commercial cutoff
+    remain outside this B4 increment; unselected Loads must not be handed
+    off or double-committed. Do not claim regulatory compliance or complete
+    trailer packing from the initial matching policy.
+
+    D-525 selects sandbox checks followed by a read-only Trimble shadow pilot,
+    up to 24 months of completed-trip history stratified by stop/work
+    category and season, reviewable Fleet fact groups with every dependent
+    gate held closed until the complete catalogue is approved, and an
+    initial replay of up to 12 representative months stratified by season
+    and operating conditions. These methods do not satisfy the evidence
+    gates by themselves. Actual route outcomes, adequate categorized trip
+    samples, approved authoritative facts, and replay results/limitations
+    remain to be established and documented before enablement. Under D-526,
+    report replay metric baselines and coverage first; Dispatch owners must
+    approve numeric operational-quality thresholds before enablement.
+    The Dispatch Planning scaffold can capture offline provider request/
+    response provenance and freeze the hard-gate candidate set, but does not
+    perform network calls or matching. Before implementing the allocator,
+    define a deterministic requirement-level partition for strict-subset
+    feasible-Trio sets when incomparable sets interleave strict-subset
+    relationships; the current statement that all incomparable sets share
+    a level does not uniquely define such a partition for every graph.
+
+    Route-source validation, service-time calibration, the full Fleet fact
+    catalogue, and replay evidence block dependent automated planning, not
+    the independent Capacity Commitment reservation lifecycle, platform
+    foundation, or unrelated service work. The local Capacity Commitment
+    deployment/runtime wiring and recovery checks are implemented; production
+    deployment and operational qualification remain separate enablement gates.
+
 22. **Execution and evidence production controls:** D-503 and D-512 plus the
     [Execution/evidence schema baseline](TECHNICAL_WORKFLOW.md#execution-and-evidence-relational-schema)
     settle the logical records, integer handling-unit quantity
@@ -582,8 +726,9 @@ the unresolved details.
 
 ## Other open design
 
-- Same-day emergency and after-hours authority; detailed short/long and
-  outbound/return-home policy.
+- Same-day emergency and after-hours authority; the detailed
+  complexity-, zone-, and mileage-aware matching policy and its prerequisites in
+  D-527 and D-528.
 - Preference strength, objection response coverage, and human-review
   conversation and disposition.
 - Exact RabbitMQ exchange/queue names, per-message bindings and ACL matrix,

@@ -10,15 +10,17 @@ GraphQL/Federation implementation.
 
 ## Current specifications
 
-| Service               | Specification                                     | Coverage                                                                                                                                       |
-| --------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Load                  | [OpenAPI](./load.openapi.yaml)                    | Booking submissions, Load reads and revisions, and cancellation requests.                                                                      |
-| Load                  | [AsyncAPI](./load.asyncapi.yaml)                  | Load-owned facts, Customer booking-fact/watermark consumption and reconciliation, and cancellation-request snapshot exchange.                  |
-| Counterparty Registry | [AsyncAPI](./counterparty-registry.asyncapi.yaml) | Sequenced Customer booking facts, completeness watermarks, and snapshot reconciliation consumed by Load; other Registry contracts remain open. |
-| Execution             | [OpenAPI](./execution.openapi.yaml)               | Evidence-upload intent, finalization, and status operations.                                                                                   |
-| Execution             | [AsyncAPI](./execution.asyncapi.yaml)             | Planned-Execution cancellation exchange; other Execution messages remain open.                                                                 |
-| Capacity Commitment   | [AsyncAPI](./capacity-commitment.asyncapi.yaml)   | Reservation, confirmation, full release, and complete replacement messages.                                                                    |
-| Dispatch Planning     | [AsyncAPI](./dispatch-planning.asyncapi.yaml)     | Planning/cancellation interactions, Assignment facts, and Capacity Commitment interactions currently specified in the shared guide.            |
+| Service               | Specification                                     | Coverage                                                                                                                                                |
+| --------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Load                  | [OpenAPI](./load.openapi.yaml)                    | Booking submissions, Load reads and revisions, and cancellation requests.                                                                               |
+| Load                  | [AsyncAPI](./load.asyncapi.yaml)                  | Load-owned facts, Customer booking-fact/watermark consumption and reconciliation, and cancellation-request snapshot exchange.                           |
+| Counterparty Registry | [AsyncAPI](./counterparty-registry.asyncapi.yaml) | Sequenced Customer booking facts, completeness watermarks, and snapshot reconciliation consumed by Load; other Registry contracts remain open.          |
+| Execution             | [OpenAPI](./execution.openapi.yaml)               | Evidence-upload intent, finalization, and status operations.                                                                                            |
+| Execution             | [AsyncAPI](./execution.asyncapi.yaml)             | Planned-Execution cancellation exchange; other Execution messages remain open.                                                                          |
+| Capacity Commitment   | [AsyncAPI](./capacity-commitment.asyncapi.yaml)   | Reservation, confirmation, full release, and complete replacement messages; local PostgreSQL owner implementation is in `services/capacity-commitment`. |
+| Dispatch Planning     | [AsyncAPI](./dispatch-planning.asyncapi.yaml)     | Planning/cancellation interactions, Assignment facts, and Capacity Commitment interactions currently specified in the shared guide.                     |
+| Operational Economics | [OpenAPI](./operational-economics.openapi.yaml)   | Internal estimate-record persistence scaffold only; calculation models and production security are unresolved.                                          |
+| Operational Economics | [AsyncAPI](./operational-economics.asyncapi.yaml) | Target-draft independent estimate updates and bounded read request/outcomes for Dispatch; not implemented.                                              |
 
 Specifications explicitly mark incomplete inventory or operation details
 with `x-contract-status` and `x-unresolved-contracts`. Do not interpret a
@@ -50,10 +52,12 @@ partial file as authorization to invent undocumented behavior.
 
 ## Remaining contract work
 
-No OpenAPI specification has been published for HTTP service owners other
-than Load and Execution; their route inventories remain open, and no HTTP
-surface should be inferred from the logical service boundary alone. The
-shared register also tracks remaining message inventories and payloads,
-general snapshot reconciliation messages, and operation-specific behavior.
-Add an owner specification only when its operations or durable messages are
-defined; update the relevant open item and this index in the same change.
+The Operational Economics OpenAPI file documents an internal persistence
+scaffold, not a production estimate-calculation API. Its AsyncAPI file is a
+target draft: estimate-update events and batch reads are selected, but source
+subscriptions, detailed payloads, and deployment topology are not implemented
+or approved. Other HTTP owners beyond Load, Execution, and this internal
+scaffold still have open route inventories; no HTTP surface should be
+inferred from the logical service boundary alone. The shared register also
+tracks remaining message inventories and payloads, general snapshot
+reconciliation messages, and operation-specific behavior.

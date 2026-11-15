@@ -650,11 +650,15 @@ Exact tender payload remains open.
    Apply the initial hard gates, candidate ranking, profile classification,
    and contention rules in the
    [Dispatch Planning policy](../contracts.md#initial-dispatch-planning-policy).
-   Apply D-511 for dispatcher Load ranking, the rolling 14-day/five-Load
-   reservation chain, the LA-local ranking cycle, preference-driven
-   reallocation, and immediate tail review after cancellation or
-   infeasibility. D-499's automated resource-candidate ranking does not
-   replace dispatcher ranking of Loads.
+   Apply D-511 for the rolling 14-day/five-Load reservation chain and
+   immediate tail review after cancellation or infeasibility. Apply D-527
+   for category-specific matching after the remaining D-528 prerequisites
+   are approved: authoritative requirement/capability mappings, rank-point
+   and tie rules, policy-stage precedence, fallback tie-breaks, deadline
+   source, and route-mileage/chain accounting. D-527 already settles the
+   system/dispatcher blend, matching-index formula, and Reservation
+   lifecycle/timing. D-499's resource-plan ranking is distinct from the
+   Load/Trio matching objective.
    An early-ended Trip or per-Load Execution publishes an actual closeout
    location that immediately triggers suffix revalidation and replanning
    from that location. Minimize feasible deadhead, but do not treat missing

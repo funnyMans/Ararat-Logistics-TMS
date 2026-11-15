@@ -259,11 +259,15 @@ history. Keep these concepts separate:
 
 ## Outside the approved baseline
 
-The initial 12-hour operational trip classification, driver-specific
-return-home classification, hard-gate categories, and lexicographic
-resource-candidate ranking are defined in D-499. Dispatcher Load ranking,
-the four directional/duration profiles, rolling reservation limits, safe
-reallocation, and chain-tail recovery are defined in D-511 and the
+The hard-gate categories and resource-plan ranking are defined in D-499.
+D-527 sets the D-515 LA CSA as the sole homeland reference and uses cargo
+complexity, existing pickup/delivery zones, and route mileage for matching.
+It does not use driver-specific home regions or trip-duration bands; actual
+duration remains available for schedule and feasibility calculations.
+Market-competition categories are deferred until operating data shows zone
+frequencies. The rolling reservation limit, safe reallocation, and
+chain-tail recovery remain in D-511; matching details and implementation
+prerequisites are recorded in D-527/D-528 and the
 [planning contract](../contracts.md#initial-dispatch-planning-policy).
 D-500 defines provider-neutral route-estimate provenance, the 15-minute
 review acknowledgement/escalation rule, and a fail-closed boundary for
