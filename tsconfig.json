@@ -4,6 +4,11 @@
   "references": [
     { "path": "./packages/common" },
     { "path": "./packages/identity-token" },
-    { "path": "./services/api-gateway" }
+    { "path": "./services/api-gateway" },
+    { "path": "./services/load-service" },
+    { "path": "./services/counterparty-registry" },
+    { "path": "./services/capacity-commitment" },
+    { "path": "./services/dispatch-planning" },
+    { "path": "./services/operational-economics" }
   ]
 }

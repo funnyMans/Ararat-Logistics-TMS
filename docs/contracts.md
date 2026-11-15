@@ -1028,9 +1028,11 @@ for the same Load revision.
 
 The command outcome reports durable receipt only. `ACCEPTED` means Dispatch
 has recorded the command for processing; a business refusal is a final
-`REJECTED` outcome with a domain-owned reason code. Planning progress,
-unassigned outcomes, and active Assignment decisions are reported through
-separate versioned facts.
+`REJECTED` outcome with a domain-owned reason code. CC reserve/confirm and
+replacement outcomes record each cycle's durable Reservation result.
+Unassigned outcomes and active Assignment decisions are reported through
+their separate versioned facts; a confirmed Reservation is not an active
+Assignment.
 
 Publish the receipt as message type `dispatch.load.plan.outcome`, routing key
 `dispatch.load.plan.outcome.v1`, schema version `1.0.0`, from
@@ -1145,10 +1147,222 @@ A candidate plan is feasible only when all of the following hold:
    orientation, or prove stack strength. Such packing claims require a later
    validated capability.
 
-### Candidate ranking and preferences
+For every exact Load revision and participating Trio, Dispatch Planning
+persists one candidate evaluation in the planning-attempt snapshot. The
+record identifies the Load and Trio, the owner revisions used, each hard
+gate's result and any failure reason, the applicable category labels, and
+the system recommendation and dispatcher inputs used by the selected
+strategy. For a given Load, the feasible-Trio list is the set of candidate
+evaluations with every hard gate passed. This list belongs to Dispatch
+Planning's durable attempt record; it is not owned by Load or CC and is not
+an independent service. Build and freeze this feasible set before matching.
+A failed-gate pair is excluded, not merely penalized.
 
-Apply ranking only among candidates that pass every hard gate. Use this
-lexicographic order; a lower-priority criterion cannot outweigh a
+### Load/Trio matching order
+
+For each planning cycle, use a frozen set of hard-gate-passing Load/Trio
+pairs and apply the policy profile selected for each Load category. The
+objective is a balanced allocation, not maximum reservation coverage. Do
+not use maximum coverage as a universal primary objective or infer that an
+unmatched Trio must receive a Load. Each Load can be reserved for at most
+one Trio; capacity protected by a confirmed Reservation is unavailable
+unless an authorized replacement is selected and atomically confirmed by
+CC.
+
+Classify Loads using the four-level requirement-complexity scale in
+[D-527](trucking/DECISIONS.md#d-527--use-complexity--zone--and-mileage-aware-balanced-matching):
+Level 1 Standard; Level 2 Specialized Equipment; Level 3 Special License /
+Endorsements; and Level 4 Heavy Haul / Oversize. Assign the allocation
+level as the highest level required by any driver, tractor, trailer/
+equipment, securement, cargo, permit, or route requirement. Preserve each
+requirement as a separate capability and eligibility predicate. The level
+sets allocation priority; it is not proof of Trio suitability. Requirements
+accumulate for Loads combining categories, and higher levels do not imply
+lower-level endorsements or unrelated capabilities.
+
+Classify each Trio by the highest level for which its complete
+driver/tractor/trailer combination is qualified and available; this is its
+primary level. Record all other independently supported levels as auxiliary
+levels in descending complexity order. Do not infer auxiliary capabilities
+from the primary level. Process Load levels from highest to lowest. A level
+is complete when all its same-level Trios have been matched to same-level
+Loads, its available Loads are exhausted, or remaining Loads have no
+matching same-level Trio. Only then may higher-level Trios compete for
+surplus at that level; among higher-level candidates, the primary level
+closest to the Load level has priority. Once a level and its surplus are
+resolved, an unmatched higher-level Trio may descend to its next verified
+auxiliary level. Tentative selections consume cycle capacity before later
+stages. Confirmed Reservations remain protected; replacement requires CC's
+atomic outcome.
+
+Also classify by the existing pickup and delivery zones and route mileage.
+The company's sole homeland is the `la` leaf defined by D-515: the Los
+Angeles–Long Beach five-county CSA. Loads delivering within this boundary
+are LA-destined (homeward); Loads picked up within it are LA-originating;
+Loads with both endpoints inside it are local homeland work. Do not assign
+separate home regions to drivers or create a narrower LA Market boundary.
+Use mileage with the existing zones to represent trip length; do not
+introduce duration bands. Defer market-competition categories until
+operating data identifies the zones in which the company concentrates its
+work. The policy router selects the applicable strategy from cargo level,
+geographic zone, and mileage inputs; no universal matching score is
+presumed.
+
+Determine sole-qualified and sole-interested status once from the initial
+cycle candidate matrix and submitted claims. Do not recalculate either
+status after other selections make a candidate the last one remaining.
+Process sole-qualified opportunities first and sole-interested opportunities
+second, before cross-referencing the remaining matrix. A sole-qualified
+Load has exactly one technically qualified Trio; that Trio may claim it
+without competition if it remains on the dispatcher's submitted list.
+Removal excludes it from this sole-qualified pass, but is not a permanent
+exclusion from fallback. A sole-interested Load is claimed by exactly one Trio in
+the initial submitted lists and that Trio passes every hard gate. A Load
+initially claimed by multiple Trios is not sole-interested even if later
+selections leave one claimant. Sole selections are preliminary, not
+CC-confirmed Reservations or Assignments. They do not bypass the
+same-level-before-surplus sequence or applicable reserved-Trio priority. If
+one Trio is sole-qualified for multiple Loads but its resource windows or
+chain capacity allow only one, select the Load with the highest combined
+system/dispatcher rank score. Sole selections are provisional inputs to the
+subsequent matrix comparison; a Trio may receive a different Load, returning
+its earlier sole-selected Load to the available pool.
+
+The system presents each Trio an ordered list of up to ten feasible Loads,
+or fewer when fewer suitable Loads exist. Dispatchers may remove or reorder
+proposed Loads but cannot add Loads. For a contested Load, normalize each ordering independently to linear
+0-to-100 rank points (top item 100, bottom item 0; a one-item list scores 100) and calculate the combined score as 60% system points plus 40%
+dispatcher points. Use the original system list for system rank and the
+dispatcher-submitted list for dispatcher rank. The system ordering uses the
+pair's matching index; do not add the raw index directly to dispatcher
+points. Tie handling within an ordering remains to be defined. A 10% score-
+margin rule and stop-count, delivery-day, or HOS tie-breaks are deferred to
+a future version. The original system list remains available
+for acceptance. An empty submitted list means acceptance of that original
+proposal; a customized version can be confirmed only while at least one
+proposed Load remains. If editing removes every Load, accepting the original
+system proposal is the only action.
+
+After the sole passes, cross-reference remaining lists and prioritize the
+highest combined rank-point score for contested Loads, subject to Load
+uniqueness, resource availability, chain limits, and complexity ordering.
+While submitted lists still have unaccounted Loads, score priority governs
+even if another allocation could cover more Trios. A list is exhausted for
+an unmatched Trio when every Load on its submitted list is already
+accounted for in the cycle reserve. At that point, the remaining pool may
+include technically eligible Loads removed from dispatchers' lists;
+removal is a preference/claim choice, not a permanent prohibition.
+Automatically submit a selected fallback plan to CC without another
+dispatcher confirmation, provided all hard gates pass. First maximize the
+number of additional eligible allocations; among equally large
+allocations, select the variation with the highest aggregate signed
+matching index. The index informs this comparison but does not replace
+maximum coverage. A preliminary reserve is not a CC-confirmed Reservation
+or an active Assignment.
+
+Each Trio may specify up to three preferred destination states in
+descending order of preference. These preferences do not apply to Loads
+whose destinations are within the LA CSA; however, the system/dispatcher
+60/40 rank score still applies to LA-destined Load lists. For other
+destinations, retain ordered destination-state preferences in the
+applicable system recommendation. After the preceding class,
+sole-candidate, and dispatcher-list decisions, allocate remaining capacity
+by maximizing the number of additional eligible Trio/Load matches; among
+equally large allocations, select the variation with the highest aggregate
+signed matching index. This coverage objective applies only to the
+remaining-capacity stage and does not replace preceding priority rules.
+
+The cycle-specific preference list is exhausted when every Load the
+dispatcher sought for a Trio has been reserved for another Trio or has
+otherwise become unavailable during the cycle. The system then makes a
+preliminary selection from remaining available, eligible Loads. Use
+preferred destination states where applicable; compare remainder
+allocations by maximum coverage and then aggregate signed matching index.
+This selection is not a CC Reservation or active Assignment and does not
+bypass hard gates, capacity limits, or explicit avoid-preference review
+holds. If exactly one eligible internal Load is available to a Trio, it
+may be presented as a potential Reservation without requesting a ranked
+list.
+
+For each Load level, first allocate to technically eligible same-level
+Trios. Only after that level is complete may higher-level Trios compete for
+surplus; among those candidates, the primary level closest to the Load
+level has priority. An already-reserved Trio is considered only when
+eligible unreserved Trios at the same or applicable higher level are
+unsuitable for the specific Load for cargo-related reasons, not merely
+because they lose a preference or score comparison. Among eligible
+already-reserved Trios, prioritize those holding a Load below their primary
+class before those holding a Load at their primary class. A class label
+never substitutes for checking individual Load requirements. Preserve
+existing Reservations until a complete replacement is atomically confirmed.
+
+The company-benefit recommendation requires a cargo profitability model.
+Version one uses auditable technical and monetary inputs only, without
+subjective complexity penalties or unvalidated coefficients. Report
+estimated revenue, directly attributable variable cost, contribution
+(revenue minus variable cost), contribution margin as a percentage of
+revenue, and contribution per total operational mile. For each feasible
+Load/Trio plan, calculate contribution per committed hour and contribution
+per total operational mile, then multiply those two rates as the matching
+index. Committed hours include deadhead to pickup at the initial 50-mile-
+per-hour estimate and two hours for unloading; dead zones are excluded from
+the index and may be considered later as a tie-breaker. Total operational
+miles include deadhead and the shipment route. Use the same plan contribution
+as the numerator for both rates. If both rates are positive, the index is
+their product; if both are negative, the index is the negative of the
+product of their absolute values; if either is zero, the index is zero.
+Opposite signs indicate inconsistent inputs requiring review. Preserve and
+show the underlying rates and contribution. A negative index is not itself a
+hard-gate failure; a negative-contribution plan may still be considered
+where it avoids a greater operational loss. Exclude fixed monthly overhead
+from the matching index and allocate it separately for accounting. Include
+loaded and empty/repositioning miles in the operational-mile denominator
+when they are part of the proposed plan. The initial cost inventory covers
+fuel and fuel taxes; driver wages and employer payroll costs; tolls and
+route-specific permits/escorts; and directly attributable equipment costs
+such as maintenance, tires, and reefer fuel where applicable. Revenue inputs
+include contracted linehaul and approved accessorials, net of documented
+customer or broker deductions. Record whether each value is quoted,
+estimated, or actual, its source, and its effective time; avoid double
+counting.
+
+Variable-cost input sources and estimation/allocation methods, validation
+against company accounting and operating data, and tax-credit treatment
+remain to be defined. Fixed monthly overhead is excluded from the matching
+index and handled in the separate accounting cost model. Do not mix
+execution-complexity or other non-monetary factors into version-one monetary
+profitability; add them only in a later version with measurable definitions
+and approved coefficients. The planned Financial/Accounting service owns
+financial actuals and normalized cost aggregates/rates by approved time
+periods and operating contexts. Economics consumes these versioned outputs
+and owns independent Load, equipment, and driver/team planning estimates;
+Dispatch owns Load/Trio pairing and its combined matrix. See the
+[Operational Economics service specification](trucking/OPERATIONAL_ECONOMICS_SERVICE.md)
+for the selected lifecycle, replaceable-adapter/test-fixture boundary, and
+remaining source, formula, and message-contract decisions.
+
+For LA-destined Loads, use technical matching criteria regardless of the
+relative counts of eligible Loads and Trios. The system/dispatcher combined
+rank score is weighted 60/40 for these Loads as well: the system's technical
+and company-benefit ordering contributes 60%, and the dispatcher's ordering
+contributes 40%. Do not use preferred destination states for LA-destined
+Loads. Define and validate the specific technical criteria and ordering
+before implementation. Non-LA-to-non-LA work has lower baseline priority
+than LA-destined work and may enter the backup queue only when the approved
+benefit and applicable preference results place it highest under the
+applicable strategy. External offers and commitments remain governed by
+their separate workflow; never double-commit a Load.
+
+Record whether an unmatched Trio was ineligible, outside the selected
+category or cycle, outranked under the approved objective, or blocked by
+capacity. Record the category labels, policy version, candidate facts,
+preference inputs, system recommendation, calculated objective components,
+and selection reason for reproducibility.
+
+### Resource and route candidate ranking
+
+Apply the following separate ranking only among resource plans that pass
+every hard gate. A lower-priority criterion cannot outweigh a
 higher-priority one:
 
 1. Maximize the minimum schedule buffer between estimated arrival and the
@@ -1182,34 +1396,163 @@ review timer expires.
 ### Planning horizon, profiles, and contention
 
 Evaluate Loads only when pickup falls within 14 days of the planning time.
-Each trio may have no more than five future Load reservations in its
-sequential chain. A new slot opens only after the earliest reserved Load is
-assigned and Execution records its actual pickup. Loads booked beyond the
+Each trio may have no more than five future Load positions in its
+Dispatch planning chain. A new slot opens only after the earliest planned
+Load is assigned and Execution records its actual pickup. Loads booked beyond the
 rolling horizon, or Loads beyond a full five-Load chain, remain booked but
 are not immediately ranked or reserved for that trio. The five-Load/14-day
 policy is distinct from CC's temporary five-minute `HELD` state.
+Cycle-selected plans become persistent CC `CONFIRMED` Reservations. A
+temporary five-minute `HELD` state is used only while creating or replacing
+a Reservation; it is not retained between cycles. Confirmed Reservations
+protect capacity across cycles and remain distinct from active Assignments.
 
-Dispatcher ranking of Loads is separate from D-499's automated ranking of
-feasible resource candidates. A newly eligible booked Load within the
-planning horizon creates ranking opportunities for dispatchers managing
-feasible trios, and the responsible dispatchers are notified. A dispatcher
-may rank eligible booked Loads for their
-managed trio, but only the final Load in the reserved chain may be
-re-ranked. With four future reservations, the fifth is the only next Load
-position eligible for ranking; while five are reserved, do not rank or
-reserve a sixth. First use currently unassigned feasible capacity to maximize
-coverage of booked Loads. Then evaluate preference-driven reallocation against the
-complete affected chain. Reallocate automatically only when the ranked
-alternative is feasible and all other valid Load coverage and hard gates
-remain intact. A material company-benefit alternative not ranked by the
-dispatcher may be offered for explicit acceptance; decline or no response
-preserves the current reservation.
+Dispatcher ranking of Loads, the system's matching-index ordering, and
+D-499's ranking of feasible resource plans are distinct inputs. The system
+proposes up to ten feasible Loads per Trio; the responsible dispatcher may
+remove or reorder them but may not add Loads. Normalize system and
+dispatcher rankings to common rank points and combine them at 60/40,
+respectively. The original list remains available for acceptance. An empty
+submitted list means acceptance of the original proposal. A customized
+version is confirmable only while at least one proposed Load remains.
+Each Trio may specify up to three preferred destination states, except that
+these do not apply to destinations within the LA CSA. The list is exhausted
+during a cycle when every Load sought for an unmatched Trio is already
+accounted for in the cycle reserve. The remaining allocation maximizes
+additional eligible matches; among equal-coverage variations, select the
+highest aggregate signed matching index. These rules do not replace earlier
+priority rules.
+The selection is not a CC Reservation or active Assignment. A strong
+explicit driver or resource
+avoid-preference still triggers the D-08 review hold and cannot be silently
+overridden. Resource selection remains subject to D-499.
+Team/driver championship standings do not affect eligibility or allocation
+in this version.
+The existing five-Load limit and final-chain-Load re-ranking rule remain in
+force; no sixth Load is ranked or reserved while the chain is full.
+Team and driver championship standings are maintained separately from both
+Load rankings and are recognition/compensation inputs only in the current
+version. They do not change eligibility, shortlist membership, reservation,
+or Assignment priority.
 
-Do not defer same-day Loads for rankings. For next-day Loads booked by 14:00
-local time in `America/Los_Angeles`, collect rankings through 16:00 local
-time and then plan. A Load booked after 14:00 may wait until the next normal
-planning cycle only if that delay preserves feasibility; otherwise plan
-immediately without waiting for ranking.
+Run normal matching in multiple scheduled, bounded cycles using a
+consistent snapshot of READY Load revisions, dispatcher preferences,
+system recommendations, current owner facts, and active CC Reservations.
+Recalculate candidate feasibility when a relevant fact changes and before
+freezing cycle inputs. During matching, consume the frozen candidate set;
+do not repeat unchanged gate calculations inside the optimizer. If a
+relevant fact changes after the snapshot, refresh or stop the affected
+attempt rather than mixing revisions.
+
+The daily planning sequence begins with allocation at 10:00, continues at
+13:00, 16:00, and 19:00, and concludes with the 07:00 morning run the
+following day. The morning run processes same-day Assignments only for
+existing CC-confirmed Reservations, refreshes the available-Load supply,
+and runs a read-only maximum-coverage forecast. The next allocation
+sequence starts at 10:00. The morning run never creates or replaces a
+Reservation.
+
+The first 10:00 cycle identifies unassigned Loads with no technically
+feasible Trio after current hard-gate evaluation. If fewer than 72 hours
+remain until the Load's required fulfillment deadline, immediately refer
+the Load to an external broker or dispatcher. A Load with unknown or stale
+eligibility evidence is not deemed technically infeasible solely on that
+basis; keep it visibly blocked for evidence resolution. Technically
+feasible Loads that remain unassigned through the allocation rounds are
+referred externally after the 19:00 cycle for follow-up beginning the next
+morning. An external referral/release grants the designated external
+broker/dispatcher access to offer the Load; it does not remove it from
+internal allocation cycles. At each cycle's allocation snapshot, a released Load remains
+eligible for the internal fleet unless it is held by an internal
+Reservation or recorded as assigned to a contractor; a newly available,
+eligible internal unit may claim it through that cycle's allocation. An
+external offer or active negotiation alone is not an assignment. If an
+internal Reservation is confirmed before contractor assignment, revoke the
+external broker's access and require any outstanding offer or negotiation
+to stop, even if the broker has already circulated the offer. A referral is not itself an
+external commitment; coordinate access changes so internal and external
+parties cannot commit the same Load simultaneously.
+
+The morning forecast estimates the maximum number of Loads that could be
+reserved by maximizing feasible coverage under the current snapshot and
+policy gates. It creates no claim, Reservation, or Assignment and is not a
+guarantee of actual coverage. Report forecast coverage and fleet capacity
+at risk of remaining idle to supervisors. The chief supervisor responsible
+for the LA homeland receives homeland-specific forecast coverage and any
+gap between desired and technically feasible outcomes, to guide brokers on
+urgent Load needs. During the morning run, mark a Load `EMERGENCY` when
+fewer than four hours remain until its required fulfillment deadline. This
+label triggers visibility and escalation only; it does not waive the
+four-hour minimum pickup notice, hard gates, or the Reservation/Assignment
+lifecycle. Assignment activation for existing Reservations still requires
+current validation, a valid confirmed CC Reservation, and guarded
+finalization. Later allocation cycles may consider newly available Loads
+and policy-authorized replacement opportunities. A
+replacement preserves the existing confirmed Reservation unless CC
+atomically confirms the complete new resource-time set. A failed
+replacement leaves the old confirmed Reservation active. Do not retain
+CC's five-minute `HELD` state between cycles, start a separate allocation
+for every arriving Load, or cascade through tentative choices using an
+in-memory reservation.
+
+The allocation cycles run at 10:00, 13:00, 16:00, and 19:00 in configured
+local time, with preference submission closing 15 minutes before each
+cycle. The following 07:00 run closes the preceding allocation sequence:
+it processes Assignments from existing confirmed Reservations, refreshes
+available Loads, and provides the read-only maximum-coverage forecast. No
+CC Reservation is created or replaced in that run. The next allocation
+sequence begins at 10:00. The 19:00 cycle may use
+the approved system recommendation when dispatchers are unavailable. Loads
+arriving after the applicable cycle cutoff wait for the next cycle unless
+an authorized bounded exception is required to meet the configured
+latest-safe planning time. Each operation must configure an IANA time zone,
+calendar, cutoffs, and minimum driver-notice period before automated
+finalization is enabled.
+
+Same-day or emergency work may use an immediate, bounded exception cycle
+only when waiting for the next scheduled cycle would miss the operation's
+configured latest-safe planning time. An authorized dispatcher must approve
+the exception and record its reason, approver, and one-time authorization.
+Urgency does not bypass hard gates. Without authority or minimum safe
+notice, leave the Load unassigned and surface it for human action or
+outside-carrier disposition. Safety invalidation and
+cancellation/early-closeout validation of an unstarted chain remain
+immediate, but new matching or replacement outside an exception cycle waits
+for the next scheduled cycle.
+
+After a non-morning scheduled allocation cycle or separately authorized
+exception cycle selects a plan, Dispatch requests a complete resource-window
+Reservation from CC. An initial claim is protected only after CC's temporary
+five-minute `HELD` claim is confirmed as persistent `CONFIRMED`; the hold
+does not persist between cycles. Forecasts, selected pairs, and unconfirmed
+proposals do not reserve capacity. Replace an existing Reservation only for
+an approved reallocation, upgrade, or recovery action, using CC's atomic
+complete-claim replacement; on rejection, the prior confirmed Reservation
+remains active. Immediate safety, cancellation, and early-closeout events
+may invoke their defined recovery validation path, not the morning forecast.
+
+Assignment finalization is separate from Reservation creation. At pickup-
+day finalization or authorized early finalization, Dispatch revalidates the
+current Load revision, resource facts, and an existing confirmed CC
+Reservation; obtains the Load's exact-revision finalization guard; rechecks
+hard gates; and activates the Assignment only after those checks pass. Do
+not create a Reservation during finalization. If no valid confirmed
+Reservation exists, do not activate; return the work to an eligible
+allocation cycle or authorized exception cycle. A stale fact, changed Load,
+invalid Reservation, or failed guard produces no active Assignment and
+must be surfaced for recovery.
+Contention allows one refreshed allocation attempt for the affected
+connected Load/Trio set; a second rejection stops that set for the cycle.
+Stale facts and failed guards require refreshed owner evidence, not retries
+against the same snapshot. An interrupted Assignment activation preserves
+the confirmed Reservation for recovery.
+
+Each operation must configure a named local-time calendar with an IANA time
+zone, multiple normal cycle times, per-cycle cutoffs, a finalization time,
+and minimum preparation notice before pickup. Do not hardcode a universal
+clock time or treat after-hours arrival alone as an emergency. Automated
+finalization is disabled until a valid calendar and notice policy are
+configured.
 
 When a Load in a reserved chain is canceled or becomes infeasible, review
 the affected suffix immediately and preserve the valid prefix. First try
@@ -1217,9 +1560,10 @@ replacing the affected Load with a booked, unreserved Load with matching
 pickup and delivery areas within the approved deadhead allowance. If no
 replacement preserves feasibility, release the affected future tail and
 return the resulting trio capacity to planning. Never release completed or
-in-progress work as part of this recovery. The numeric deadhead allowance
-remains an explicit policy prerequisite; do not infer one from route
-estimates.
+in-progress work as part of this recovery. D-517 selects a 100-mile
+deadhead allowance. The initial route-estimate source remains unapproved, so
+do not enable route-dependent replacement or infer route mileage from an
+unapproved estimate.
 
 When a Trip or per-Load Execution ends earlier than planned, use the
 authoritative actual closeout location to immediately revalidate the
@@ -1232,14 +1576,27 @@ is available; require current owner facts before assigning new work.
 Customer pricing, responsibility, and commercial resolution remain with the
 broker and are not inferred by Dispatch Planning.
 
-Use the four composable policy profiles: outbound/return-home crossed with
-short/long duration. Outbound planning accounts for concentrated home-area
-capacity and competition, including fast decisions for short trips.
-Return-home planning may collect and compare suitable Loads over the
-available horizon before routing unsuitable work to a Contractor or outside
-Carrier. Long-trip feasibility includes required rest-place capability;
-short-trip feasibility accounts for the greater stop frequency. Profiles
-never relax hard eligibility, safety, schedule, or capacity gates.
+Select the matching strategy using cargo level, the existing pickup and
+delivery zones, and route mileage. The D-515 LA CSA is the single homeland
+reference: LA-destined, LA-originating, within-LA, and non-LA-to-non-LA are
+the matching direction categories. Do not configure driver-specific home
+regions or introduce trip-duration bands. Defer market-competition
+categories until operating data identifies the zones in which the company
+concentrates its work. Matching categories never relax hard eligibility,
+safety, schedule, notice, or capacity gates.
+
+For an away-trip chain that did not start in the LA CSA, calculate projected
+cumulative route miles from the chain's departure through the proposed next
+leg. Prohibit the next leg when it would take cumulative travel beyond 3,400
+miles and leave the Trio farther from the LA CSA than its current location.
+Previously traveled mileage counts toward the limit; the restriction is
+triggered only by a leg that exceeds the limit while moving farther away.
+A direct trip chain starting in the LA CSA is exempt, including multiple
+outbound stops before returning to the homeland, regardless of total
+outbound mileage. Returning to the LA CSA ends the chain; a later departure
+starts a new one. The authoritative route-mileage source and accounting
+for chain starts, stops, and return boundaries remain prerequisites to
+automation.
 
 Multi-Load Trip Plan consolidation considers only current `READY` Loads
 whose pickup windows overlap the evaluated plan's operational window and
@@ -1248,21 +1605,13 @@ Load must not invalidate an already active Assignment except through the
 bounded final-Load re-ranking and complete reservation-replacement
 workflow above.
 
-Compose Load requirements and Trip/segment operating profiles; do not infer
-legal or contractual eligibility from a profile label. `OUTBOUND` and
-`RETURN_HOME` are evaluated per assigned driver's recorded home-area policy.
-`SHORT` and `LONG` are evaluated from estimated elapsed time between the
-first planned pickup arrival and final planned delivery departure. Profile
-`SHORT` means no more than 12 elapsed hours; `LONG` means more than 12 elapsed
-hours. `RETURN_HOME` means the driver's final planned stop is within that
-driver's configured home-area boundary; otherwise, when a home area is
-configured, the profile is `OUTBOUND`. If the driver has no configured
-home-area boundary, do not assign either direction profile. These initial
-classification rules are versioned policy inputs and do not replace resource
-eligibility, appointment feasibility, or any legal hours-of-service
-determination. Record the applied profile and policy version in each
-attempt. Do not infer a home area from company headquarters or an assigned
-area.
+Use actual duration estimates for schedule and feasibility calculations
+where required, but do not classify matching groups by trip-duration bands.
+Use the LA CSA as the sole homeland reference; do not infer or configure
+driver-specific home regions. Record the geographic zones, route mileage,
+and matching policy version in each planning attempt. These inputs do not
+replace resource eligibility, appointment feasibility, or any legal
+hours-of-service determination.
 
 Operational profile labels do not define the system's supported fleet size,
 throughput, or service-availability target. Those measurable acceptance
@@ -1294,8 +1643,10 @@ Dispatch-owned per-Load `ownerRevision` advances independently of the Load
 revision.
 
 There is no separate planning-started or phase-progress fact. The durable
-`dispatch.load.plan.outcome` receipt confirms intake; business consumers
-receive terminal results.
+`dispatch.load.plan.outcome` receipt confirms intake. CC reserve/confirm and
+replacement outcomes record each cycle's durable Reservation result;
+unassigned outcomes and later Assignment activation remain separate
+business outcomes.
 
 The payload contains `loadId`, `loadRevisionId`, `loadRevisionNumber`,
 `basedOnLoadOwnerRevision`, `planningAttemptId`, and `reasons`. Each reason
@@ -1330,15 +1681,17 @@ unavailable.
 
 ## Active Assignment fact
 
-After Capacity Commitment confirms the reservation and Load finalization
-succeeds, Dispatch Planning publishes the terminal
+After the exact current Capacity Commitment Reservation is confirmed and
+Load finalization succeeds, Dispatch Planning publishes the terminal
 `dispatch.assignment.activated` fact using routing key
 `dispatch.assignment.activated.v1` and schema version `1.0.0`. The fact
 means the Assignment is operationally active, not merely created or pending.
 Its envelope follows the shared fact rules: `sourceService` is
-`dispatch-planning`, `causationId` identifies the CC reservation-
-confirmation outcome, and its Dispatch-owned per-Load `ownerRevision`
-advances independently of the Load revision. Preserve the planning
+`dispatch-planning`, `causationId` identifies the CC outcome that
+established the exact Reservation as `CONFIRMED` (a confirmation outcome
+for an initial Reservation or a replacement outcome for an upgrade), and
+its Dispatch-owned per-Load `ownerRevision` advances independently of the
+Load revision. Preserve the planning
 workflow's `correlationId` and optional `initiatingPrincipalId`. Omit
 `targetService` when publishing to multiple consumers.
 
@@ -1391,7 +1744,8 @@ There is no self-directed Assignment activation command or separate
 A business refusal emits the durable
 `dispatch.assignment.activation.rejected` fact, using routing key
 `dispatch.assignment.activation.rejected.v1` and schema version `1.0.0`.
-Its `causationId` references the CC reservation-confirmation outcome; it
+Its `causationId` references the CC outcome that established the exact
+Reservation as `CONFIRMED`; it
 preserves the workflow's `correlationId`. The payload contains
 `assignmentId`, `planningAttemptId`, `loadId`, a stable reason code, and a
 safe message, with optional structured details. Omit `targetService` if the
@@ -1418,12 +1772,14 @@ Within each gate, check existence before state and version consistency.
 
 ## Capacity reservation command
 
-After Dispatch Planning creates a feasible pending Assignment plan, it
-publishes `capacity.reservation.reserve` to Capacity Commitment, using
+After a Dispatch Planning cycle creates a feasible Trip Plan, it publishes
+`capacity.reservation.reserve` to Capacity Commitment for an initial
+Reservation, using
 routing key `capacity.reservation.reserve.v1` and schema version `1.0.0`.
 The envelope uses `sourceService: "dispatch-planning"` and
 `targetService: "capacity-commitment"`; its `causationId` references the
-`dispatch.load.plan` command that started the planning intent. The command
+durable planning-cycle trigger or intent that authorized this reservation.
+The command
 identifies `planningAttemptId`, `tripPlanId`, `tripPlanRevision`, and the
 complete ordered segment set. Each segment has a one-based contiguous
 `sequenceNumber`, `startStopId`,
@@ -1468,10 +1824,19 @@ Set `replanMayResolve: true` for `RESOURCE_UNAVAILABLE`,
 `SEGMENT_TIME_CONFLICT`, and `INCOMPATIBLE_RESOURCE`. Set it to `false` for
 `STALE_READINESS_REVISION` and `TRIP_PLAN_REVISION_STALE` until Dispatch
 refreshes the readiness projection or creates a current Trip Plan revision.
-After Load finalization guards pass, Dispatch asks CC to transition the hold
-from `HELD` to `CONFIRMED` immediately before activating the Assignment. A
-failed finalization releases the hold. An interrupted Assignment activation
-preserves the confirmed reservation for recovery against the same plan.
+After a successful initial reserve outcome, Dispatch confirms the temporary
+hold as part of committing the planning cycle's persistent Reservation. A
+cycle must not publish the plan as reserved until CC confirms it. For an
+upgrade, `capacity.reservation.replace` atomically replaces the existing
+confirmed Reservation and returns the new complete Reservation as
+`CONFIRMED`; CC leaves the old Reservation active if replacement is
+rejected. Neither path requires a Load finalization guard. The Load guard is
+still required later before Assignment activation. Finalization must use an
+existing confirmed Reservation and never creates a fresh hold. If no valid
+confirmed Reservation exists, do not activate the Assignment; return the
+work to allocation or authorized recovery. An interrupted Assignment
+activation preserves the confirmed Reservation for recovery against the
+same plan.
 `capacity.reservation.release` (`capacity.reservation.release.v1`) releases
 the complete reservation. `capacity.reservation.replace`
 (`capacity.reservation.replace.v1`) atomically replaces it with the complete
@@ -1658,7 +2023,9 @@ Dispatch requests hold confirmation using
 `outcome: CONFIRMED` or `REJECTED`. Its envelope uses
 `sourceService: "capacity-commitment"` and
 `targetService: "dispatch-planning"`; its `causationId` references the
-successful Load finalization-guard outcome. Preserve the command's
+confirm command's `messageId`. The confirm command's `causationId` references
+the preceding successful reserve outcome that created the exact temporary
+hold. Preserve the command's
 `correlationId` and optional `initiatingPrincipalId`. The outcome's
 `causationId` references the confirm command's `messageId`; it preserves
 the command's `correlationId` and optional `initiatingPrincipalId`. The

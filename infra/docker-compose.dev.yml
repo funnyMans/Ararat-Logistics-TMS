@@ -159,6 +159,171 @@ services:
       retries: 10
       start_period: 10s
 
+  capacity-commitment-postgres:
+    profiles: ['capacity-commitment']
+    restart: unless-stopped
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: capacity_commitment
+      POSTGRES_USER: capacity_migrator
+      POSTGRES_PASSWORD: ${CAPACITY_MIGRATION_DB_PASSWORD:-capacity_migration_local_only}
+      CAPACITY_RUNTIME_DB_PASSWORD: ${CAPACITY_RUNTIME_DB_PASSWORD:-capacity_runtime_local_only_2026}
+    volumes:
+      - capacity-commitment-postgres-data:/var/lib/postgresql/data
+      - ../services/capacity-commitment/infra/postgres-init.sql:/docker-entrypoint-initdb.d/001-capacity-runtime-role.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  capacity-commitment-rabbitmq:
+    profiles: ['capacity-commitment']
+    restart: unless-stopped
+    image: rabbitmq:4.1.3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CAPACITY_RABBITMQ_ADMIN_USER:-capacity_admin}
+      RABBITMQ_DEFAULT_PASS: ${CAPACITY_RABBITMQ_ADMIN_PASSWORD:-capacity_admin_local_only_2026}
+    volumes:
+      - capacity-commitment-rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - '127.0.0.1:${CAPACITY_RABBITMQ_HOST_PORT:-5673}:5672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  capacity-commitment-migrate:
+    profiles: ['capacity-commitment']
+    build:
+      context: ..
+      dockerfile: services/capacity-commitment/Dockerfile
+    command: ['node', 'services/capacity-commitment/dist/migrate.js']
+    environment:
+      CAPACITY_MIGRATION_DATABASE_URL: postgresql://capacity_migrator:${CAPACITY_MIGRATION_DB_PASSWORD:-capacity_migration_local_only}@capacity-commitment-postgres:5432/capacity_commitment
+    depends_on:
+      capacity-commitment-postgres:
+        condition: service_healthy
+
+  capacity-commitment-provision:
+    profiles: ['capacity-commitment']
+    build:
+      context: ..
+      dockerfile: services/capacity-commitment/Dockerfile
+    command: ['node', 'services/capacity-commitment/dist/provision-topology.js']
+    environment:
+      CAPACITY_RABBITMQ_ADMIN_AMQP_URL: amqp://${CAPACITY_RABBITMQ_ADMIN_USER:-capacity_admin}:${CAPACITY_RABBITMQ_ADMIN_PASSWORD:-capacity_admin_local_only_2026}@capacity-commitment-rabbitmq:5672/
+      CAPACITY_RABBITMQ_MANAGEMENT_API_URL: http://capacity-commitment-rabbitmq:15672/api
+      CAPACITY_RABBITMQ_ADMIN_USER: ${CAPACITY_RABBITMQ_ADMIN_USER:-capacity_admin}
+      CAPACITY_RABBITMQ_ADMIN_PASSWORD: ${CAPACITY_RABBITMQ_ADMIN_PASSWORD:-capacity_admin_local_only_2026}
+      CAPACITY_RABBITMQ_APP_USER: ${CAPACITY_RABBITMQ_APP_USER:-capacity_runtime}
+      CAPACITY_RABBITMQ_APP_PASSWORD: ${CAPACITY_RABBITMQ_APP_PASSWORD:-capacity_broker_runtime_local_only_2026}
+    depends_on:
+      capacity-commitment-rabbitmq:
+        condition: service_healthy
+
+  capacity-commitment:
+    profiles: ['capacity-commitment']
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: services/capacity-commitment/Dockerfile
+    environment:
+      CAPACITY_DATABASE_URL: postgresql://capacity_runtime:${CAPACITY_RUNTIME_DB_PASSWORD:-capacity_runtime_local_only_2026}@capacity-commitment-postgres:5432/capacity_commitment
+      CAPACITY_AMQP_URL: amqp://${CAPACITY_RABBITMQ_APP_USER:-capacity_runtime}:${CAPACITY_RABBITMQ_APP_PASSWORD:-capacity_broker_runtime_local_only_2026}@capacity-commitment-rabbitmq:5672/capacity_commitment
+      CAPACITY_COMMAND_QUEUE: capacity.commitment.commands
+      CAPACITY_OUTCOME_EXCHANGE: capacity.commitment.outcomes
+      CAPACITY_HTTP_HOST: 0.0.0.0
+      CAPACITY_HTTP_PORT: 8080
+      CAPACITY_WORKER_POLL_INTERVAL_MS: 1000
+    ports:
+      - '127.0.0.1:${CAPACITY_HTTP_HOST_PORT:-8086}:8080'
+    depends_on:
+      capacity-commitment-postgres:
+        condition: service_healthy
+      capacity-commitment-rabbitmq:
+        condition: service_healthy
+      capacity-commitment-migrate:
+        condition: service_completed_successfully
+      capacity-commitment-provision:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/ready').then(res => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  operational-economics-postgres:
+    profiles: ['operational-economics']
+    restart: unless-stopped
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: operational_economics
+      POSTGRES_USER: economics_migrator
+      POSTGRES_PASSWORD: ${ECONOMICS_MIGRATION_DB_PASSWORD:-economics_migration_local_only}
+      ECONOMICS_RUNTIME_DB_PASSWORD: ${ECONOMICS_RUNTIME_DB_PASSWORD:-economics_runtime_local_only_2026}
+    volumes:
+      - operational-economics-postgres-data:/var/lib/postgresql/data
+      - ../services/operational-economics/infra/postgres-init.sql:/docker-entrypoint-initdb.d/001-economics-runtime-role.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  operational-economics-migrate:
+    profiles: ['operational-economics']
+    build:
+      context: ..
+      dockerfile: services/operational-economics/Dockerfile
+    command: ['node', 'services/operational-economics/dist/migrate.js']
+    environment:
+      ECONOMICS_MIGRATION_DATABASE_URL: postgresql://economics_migrator:${ECONOMICS_MIGRATION_DB_PASSWORD:-economics_migration_local_only}@operational-economics-postgres:5432/operational_economics
+    depends_on:
+      operational-economics-postgres:
+        condition: service_healthy
+
+  operational-economics:
+    profiles: ['operational-economics']
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: services/operational-economics/Dockerfile
+    environment:
+      ECONOMICS_DATABASE_URL: postgresql://economics_runtime:${ECONOMICS_RUNTIME_DB_PASSWORD:-economics_runtime_local_only_2026}@operational-economics-postgres:5432/operational_economics
+      ECONOMICS_HTTP_HOST: 0.0.0.0
+      ECONOMICS_HTTP_PORT: 8080
+    ports:
+      - '127.0.0.1:${ECONOMICS_HTTP_HOST_PORT:-8087}:8080'
+    depends_on:
+      operational-economics-postgres:
+        condition: service_healthy
+      operational-economics-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/ready').then(res => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   nats:
     restart: unless-stopped
     image: nats:2.10.24-alpine
@@ -180,3 +345,6 @@ volumes:
   postgres-data:
   temporal-postgres-data:
   rabbitmq-data:
+  capacity-commitment-postgres-data:
+  capacity-commitment-rabbitmq-data:
+  operational-economics-postgres-data:

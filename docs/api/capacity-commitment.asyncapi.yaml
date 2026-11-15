@@ -304,7 +304,7 @@ components:
         outcome: { type: string, enum: [RELEASED, REJECTED] }
         reservationId: { $ref: '#/components/schemas/UuidV7' }
         reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
-        state: { type: string, enum: [RELEASED, HELD, CONFIRMED] }
+        state: { type: string, enum: [RELEASED, HELD, CONFIRMED, EXPIRED, SUPERSEDED] }
         reasonCode:
           {
             type: string,
@@ -343,6 +343,9 @@ components:
         tripPlanId: { $ref: '#/components/schemas/UuidV7' }
         tripPlanRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
         outcome: { type: string, enum: [REPLACED, REJECTED] }
+        reservationId: { $ref: '#/components/schemas/UuidV7' }
+        reservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
+        state: { type: string, enum: [HELD, CONFIRMED, RELEASED, EXPIRED, SUPERSEDED] }
         oldReservationId: { $ref: '#/components/schemas/UuidV7' }
         oldReservationRevision: { type: integer, minimum: 1, maximum: 9007199254740991 }
         oldReservationState: { type: string, enum: [SUPERSEDED, HELD, CONFIRMED] }
