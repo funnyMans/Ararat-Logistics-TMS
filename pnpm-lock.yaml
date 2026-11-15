@@ -153,6 +153,22 @@ importers:
         specifier: ^4.23.13
         version: 4.23.13
 
+  services/capacity-commitment:
+    dependencies:
+      amqplib:
+        specifier: ^2.2.0
+        version: 2.2.0
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
+
   services/counterparty-registry:
     dependencies:
       amqplib:
@@ -168,6 +184,12 @@ importers:
       '@types/pg':
         specifier: ^8.23.1
         version: 8.23.1
+
+  services/dispatch-planning:
+    dependencies:
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
 
   services/load-service:
     dependencies:
@@ -196,6 +218,19 @@ importers:
       jose:
         specifier: ^6.1.0
         version: 6.2.13
+
+  services/operational-economics:
+    dependencies:
+      pg:
+        specifier: ^8.23.1
+        version: 8.23.1
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.23.1
+        version: 8.23.1
 
 packages:
 

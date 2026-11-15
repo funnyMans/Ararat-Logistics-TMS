@@ -1,13 +1,15 @@
 # Local development environment
 
-The current Compose environment contains the API gateway, local observability
+The default Compose environment contains the API gateway, local observability
 services, loopback-only PostgreSQL, RabbitMQ, and NATS services reserved for
 foundation conformance tests, and a test-only Temporal server with a separate
-persistent PostgreSQL service. Neither PostgreSQL instance has TMS business
-schemas or serves as an application datastore; RabbitMQ and NATS are not
-application brokers. NATS is disposable secondary fan-out with no persistent
-messages. The planned Identity service and TMS business services are not
-included. The gateway currently serves health, readiness, and metrics only.
+persistent PostgreSQL service. The optional `capacity-commitment` profile
+starts a separate Capacity Commitment service, its service-owned PostgreSQL
+database, and its application RabbitMQ broker; it never uses the foundation
+conformance stores. NATS remains disposable secondary fan-out with no
+persistent messages. The planned Identity, Dispatch Planning, and other TMS
+services are not included. The gateway currently serves health, readiness,
+and metrics only.
 
 See the [documentation guide](../docs/README.md) for the distinction between
 the product target and implemented repository capabilities.
@@ -43,9 +45,10 @@ credentials are `foundation_test` / `foundation_test`. Published ports bind
 to loopback.
 If a host port is occupied, set `API_GATEWAY_HOST_PORT`, `NGINX_HOST_PORT`,
 `PROMETHEUS_HOST_PORT`, `GRAFANA_HOST_PORT`, `POSTGRES_HOST_PORT`,
-`RABBITMQ_HOST_PORT`, `RABBITMQ_MANAGEMENT_HOST_PORT`, `NATS_HOST_PORT`, or
-`NATS_MONITOR_HOST_PORT` in `.env` to an available port; the container ports
-and internal service routing do not change.
+`RABBITMQ_HOST_PORT`, `RABBITMQ_MANAGEMENT_HOST_PORT`, `NATS_HOST_PORT`,
+`NATS_MONITOR_HOST_PORT`, `CAPACITY_HTTP_HOST_PORT`, or
+`CAPACITY_RABBITMQ_HOST_PORT` in `.env` to an available port; the container
+ports and internal service routing do not change.
 The gateway's `/health` endpoint reports process/dependency health while
 `/ready` returns `503` until startup completes and after graceful shutdown
 begins.
@@ -130,13 +133,15 @@ you intend to remove all local named data, not as routine cleanup.
 
 ## Boundaries
 
-- The PostgreSQL instance and `foundation_conformance` schema are test-only.
-  No business or shared product schema is present. Introduce a service-owned
-  datastore only with an approved product workflow and explicit ownership.
-- RabbitMQ is test-only. Its durable `foundation.conformance` exchange,
-  versioned conformance route, queue, outbox, inbox, and side-effect table are
-  created only by the gated integration test; no application/business message
-  routes, domain events, or production messaging framework are present.
+- The default PostgreSQL instance and `foundation_conformance` schema are
+  test-only. The optional Capacity Commitment profile uses a separate
+  service-owned local database; neither is a shared product database.
+- The default RabbitMQ service is test-only. Its durable
+  `foundation.conformance` exchange, versioned conformance route, queue,
+  outbox, inbox, and side-effect table are created only by the gated
+  integration test. The optional Capacity Commitment profile uses a separate
+  application broker and local topology; no other application broker or
+  production messaging framework is present.
 - The RabbitMQ default credentials and ports are for local development only.
   Do not expose the broker or reuse its credentials in a deployed environment.
 - NATS uses core, non-persistent publish/subscribe only. The test-only
@@ -156,6 +161,104 @@ you intend to remove all local named data, not as routine cleanup.
   production monitoring design.
 - Local configuration and credentials are for development only. Never
   expose this stack or reuse local defaults in a deployed environment.
+
+## Capacity Commitment runtime (B4.1)
+
+The optional local profile runs Capacity Commitment with a dedicated
+PostgreSQL database and dedicated RabbitMQ broker, separate from the
+foundation conformance services. Its local-only credentials are in
+`.env.example`; do not reuse them outside local development. The migration
+job uses the database owner role, applies ordered forward-only SQL under a
+PostgreSQL advisory lock, and verifies SHA-256 checksums for previously
+applied migrations. The runtime has a separate database role with DML-only
+table privileges and no DDL/schema-creation privileges. Applied migration
+files must not be edited; add a new forward migration instead.
+
+RabbitMQ topology is provisioned by a separate one-shot job with the
+development administrator credentials. The Capacity Commitment runtime user
+has no topology-management permission: it can consume only its command queue
+and publish only to the outcome exchange. The provisioned queue/exchanges
+are durable; outcome publication uses mandatory routing, persistent delivery,
+and publisher confirms. The broker's AMQP port is published only on
+`127.0.0.1:5673` by default. Dispatch Planning is not yet deployed, so the
+local outcome queue is durable and will retain outcomes until a consumer is
+added.
+
+```sh
+pnpm docker:capacity:up
+pnpm docker:capacity:status
+pnpm test:integration:capacity-runtime
+curl -fsS http://127.0.0.1:8086/health
+curl -fsS http://127.0.0.1:8086/ready
+curl -fsS http://127.0.0.1:8086/metrics
+pnpm docker:capacity:logs
+pnpm docker:capacity:down
+```
+
+`docker:capacity:up` builds and starts the database and broker, runs the
+lock-protected migration and topology/ACL jobs, then starts the worker
+runtime. `/health` is process liveness; `/ready` checks startup, PostgreSQL,
+and RabbitMQ state; `/metrics` exposes readiness and worker-error counters.
+The health endpoint is published only on loopback. The opt-in
+`test:integration:capacity-runtime` publishes a valid command through the
+broker, verifies the runtime's durable outcome, and confirms the runtime
+credentials cannot publish to the command exchange. `docker:capacity:down`
+stops this profile without deleting its PostgreSQL or RabbitMQ volumes. The
+runtime exits for supervisor restart if its RabbitMQ connection or channels
+close unexpectedly; durable database/outbox state remains authoritative.
+
+The profile is a local operational integration, not production
+qualification. Production deployment still needs environment-specific
+secret management, TLS, broker/database HA/DR and backup policy, monitored
+metric scraping, deployment ACL review, and accepted RPO/RTO/recovery
+evidence. The Capacity Commitment service does not make Dispatch decisions
+or activate Assignments.
+
+Local B4.1 verification:
+
+- `pnpm run build` — passed; `pnpm run lint` — passed; `pnpm run test:unit` —
+  112 tests passed.
+- `pnpm run test:integration:capacity` — 3 tests passed, including repeated
+  migration application and rejection of a changed applied checksum.
+- `pnpm run test:integration:capacity-runtime` — 1 test passed, including
+  durable command/outcome flow and the runtime broker ACL boundary.
+- `docker compose --profile capacity-commitment -f infra/docker-compose.dev.yml config --quiet`
+  and `docker compose --profile capacity-commitment -f infra/docker-compose.dev.yml run --rm capacity-commitment-migrate`
+  — passed.
+- Stopping `capacity-commitment-postgres` made `/ready` return HTTP 503 with
+  `database: unavailable`; starting it restored readiness. Stopping
+  `capacity-commitment-rabbitmq` caused the runtime to restart; starting the
+  broker restored `/ready` to `true`.
+- Direct privilege inspection confirmed `capacity_runtime` has no schema
+  `CREATE` or table `DELETE` privilege, and only the command-queue read and
+  outcome-exchange write RabbitMQ permissions.
+
+## Operational Economics Service (B4 scaffolding)
+
+The optional `operational-economics` profile runs the independently
+deployable estimate-record persistence service against its own PostgreSQL
+database. The service stores immutable, versioned Load-level and
+Load/Trio-candidate estimate artifacts. It does not calculate economic
+estimates or own Dispatch Planning's combined matrix; cost/time estimation
+methods, input schemas and sources, and calculation models remain open. The
+matching-index policy itself is documented in the trucking decisions. See
+[`services/operational-economics/README.md`](../services/operational-economics/README.md)
+for the current internal API and ownership boundary.
+
+```sh
+pnpm docker:economics:up
+pnpm docker:economics:status
+curl -fsS http://127.0.0.1:8087/health
+curl -fsS http://127.0.0.1:8087/ready
+pnpm docker:economics:logs
+pnpm docker:economics:down
+```
+
+The migration job applies checksum-verified forward-only SQL. The runtime
+database role can read and insert records but cannot update, delete, or run
+DDL. Local-only credentials are listed in `.env.example`; production
+authentication, authorization, security review, and deployment qualification
+remain out of scope.
 
 ## F0 runtime baseline
 
