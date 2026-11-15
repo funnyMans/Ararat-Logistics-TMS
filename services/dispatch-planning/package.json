@@ -1,0 +1,13 @@
+{
+  "name": "service-dispatch-planning",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "prebuild": "pnpm run clean",
+    "build": "tsc -b",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "zod": "^4.5.4"
+  }
+}
