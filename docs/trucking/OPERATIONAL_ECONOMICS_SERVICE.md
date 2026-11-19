@@ -20,6 +20,9 @@ Trio.
 | Estimate one Load independently                                           | Economics                                  | Keyed to the Load revision; no Trio, driver, or equipment pairing.                                                                                        |
 | Estimate one power-unit/trailer combination independently                 | Economics                                  | Keyed to both equipment identities and owner revisions; no Load pairing.                                                                                  |
 | Estimate one driver or driver-team cost profile independently             | Economics                                  | Separately versioned from equipment and Load estimates. Exact individual-driver/team unit is still to be specified.                                       |
+| Estimate reusable Load-only route/time inputs                             | Economics                                  | Only when an input does not depend on a selected power unit, trailer, driver/team, or candidate Trip Plan. Exact estimate fields remain open.             |
+| Estimate a candidate-specific route and schedule                          | Dispatch Planning                          | Uses the candidate's actual Load stops, resource/vehicle constraints, segment plan, repositioning, appointment windows, and availability.                 |
+| Calibrate reusable stop/service-time assumptions                          | Economics, from Execution history          | Uses categorized completed-trip observations and an approved evidence window; Dispatch applies the applicable assumption to each candidate plan.          |
 | Produce planning-specific estimates from owner facts and cost aggregates  | Economics                                  | Applies approved estimate models to standalone Load/resource scopes; does not own financial actuals, general financial reporting, or vendor integrations. |
 | Refresh estimates and read models                                         | Economics                                  | Recompute affected independent estimates when a relevant source or model revision changes.                                                                |
 | Combine a Load with a Trio                                                | Dispatch Planning                          | Selects matching Load, equipment, and driver/team estimates for the frozen planning inputs.                                                               |
@@ -59,45 +62,95 @@ Load's interest to every truck.
 
 ## 2. Estimate lifecycle and timing
 
-1. **A relevant input changes.** An authoritative owner revision, a
-   Financial/Accounting cost-aggregate revision, a result from a replaceable
-   provider adapter, an approved public-benchmark revision, or an Economics
-   model version changes. The owning integration identifies the affected
-   independent estimate scopes. Irrelevant source-field changes must not
-   cause needless recalculation.
-2. **Economics captures the exact inputs.** It records source identity,
-   revision, observation/effective time, units/currency, and the model and
-   input-schema versions used. The input snapshot is sufficient to explain
-   and reproduce the estimate; it does not make Economics the fact owner.
-3. **Economics validates and estimates each independent scope.** It produces
-   a new immutable Load, equipment-combination, or driver/team estimate.
-   Changed values create a new estimate version; existing history is not
+Economics does not run on the Dispatch allocation clock and has no selected
+periodic full-fleet or full-Load recalculation job. It refreshes independent
+estimate scopes in response to relevant source/model revisions. It does not
+enumerate every Load/Trio combination, and a planning read is not a request
+to calculate a pair.
+
+### Source-change refresh
+
+1. **A relevant input revision becomes available.** Examples are a new Load
+   revision, a Fleet Readiness revision, an applicable
+   Financial/Accounting aggregate revision, an approved provider result,
+   an approved benchmark revision, or an Economics model version.
+2. **Determine the affected independent scopes.** A Load revision affects
+   that Load's estimate. A resource revision affects only estimates for the
+   applicable equipment combination and/or driver/team scope. A financial
+   aggregate revision affects only scopes whose approved period and
+   operating context use that aggregate. The exact dependency map and
+   aggregate dimensions remain to be defined; unrelated revisions must not
+   trigger recalculation.
+3. **Capture and validate exact inputs.** Economics records source identity
+   and revision, observation/effective time, units/currency, and model and
+   input-schema versions. Economics does not become owner of the source
+   facts.
+4. **Recalculate and publish affected estimates.** Create immutable new
+   estimate records only for affected scopes whose source inputs changed or
+   whose approved model changed. Update the applicable latest-estimate
+   read models and publish an update only after the estimate and outbox are
+   committed. Retries are idempotent; historical estimates are not
    overwritten.
-4. **Economics updates its read models and publishes the change.** A durable
-   estimate-update event is published only after the estimate and its
-   read-model pointer are committed. Retries are idempotent.
-5. **Dispatch obtains the exact independent estimates it needs.** Dispatch
-   consumes update events to keep a local projection current and may issue a
-   bounded batch read for the exact subject revisions referenced by a frozen
-   planning attempt. The batch is by estimate scope, not one request per
-   Load/Trio pair.
-6. **Dispatch calculates the pairing.** Dispatch combines the selected
-   Load, equipment, and driver/team estimates with the plan-specific route,
-   deadhead, and repositioning facts. It computes candidate contribution,
-   the matching index, and its own matrix, then persists those exact estimate
-   IDs/versions and values in the planning-cycle snapshot.
 
-There is no scheduled recalculation cadence selected. Internal owner changes
-should trigger updates by revision; external providers and public benchmarks
-must refresh when their source publishes a new version or when an approved
-refresh process retrieves it. The external polling cadence, freshness limits,
-and exact event subscriptions remain to be defined. A source change received
-after a planning attempt is frozen applies to a later attempt; it must not
-silently mutate an in-progress matrix.
+There is no approved scheduled recalculation cadence. External provider and
+benchmark polling/refresh cadence, source subscriptions, precise scope
+invalidation rules, and freshness thresholds remain open. If an external
+source is refreshed by a schedule or webhook, that integration publishes a
+versioned result; Economics reacts to that result rather than running its own
+unbounded sweep of provider systems.
 
-Economics does not wait for or initiate an assignment decision. A Load may
-remain operationally held for missing/stale economics even while its source
-record remains valid and active.
+### Use during a Dispatch planning cycle
+
+1. **Dispatch begins an external scheduled cycle, an event-triggered internal
+   attempt, or an authorized exception.** It freezes a
+   consistent set of current Load, Registry, Fleet Readiness, CC, policy,
+   and preference revisions. It evaluates direct eligibility and
+   compatibility facts to identify the relevant candidate Loads and
+   resources. Missing/stale owner projections trigger reconciliation and
+   block the affected decision.
+2. **Dispatch resolves the needed estimate scopes.** From those relevant
+   candidates, it forms the unique set of exact Load revisions, equipment
+   combinations, and driver/team scopes needed by the cycle. It consumes
+   Economics update facts and may issue one bounded batch read for those
+   scopes—not one calculation request per Load/Trio pair and not a read of
+   every company Load and resource.
+3. **Economics returns existing applicable versions and explicit gaps.**
+   A read returns the exact estimate records plus missing, stale, or
+   incomplete scopes. The read itself does not silently launch an
+   unbounded recalculation or return a candidate score. If a scope has no
+   suitable estimate, its source/model refresh follows the source-change
+   process; Dispatch holds that candidate for visible review or a later
+   attempt.
+4. **Dispatch obtains plan-specific route results.** For the remaining
+   relevant candidate plans, Dispatch uses the provider-neutral routing
+   boundary to obtain estimates that depend on the selected vehicle,
+   route/segments, or repositioning. It persists their provenance in the
+   planning attempt. Economics may own a reusable Load-only route/time
+   estimate only when it does not depend on a chosen resource or candidate
+   plan; Dispatch must not treat that baseline as a substitute for a
+   vehicle/plan-specific route result.
+5. **Dispatch completes feasibility, then computes pair economics.** It
+   applies all hard gates, including the candidate-specific route/schedule
+   check, before ranking. For hard-gate-passing candidates with complete
+   required economic inputs, Dispatch combines the standalone estimates
+   with plan-specific route, deadhead, repositioning, and stop-time inputs.
+   Dispatch computes net estimated revenue, attributable variable cost,
+   contribution, rates, matching index, and the combined matrix. It records
+   the exact estimate IDs/versions and owner revisions used.
+6. **Freeze the attempt.** A source change after the attempt snapshot is
+   frozen does not rewrite it. Use the revised estimate in a later cycle or
+   an explicitly approved revalidation flow.
+
+External Dispatch cycle times are defined by the
+[shared planning policy](../contracts.md#initial-dispatch-planning-policy);
+internal attempts begin on the exact current `READY` Load revision or a
+relevant owner-fact change. Neither is an Economics recalculation cadence.
+Economics does not wait for or initiate an Assignment decision. It supplies independent inputs;
+Dispatch owns candidate-specific feasibility, pair calculations, ranking,
+Reservation requests, and Assignment decisions. An Economics gap is not by
+itself proof that a resource is ineligible or that capacity is unavailable,
+but a candidate requiring a missing estimate cannot be scored or
+automatically finalized using an unapproved substitute.
 
 ## 3. Inputs, ownership, and source precedence
 
@@ -113,8 +166,9 @@ settled actual for a particular cost field still needs a field-specific rule.
 | Contract linehaul, approved accessorials, documented deductions, Load stops, and Load revision | Load Service                                                                                                                                 | Read the exact Load revision. Revenue inputs follow the signed commercial terms; accounting outcomes validate realized revenue. The exact owner event/API and field mapping are open.                                                                                                                                                                                                                                                                                    |
 | Power-unit, trailer, driver/team identity, configuration, and owner revisions                  | Fleet Readiness                                                                                                                              | Used to identify the independent resource estimate and its approved applicability. Fleet Readiness is not authoritative for wages, fuel invoices, tolls, or accounting costs. Exact resource profile attributes are open.                                                                                                                                                                                                                                                |
 | Financial actuals, quotes, and context-specific cost aggregates/rates                          | Financial/Accounting (planned), consuming company accounting, payroll, fuel, maintenance, and purchasing facts through approved integrations | Financial/Accounting owns posted/settled revenue and expense actuals and the normalized aggregates Economics consumes. The initial cost inventory includes wages/payroll, fuel/taxes, tolls/permits, maintenance/repairs/tires, and reefer fuel where applicable. Periods may include annual, monthly, weekly, daily, or hourly views; contexts may distinguish loaded/empty operation and territory. Exact dimensions, source fields, and allocation rules remain open. |
-| Commercial route distance and travel duration                                                  | Trimble Maps / PC*Miler behind the provider-neutral route-estimation boundary (D-518)                                                        | The initial commercial routing provider is selected. Preserve request/profile/response provenance. Routing is an estimate, not legal or safety authority. Use a replaceable adapter; its deployment owner and the estimate handoff to Economics remain open.                                                                                                                                                                                                             |
-| Stop/work service duration                                                                     | Company completed-trip history (D-519), categorized by stop/work type                                                                        | Calibrate and version assumptions from observed operations; dispatcher review remains until the evidence is sufficient and approved. Execution history cohort, categories, sample sufficiency, and delivery contract remain open.                                                                                                                                                                                                                                        |
+| Candidate-specific route distance and travel duration                                          | Trimble Maps / PC*Miler behind the provider-neutral route-estimation boundary (D-518), requested by Dispatch Planning                        | Used for a specific candidate vehicle/route/segment plan and retained in Dispatch's planning-attempt provenance. The provider adapter/deployment and detailed handoff remain open. Routing is an estimate, not legal or safety authority.                                                                                                                                                                                                                                |
+| Reusable Load-only route distance/duration, when independent of selected resources             | Provider-neutral route-estimation boundary; initial provider choice is Trimble Maps / PC*Miler (D-518)                                       | Economics may retain a standalone estimate only when it is reusable without choosing a vehicle, driver/team, or candidate plan. It cannot replace Dispatch's candidate-specific route estimate; exact fields and handoff remain open.                                                                                                                                                                                                                                    |
+| Stop/work service duration                                                                     | Company completed-trip history from Execution (D-519), categorized by stop/work type                                                         | Economics calibrates and versions reusable stop/service-time assumptions when evidence supports them. Dispatch applies the applicable values to candidate-specific schedules. Execution history cohort, categories, sample sufficiency, and production handoff remain open.                                                                                                                                                                                              |
 | Fallback market benchmarks                                                                     | Official public datasets, only after field-level approval                                                                                    | Candidate references include EIA diesel-price series, BLS wage/labor statistics, and ATRI trucking-cost studies. These are candidates, not approved runtime inputs; series, geographic/temporal fit, availability, licensing, and update cadence must be verified.                                                                                                                                                                                                       |
 
 For each value used, preserve whether it is **actual, quoted, or estimated**,
@@ -147,9 +201,9 @@ move source ownership or change the core estimate contract.
 
 Economics will calculate and retain separate estimates for:
 
-- a **Load revision**, including approved Load-level commercial inputs and
-  independent route/service-time estimates where those values do not require
-  selecting a truck;
+- a **Load revision**, including standalone Load-scoped economic inputs and
+  reusable route/service-time estimates only where those values do not
+  depend on selecting a resource or candidate plan;
 - a **power-unit/trailer combination**, including its approved independent
   operating-cost inputs/rates; and
 - a **driver or driver-team scope**, including its approved payroll/labor
@@ -160,6 +214,21 @@ Exact formulas for converting each source into standardized Load,
 equipment-combination, and driver/team estimate fields are not yet selected.
 Do not implement guessed fuel-consumption coefficients, cost allocations,
 fallback constants, or hidden confidence penalties.
+
+| Output/input product                  | Scope and source data                                                                                                                                                                                                                                                                                                  | Boundary                                                                                                                                                                                                                                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Load-scoped estimate                  | Exact Load revision: contracted linehaul, approved accessorials, documented deductions, ordered stops, and other approved Load-level inputs. A reusable distance/duration estimate may be included only if it does not depend on the selected resources or candidate plan.                                             | Does not calculate candidate net revenue, contribution, profitability, or matching score; Dispatch applies the Load terms in its pair calculation.                                                                                                                                       |
+| Equipment operating-cost estimate     | One power-unit/trailer combination and the exact Fleet Readiness revisions/configuration, joined to applicable Finance-owned period/context aggregates and approved provider facts. Candidate inputs may include fuel/tax, toll/permit, attributable maintenance/repair/tires, and reefer-fuel costs where applicable. | Economics estimates independent equipment costs/rates; it does not decide whether a Load fits the equipment or compute candidate deadhead/repositioning.                                                                                                                                 |
+| Driver/team labor estimate            | One approved driver or driver-team scope and its Fleet Readiness revisions, joined to applicable Finance-owned wage/payroll and employer-cost aggregates.                                                                                                                                                              | Economics estimates independent labor cost/rates; the exact driver/team scope and allocation rules remain open. It does not determine driver eligibility or HOS.                                                                                                                         |
+| Reusable stop/service-time assumption | Execution's completed-trip history, categorized by approved stop/work type and evidence window.                                                                                                                                                                                                                        | Economics calibrates/version-controls reusable assumptions when evidence is sufficient and approved. Dispatch chooses/applies the relevant assumption to candidate stops and computes plan duration. This is a planning input, not a fourth estimate-record scope in the current target. |
+| Candidate-specific route result       | Candidate Load stops, selected vehicle constraints, route/segment plan, and repositioning, requested from the provider-neutral routing boundary.                                                                                                                                                                       | Owned and retained by Dispatch Planning as planning-attempt provenance. It is not an Operational Economics estimate.                                                                                                                                                                     |
+
+Economics does not request or compute a route estimate for every possible
+Load/resource pairing. When vehicle configuration, a selected segment plan,
+or repositioning changes the route result, Dispatch obtains and records that
+candidate-specific estimate as part of feasibility and planning. Economics'
+optional Load-only baseline is not a hard-gate pass and cannot be substituted
+for the candidate-specific result.
 
 Financial/Accounting owns the general actuals and period/context cost
 aggregates. Economics consumes those versioned outputs and applies its
@@ -241,8 +310,10 @@ aggregation dimensions remain open.
 
 ### Current implementation versus target
 
-The current B4 package is persistence scaffolding, not the selected target
-workflow. Its migration creates a generic `economic_estimate_records` table
+The repository does not currently calculate or publish operational
+economics estimates. The current B4 package is persistence scaffolding, not
+the selected target workflow. Its migration creates a generic
+`economic_estimate_records` table
 with `load` and `candidate` scopes, JSON input/result snapshots, model/schema
 versions, provenance, and a content hash. Its runtime provides internal HTTP
 create/read/list operations; its PostgreSQL runtime role can read/insert but
@@ -320,13 +391,15 @@ retry limits, and manual-review/override permissions remain to be specified.
    model coefficients, and allocation formulas; decide whether a driver scope
    means one driver or an assigned driver team.
 3. Approve replaceable adapter contracts and route/service-time handoff to
-   Economics; define evidence sufficiency for historical stop-time
-   calibration. Keep vendor credentials and protocol-specific behavior out
-   of the TMS core.
+   Dispatch for candidate-specific routing and, if retained, the optional
+   Economics Load-only route/time estimate; define evidence sufficiency for
+   Economics' reusable historical stop-time calibration. Keep vendor
+   credentials and protocol-specific behavior out of the TMS core.
 4. Define the axes, freshness selection, and query keys of the separate Load
    and resource read models.
-5. Finalize RabbitMQ topic schemas, exchange/queue names, ACLs, batch limits,
-   retries, duplicate handling, and replay/recovery procedures.
+5. Finalize RabbitMQ topic schemas, exchange/queue names, ACLs, bounded
+   estimate-read batch limits, retries, duplicate handling, and
+   replay/recovery procedures.
 6. Approve retention/archive, security, monitoring, and model-validation
    policies before production deployment or automatic use.
 

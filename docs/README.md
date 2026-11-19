@@ -10,7 +10,13 @@ the target TMS model from software already present in this repository.
   [operating model](trucking/OPERATING_MODEL.md).
 - **TMS business definition:** [responsibility map](trucking/TMS_SCOPE.md),
   [operating model](trucking/OPERATING_MODEL.md), and
-  [roles and authority](trucking/RESPONSIBILITIES.md).
+  [roles and authority](trucking/RESPONSIBILITIES.md), alongside the
+  proposed [company department and service ownership map](COMPANY_DEPARTMENTS_AND_SERVICES.md).
+- **Application-wide service architecture:** the proposed
+  [service catalog and integration architecture](SERVICE_CATALOG_AND_INTEGRATION_ARCHITECTURE.md)
+  defines business service boundaries, test simulators, adapters/connectors,
+  platform tools, and service relocation principles without expanding the
+  approved TMS scope.
 - **TMS technical design:** [system blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md),
   [service interaction map](trucking/SERVICE_INTERACTION_MAP.md),
   [visual map catalog](maps/README.md),
@@ -133,24 +139,26 @@ verified so product intent cannot be mistaken for running software.
 
 ## Document ownership and authority
 
-| Document                                                         | Owns                                                                                       |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [TMS responsibility map](trucking/TMS_SCOPE.md)                  | TMS duties already represented and material coverage gaps                                  |
-| [Operating model](trucking/OPERATING_MODEL.md)                   | Agreed business workflow and operating principles                                          |
-| [Roles and authority](trucking/RESPONSIBILITIES.md)              | High-level business roles and responsibility boundaries                                    |
-| [System blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md)             | TMS system boundaries, technical principles, and implementation-readiness gate             |
-| [Service interaction map](trucking/SERVICE_INTERACTION_MAP.md)   | What each service owns, how one Load crosses service boundaries, and dependency order      |
-| [TMS map catalog](maps/README.md)                                | Standalone architecture, lifecycle, cancellation, and planning diagrams grouped by concern |
-| [Technical workflow](trucking/TECHNICAL_WORKFLOW.md)             | Cross-boundary ownership and technical invariants                                          |
-| [Implementation readiness](trucking/IMPLEMENTATION_READINESS.md) | Capability-specific prerequisites and their implementation scope                           |
-| [Service contracts](contracts.md)                                | Internal TMS contract principles and unresolved contract requirements                      |
-| [API specifications](api/README.md)                              | Canonical service-owned OpenAPI and AsyncAPI artifacts                                     |
-| OpenAPI documents under `docs/api/`                              | Canonical HTTP schemas, one document per API-owning service                                |
-| AsyncAPI documents under `docs/api/`                             | Canonical versioned command and fact schemas, owned per service                            |
-| [Decision log](trucking/DECISIONS.md)                            | Accepted TMS product and architecture decisions                                            |
-| [Open decisions](trucking/OPEN_QUESTIONS.md)                     | Unresolved TMS requirements and design choices                                             |
-| [First business increment](trucking/FIRST_SLICE_CANDIDATE.md)    | Selected Load booking/read scope, acceptance, and remaining implementation gates           |
-| Engineering guides                                               | Repository conventions and current local operation                                         |
+| Document                                                                            | Owns                                                                                                                            |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| [Company departments and service ownership](COMPANY_DEPARTMENTS_AND_SERVICES.md)    | Proposed company-wide departmental accountability, adjacent service inventory, and change-control expectations                  |
+| [Application-wide service catalog](SERVICE_CATALOG_AND_INTEGRATION_ARCHITECTURE.md) | Proposed service-boundary catalog, integration terminology, simulators, platform-tool classification, and relocation principles |
+| [TMS responsibility map](trucking/TMS_SCOPE.md)                                     | TMS duties already represented and material coverage gaps                                                                       |
+| [Operating model](trucking/OPERATING_MODEL.md)                                      | Agreed business workflow and operating principles                                                                               |
+| [Roles and authority](trucking/RESPONSIBILITIES.md)                                 | High-level business roles and responsibility boundaries                                                                         |
+| [System blueprint](trucking/TMS_SYSTEM_BLUEPRINT.md)                                | TMS system boundaries, technical principles, and implementation-readiness gate                                                  |
+| [Service interaction map](trucking/SERVICE_INTERACTION_MAP.md)                      | What each service owns, how one Load crosses service boundaries, and dependency order                                           |
+| [TMS map catalog](maps/README.md)                                                   | Standalone architecture, lifecycle, cancellation, and planning diagrams grouped by concern                                      |
+| [Technical workflow](trucking/TECHNICAL_WORKFLOW.md)                                | Cross-boundary ownership and technical invariants                                                                               |
+| [Implementation readiness](trucking/IMPLEMENTATION_READINESS.md)                    | Capability-specific prerequisites and their implementation scope                                                                |
+| [Service contracts](contracts.md)                                                   | Internal TMS contract principles and unresolved contract requirements                                                           |
+| [API specifications](api/README.md)                                                 | Canonical service-owned OpenAPI and AsyncAPI artifacts                                                                          |
+| OpenAPI documents under `docs/api/`                                                 | Canonical HTTP schemas, one document per API-owning service                                                                     |
+| AsyncAPI documents under `docs/api/`                                                | Canonical versioned command and fact schemas, owned per service                                                                 |
+| [Decision log](trucking/DECISIONS.md)                                               | Accepted TMS product and architecture decisions                                                                                 |
+| [Open decisions](trucking/OPEN_QUESTIONS.md)                                        | Unresolved TMS requirements and design choices                                                                                  |
+| [First business increment](trucking/FIRST_SLICE_CANDIDATE.md)                       | Selected Load booking/read scope, acceptance, and remaining implementation gates                                                |
+| Engineering guides                                                                  | Repository conventions and current local operation                                                                              |
 
 The blueprint is authoritative for approved system architecture and target
 scope. The decision log records the accepted baseline and why it was chosen;
@@ -199,6 +207,9 @@ that matters to the design.
   alternatives, and consequences.
 - Update the implementation summary when repository capabilities change.
   Avoid dated snapshots that quickly become stale.
+- Update the [company department and service ownership map](COMPANY_DEPARTMENTS_AND_SERVICES.md)
+  and every affected owning specification/contract when service ownership,
+  boundaries, authoritative sources, or consumers change.
 - Keep proposals and unresolved work explicitly labeled in the decision
   register. Move an accepted decision to its owning page and remove it from
   the register.

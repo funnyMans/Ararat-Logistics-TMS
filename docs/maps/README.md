@@ -47,8 +47,8 @@ specification says so.
 ## Dispatch planning
 
 - [Rolling reservation and replanning](planning/rolling-reservation.svg) —
-  the 14-day/five-Load bound, final-Load re-ranking rule, slot opening, and
-  event-driven replanning feedback.
+  separate event-triggered internal and scheduled external matching, the
+  14-day/five-Load bound, and their chain mutation/replanning rules.
 
 ## Owners and related documents
 

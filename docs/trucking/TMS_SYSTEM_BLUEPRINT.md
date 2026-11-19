@@ -144,10 +144,12 @@ authoritative writes.
 
 The target deploys each selected service independently. Every service owns
 its PostgreSQL cluster and data; services relate records through stable
-identifiers and contracts, not cross-service foreign keys. RabbitMQ,
-Temporal, NATS, and observability are shared platform clusters. Within each
-service, use the agreed `app`, `domain`, `interface`, and `infra` structure
-without copying unused layers or generic scaffolding.
+identifiers and contracts, not cross-service foreign keys. PostgreSQL,
+RabbitMQ, Temporal, NATS, and observability are platform tools/products, not
+business microservices or business-data owners. They may be self-hosted or
+managed independently of domain-service runtimes. Within each service, use
+the agreed `app`, `domain`, `interface`, and `infra` structure without
+copying unused layers or generic scaffolding.
 
 The architecture defines ownership independently of deployment. Do not
 create a service for every business noun, share databases between owners, or
@@ -180,14 +182,16 @@ provide the approved detail without duplicating the architecture catalogue.
 
 ## Target tools and current implementation
 
-The target separates durable business messaging, long-running workflow
-coordination, and secondary realtime fan-out. The selected shared platform
-roles are RabbitMQ, Temporal, and NATS respectively. Temporal stores
-cross-service orchestration progress, not business truth. Domain services
-remain authoritative for business state. Dispatch Planning and Operations
-View consume versioned owner facts into local projections; commands and
-final decisions remain with the owning service. These are target choices,
-not a claim that they are configured in the current local stack. See
+The target uses RabbitMQ as durable message transport, Temporal for
+long-running workflow coordination, and NATS for secondary realtime fan-out.
+These are platform tools, not company business microservices; they may be
+self-hosted or managed and their process placement does not change domain
+ownership. Temporal stores cross-service orchestration progress, not
+business truth. Domain services remain authoritative for business state.
+Dispatch Planning and Operations View consume versioned owner facts into
+local projections; commands and final decisions remain with the owning
+service. These are target choices, not a claim that they are configured in
+the current local stack. See
 [service contracts](../contracts.md) for transport principles and the
 [local development guide](../../infra/README.md) for implemented environment
 scope.
@@ -379,6 +383,10 @@ catalogue, historical replay, and owner acceptance remain outstanding.
 #### B4 follow-on milestones and recommended staffing
 
 The milestones below break the remaining B4 work into deliverable gates.
+The legacy B4.4 "scheduled Dispatch Planning" label describes the external
+long-haul lane only. Its implementation scope also includes D-530's separate,
+serialized, event-triggered internal lane and D-531's evaluation and
+acceptance evidence for a provider, custom, or hybrid HOS strategy.
 Staffing recommendations name the required business and engineering
 responsibilities, not specific people or headcount; combine roles where
 practical, while retaining independent review for legal, safety, and
