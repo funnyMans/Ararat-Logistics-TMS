@@ -6288,12 +6288,15 @@ silently changing business outcomes.
 **Decision:** Dispatch Planning uses a rolling reservation horizon limited by
 both of these conditions: a pickup must fall within 14 days of the planning
 time, and a trio may have no more than five future Load positions in its
-sequential chain. A new slot opens only after the earliest planned Load has
-been assigned and Execution has recorded its actual pickup. Loads booked for
-later dates are not immediately ranked for a trio whose horizon or five-Load
-limit is full. The 14-day horizon and five-Load chain limit remain in force.
-D-516 superseded this decision's former matching cadence and preference
-boundary; D-527 supersedes its matching strategy and reservation timing.
+sequential chain. An append position is available while fewer than five
+future positions are occupied. Once the chain is full, a slot opens only
+after the earliest planned Load has been assigned and Execution has recorded
+its actual pickup. Loads booked for later dates are not immediately ranked
+for a trio whose horizon or five-Load limit is full. The 14-day horizon and
+five-Load chain limit remain in force. D-516 superseded this decision's
+former matching cadence and preference boundary; D-527 supersedes its
+matching strategy and reservation timing. D-529 defines the active
+per-cycle chain mutation rule and LA-only autonomous-planning exception.
 Only a CC-confirmed Reservation protects capacity; a preliminary selection
 does not.
 
@@ -6306,12 +6309,12 @@ relaxes hard eligibility, safety, schedule, notice, or capacity gates.
 Dispatcher Load ranking is distinct from D-499's automated ranking of
 feasible resource candidates. A newly eligible booked Load within the
 planning horizon creates ranking opportunities for dispatchers managing
-feasible trios, and the responsible dispatchers are notified. A dispatcher
-may rank eligible booked Loads for their
-managed trio, including while that trio has a reserved chain, but only the
-final Load in the chain may be re-ranked. With four future reservations, the
-fifth Load is the only next position available for ranking and reservation;
-no sixth Load may be ranked or reserved while the five-Load limit is full.
+feasible trios, and the responsible dispatchers are notified. For Trios not
+marked LA-only, D-529 permits at most one chain change per allocation cycle:
+append one Load or replace/reselect the final unstarted Load, but not both.
+Only that final Load may be re-ranked; no sixth Load may be ranked or
+reserved while the five-Load limit is full. D-529 defines the LA-only
+exception to dispatcher ranking and final-Load-only replanning.
 
 The matching and reallocation policy in this paragraph is historical and
 superseded by D-527. D-527 governs complexity-, zone-, and mileage-aware
@@ -6614,9 +6617,10 @@ requirement-level ordering, preference/fallback passes, upgrade priority,
 and same-day Assignment timing. D-516 remains applicable to bounded cycles,
 frozen eligibility snapshots, hard-gate exclusion, CC authority, persistent
 Reservations, atomic replacement, and Assignment safeguards except where
-D-527 records an explicit change.
+D-527 records an explicit change. D-529 governs chain changes per cycle and
+supersedes the former first-reservation-pass limit for LA-only Trios.
 The matching details below are retained as decision history and are not
-active requirements where D-527 supersedes them.
+active requirements where D-527 or D-529 supersedes them.
 
 **Decision:** Dispatch Planning runs multiple scheduled, bounded cycles
 during the operating day. It does not start a separate allocation for every
@@ -6807,7 +6811,7 @@ evidence, and validity catalogue for all planning-critical Fleet Readiness
 facts before enabling their gates. The 10:00 no-feasible-Trio referral and
 19:00 still-unassigned referral to an external broker/dispatcher are
 operational handoffs, not automated external offers, acceptances, or
-commitments. Record the referral and prevent an internal Reservation and
+commitments. Record the referral and prevent a company Reservation and
 external commitment from both being treated as active.
 
 **Reason:** The initial distance and cycle schedule and escalation points
@@ -7249,16 +7253,16 @@ Loads with technically feasible candidates that remain unassigned through
 the allocation rounds are released to an external party after the 19:00
 cycle, so external dispatch can begin the following morning. An external
 referral/release grants the designated broker/dispatcher access to offer the
-Load; it does not remove the Load from internal allocation cycles. At a cycle's allocation
-snapshot, the Load remains eligible for internal allocation unless it is
-held by an internal Reservation or recorded as assigned to a contractor;
-a newly available, eligible internal unit may claim it through that cycle's
-allocation. An external offer or active negotiation alone is not an
-assignment. If an internal Reservation is confirmed first, revoke external
-access and stop any outstanding external offer or negotiation, even if the broker has
-already circulated the offer. A release is not itself an external
-commitment; coordinate access changes to prevent simultaneous internal
-and external commitments.
+Load; it does not remove the Load from company-fleet allocation cycles. At a
+cycle's allocation snapshot, the Load remains eligible for company-fleet
+allocation unless it is held by a company Reservation or recorded as
+assigned to a contractor; a newly available, eligible company-operated unit
+may claim it through that cycle's allocation. An external offer or active
+negotiation alone is not an assignment. If a company Reservation is
+confirmed first, revoke external access and stop any outstanding external
+offer or negotiation, even if the broker has already circulated the offer.
+A release is not itself an external commitment; coordinate access changes
+to prevent simultaneous company and external commitments.
 
 The morning forecast estimates the maximum number of Loads that could be
 reserved by maximizing feasible coverage under the current snapshot and
@@ -7342,6 +7346,151 @@ Until these details are approved, matching implementation and automated
 reservation/Assignment enablement remain gated. Existing hard gates,
 fail-closed handling, CC atomicity, and evidence requirements remain in
 force.
+
+### D-529 — Bound per-cycle chain changes and define LA-only autonomous planning
+
+**Decision:** Preserve the rolling 14-day pickup horizon and maximum of five
+future Load positions per Trio. For a Trio not explicitly marked LA-only,
+each non-morning scheduled allocation cycle may make at most one chain
+change: either append one feasible Load to the end of the chain when fewer
+than five future positions are occupied, or replace/reselect the final
+unstarted Load. Do not do both in one cycle or change an interior position.
+When the chain is full, another future position becomes available only
+after the earliest planned Load is assigned and Execution records its
+actual pickup. Every added or replacement Load must pass current hard gates
+and preserve sequential schedule, route, resource, and capacity feasibility.
+
+A Trio explicitly marked LA-only may be planned autonomously without a
+dispatcher-submitted Load list or dispatcher-rank contribution. The system
+selects the chain using its current recommendations and feasibility/ranking
+policy. An LA-only Trio may receive a complete sequential chain of up to
+five future Reservations in one non-morning
+allocation cycle; every chain Load must have both pickup and delivery
+within D-515's Los Angeles–Long Beach five-county CSA, and each pickup must
+fall within 14 days of that cycle's planning time. In a later scheduled
+cycle, Dispatch may rebuild or restructure the entire unstarted portion of
+that Trio's chain rather than being limited to one append or a final-Load
+replacement. The LA-only mode is an explicit, current, auditable Trio
+classification; do not infer it from a driver's home, the Trio's current
+location, or a Load's geography. The classification's authoritative owner
+and write permissions must be approved before implementation.
+
+Both modes retain D-527's frozen cycle inputs, matching feasibility and
+ranking rules where applicable, the hard-gate and notice requirements,
+current owner-fact checks, the 14-day/five-future-Load limits, and D-08
+review holds for strong avoid-preferences or explicit driver objections.
+Autonomous planning does not override those safeguards. A scheduled
+allocation cycle may create new Reservations; the 07:00 morning run remains
+read-only for allocation. Dispatch submits the complete planned resource
+windows to CC, which must confirm a new chain or atomically replace an
+existing claim. A failed replacement leaves the prior confirmed claim
+intact. Replanning never changes completed or in-progress work; it may
+restructure only the unstarted suffix.
+
+This decision does not define a separate trip-duration threshold for
+LA-only work, relax D-527's geography or mileage rules, or enable automated
+planning before the remaining D-528 evidence and implementation gates pass.
+
+**Reason:** The ordinary cycle cadence bounds dispatcher-managed chain
+changes while still allowing a five-Load rolling plan to grow over
+successive cycles. LA-only operations need a distinct autonomous mode that
+can build and continuously improve a local chain without a dispatcher
+ranking each Load, while preserving the same capacity authority and safety
+invariants.
+
+### D-530 — Separate internal and external Load matching
+
+**Decision:** Dispatch Planning has two independent matching lanes. In this
+decision, an **internal Load** is local work whose pickup and delivery are
+both within D-515's Los Angeles–Long Beach five-county CSA. An **external
+Load** is any other Load, including LA-originating and LA-destined
+long-haul work. These labels describe the matching model, not whether a
+Load was sourced from a broker or whether a contractor carries it.
+
+Each lane has its own Load/Trio candidate matrix and its own Trio pool.
+Apply every approved D-527 complexity level in either lane; do not remove a
+level merely because it is internal or external. A Load is classified into
+only one lane, and a Trio participates in only its explicitly assigned lane
+for an attempt. An internal Trio must have the explicit current LA-only pool
+classification. A pool transfer requires an explicit current membership
+revision and revalidation of its existing Reservations. No unassigned Load,
+score, or preference from one lane is passed into the other lane's optimizer.
+
+Internal matching starts a durable allocation attempt immediately when an
+exact current internal Load revision becomes `READY`; it does not wait for
+an external scheduled cycle. The internal system selects without a
+dispatcher-submitted Load list and may construct or rebuild the complete
+unstarted chain in one attempt, subject to D-529's five-future-Load and
+14-day limits. A relevant availability, HOS, or other owner-fact revision
+triggers immediate revalidation of affected unstarted internal chains.
+This event-triggered allocation is separate from the 07:00 read-only
+forecast. A successful internal attempt may request a new CC Reservation
+immediately; it is not restricted to an external scheduled allocation
+cycle. A driver's future day-off/unavailability interval is an availability
+fact, not a preference score; its authoritative owner, entry/approval
+workflow, and versioned event contract must be approved. Keep these
+calendar intervals distinct from HOS-derived mandatory rest calculations.
+
+Regular external matching runs in the scheduled external allocation cycles;
+an authorized same-day/emergency exception may run under D-516.
+The system proposes up to ten feasible Loads per external Trio and the
+dispatcher may remove or reorder the proposal, but may not add Loads.
+Retain D-527's 60/40 system/dispatcher rank score and D-529's one
+append-or-final-unstarted-Load replacement per external Trio per cycle.
+Freeze each cycle's proposed and submitted lists with its input snapshot:
+do not silently mutate a list while the dispatcher is editing it or after
+the cycle snapshot. A refreshed proposal is a new cycle version; preserve
+the previous proposal and submission for audit. Define any explicit
+retain/pin behavior before implementation rather than silently dropping a
+dispatcher-ranked Load from a full list.
+
+The two lane attempts are processed sequentially by one Dispatch allocation
+coordinator, not concurrently. This serialization does not create a
+business dependency: an internal attempt does not wait for an external
+cycle or its result, and external matching does not consume internal
+selection results. Dispatch may share current owner projections, estimates,
+route/HOS inputs, and hard-gate code across lanes. CC remains the global
+authority for atomic resource-window claims; a confirmed claim blocks
+overlapping use regardless of lane.
+
+Both lanes apply the same current hard gates before ranking or reservation.
+Unknown or stale facts, missing required route/service-time estimates, and
+unapproved legal or safety checks do not pass. Assignment activation still
+requires current evidence and a valid confirmed CC Reservation. This
+decision supersedes D-527's dispatcher-list and scheduled-reservation
+policy for internal LA-only work and D-529's scheduled-cycle trigger for
+that work;
+other D-527 and D-529 rules remain applicable unless explicitly changed
+here.
+
+**Reason:** Local and long-haul freight have different decision cadence and
+dispatcher involvement, while shared feasibility and capacity invariants
+keep both lanes safe. Independent matrices prevent one market's ranking or
+backlog from defining the other's choices.
+
+### D-531 — Select an HOS calculation strategy before automation
+
+**Decision:** Do not assume that HOS calculations must be built in-house or
+that a provider will cover every need. First define the required calculation
+and data coverage, then evaluate qualified off-the-shelf tools. Integrate a
+provider if it satisfies the approved requirements; build custom
+calculations for uncovered requirements, or use a hybrid when that gives
+complete verified coverage. No HOS provider or calculation engine is
+selected by this decision.
+
+The authoritative HOS source, calculation owner, input freshness and
+provenance, supported driver/operation cases, result contract, and
+verification/exception process remain implementation prerequisites.
+Dispatch consumes a current, versioned HOS availability/feasibility result
+as a hard gate; Economics does not certify HOS, and a dispatcher preference
+or schedule cannot override an HOS failure or unknown result. Do not enable
+autonomous matching or Assignment activation for HOS-dependent work until
+the selected provider/custom/hybrid coverage and its acceptance evidence
+are approved.
+
+**Reason:** The system needs complete, auditable HOS decisions, but the
+appropriate implementation depends on verified tool coverage rather than
+an assumption that all calculations must be custom or outsourced.
 
 ## Record maintenance
 

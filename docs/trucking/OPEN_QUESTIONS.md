@@ -438,14 +438,20 @@ the unresolved details.
     conflicting-edit behavior, Trip Plan amendment and reservation
     replacement, and revalidation outcomes under concurrent changes.
 21. **Planning policy implementation prerequisites:** Decisions D-499,
-    D-498, D-511, D-516, and
+    D-498, D-511, D-516, D-529, D-530, D-531, and
     [D-527](DECISIONS.md#d-527--use-complexity--zone--and-mileage-aware-balanced-matching),
     together with the
     [shared planning contract](../contracts.md#initial-dispatch-planning-policy),
     define hard-gate categories, fail-closed treatment of missing/stale facts,
     the D-515 LA homeland zone, mileage-based trip-length inputs, the
     14-day/five-Load rolling reservation limit, atomic CC behavior, and bounded
-    planning cycles. D-527 supersedes D-516's ordinal matching,
+    planning cycles. D-529 defines one append-or-final-replacement change per
+    external cycle; D-530 separates internal, event-triggered autonomous
+    matching from scheduled external matching with dispatcher lists. D-531
+    requires an explicit provider/custom/hybrid HOS strategy before
+    HOS-dependent automation. Approve the authoritative owner and write
+    permissions for the two Trio pool classifications before implementation.
+    D-527 supersedes D-516's ordinal matching,
     requirement-level partition, preference/fallback passes, coverage
     priority, upgrade ordering, and same-day Assignment timing. Retain
     D-516's frozen eligibility snapshot, CC authority, and atomic replacement
@@ -493,7 +499,12 @@ the unresolved details.
     blocks final Assignment activation; and (g) the authoritative
     route-mileage source and multi-Load chain accounting for the cumulative
     3,400-mile away-trip limit, farther-away test, and exemption/reset at LA
-    departure/return.
+    departure/return; (h) inventory required HOS calculations, source data,
+    and acceptance coverage, then evaluate qualified provider, custom, or
+    hybrid implementations without preselecting a vendor or code owner; and
+    (i) select the authoritative owner and entry/approval/event contract for
+    Trio pool membership and driver future-unavailability intervals, distinct
+    from HOS-derived rest.
 
     Before allocator implementation, define CC rejection and stale-snapshot
     handling. Distinguish transient technical failures, business capacity

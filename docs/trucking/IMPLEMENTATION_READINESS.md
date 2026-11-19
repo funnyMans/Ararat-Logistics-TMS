@@ -11,6 +11,11 @@ and [service contracts](../contracts.md) own shared technical invariants and
 cross-service semantics. The [API index](../api/README.md) identifies
 machine-readable contract coverage. The [open-decision register](OPEN_QUESTIONS.md)
 remains authoritative for unresolved requirements and their rationale.
+The separate internal/external matching lanes follow [D-530](DECISIONS.md#d-530--separate-internal-and-external-load-matching),
+with chain mutations in [D-529](DECISIONS.md#d-529--bound-per-cycle-chain-changes-and-define-la-only-autonomous-planning).
+The HOS sourcing/calculation choice follows [D-531](DECISIONS.md#d-531--select-an-hos-calculation-strategy-before-automation).
+Pool membership ownership, HOS acceptance evidence, and the remaining D-528
+gates must be settled before automation.
 
 ## How to use this matrix
 

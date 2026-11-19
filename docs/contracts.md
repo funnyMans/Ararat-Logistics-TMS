@@ -101,9 +101,11 @@ it defines; unresolved inventories remain in the decision register.
 ## Cross-service guarantees
 
 The target uses independently deployable services, each owning its PostgreSQL
-cluster and business data. Shared platform clusters provide RabbitMQ,
-Temporal, NATS, and observability. No service may read or write another
-service's tables; communicate through owned commands and facts.
+cluster and business data. PostgreSQL, RabbitMQ, Temporal, NATS, and
+observability are platform tools/products, not business microservices or
+business-data owners. They may be self-hosted or managed independently of
+domain-service runtimes. No service may read or write another service's
+tables; communicate through owned commands and facts.
 Each service owns ordered, forward-only database migrations. Use the
 expand/contract pattern for compatible rollout; correct an applied schema
 change with a new migration rather than rolling the database backward. Run
@@ -1020,6 +1022,15 @@ If the projection has advanced beyond `expectedLoadOwnerRevision`, return
 final `REJECTED` with `STALE_LOAD_REVISION` and make no planning decision.
 Temporal then issues a new command for the latest projected owner revision.
 
+After accepting the exact current revision, Dispatch classifies the Load
+under [D-530](trucking/DECISIONS.md#d-530--separate-internal-and-external-load-matching).
+An internal Load (pickup and delivery both within D-515's LA CSA) starts an
+immediate event-triggered internal matching attempt. An external Load is
+queued for the next scheduled external allocation cycle; receipt of its
+planning command does not start an out-of-cycle external allocation. Both
+lanes use the same exact-revision, current-facts, hard-gate, and CC
+reservation safeguards.
+
 `commandId` identifies and correlates the durable command. Its
 `idempotencyKey` is opaque and scoped to source service, message type, and
 Load. Redelivery/retry of one planning intent reuses the same `commandId`
@@ -1260,12 +1271,13 @@ matching index. The index informs this comparison but does not replace
 maximum coverage. A preliminary reserve is not a CC-confirmed Reservation
 or an active Assignment.
 
-Each Trio may specify up to three preferred destination states in
-descending order of preference. These preferences do not apply to Loads
-whose destinations are within the LA CSA; however, the system/dispatcher
-60/40 rank score still applies to LA-destined Load lists. For other
-destinations, retain ordered destination-state preferences in the
-applicable system recommendation. After the preceding class,
+Each external Trio may specify up to three preferred destination states in
+descending order of preference. These preferences do not apply to external
+Loads whose destinations are within the LA CSA; however, the
+system/dispatcher 60/40 rank score still applies to submitted LA-destined
+external Load lists. For other external destinations, retain ordered
+destination-state preferences in the applicable system recommendation.
+After the preceding class,
 sole-candidate, and dispatcher-list decisions, allocate remaining capacity
 by maximizing the number of additional eligible Trio/Load matches; among
 equally large allocations, select the variation with the highest aggregate
@@ -1396,78 +1408,122 @@ review timer expires.
 ### Planning horizon, profiles, and contention
 
 Evaluate Loads only when pickup falls within 14 days of the planning time.
-Each trio may have no more than five future Load positions in its
-Dispatch planning chain. A new slot opens only after the earliest planned
-Load is assigned and Execution records its actual pickup. Loads booked beyond the
-rolling horizon, or Loads beyond a full five-Load chain, remain booked but
-are not immediately ranked or reserved for that trio. The five-Load/14-day
-policy is distinct from CC's temporary five-minute `HELD` state.
+Each Trio may have no more than five future Load positions in its Dispatch
+planning chain. Internal Loads start event-triggered allocation immediately
+after the exact current Load revision is `READY`. An internal attempt may
+build or rebuild the complete unstarted chain of up to five feasible Loads;
+every Load must have both pickup and delivery inside D-515's
+Los Angeles–Long Beach five-county CSA, and each pickup must fall within
+14 days of the attempt's planning time. A relevant owner-fact or
+availability change immediately revalidates affected unstarted internal
+chains. Internal matching has no dispatcher-submitted Load list. Completed
+and in-progress work is immutable. Internal/LA-only pool membership is
+explicit and current; it is not inferred from a driver's home, the Trio's
+present location, or an individual Load. The authoritative owner and write
+permissions for pool membership must be approved before implementation.
+Driver days off and other future unavailability are versioned availability
+facts, not preference scores. Their authoritative owner, entry/approval
+workflow, and event contract remain to be selected; model them separately
+from HOS-derived mandatory rest.
+
+External Loads remain booked until the next scheduled external allocation
+cycle, unless a separately authorized D-516 exception cycle applies. For a
+Trio in the external pool, each such cycle may either append one feasible
+Load while the chain has fewer than five future positions, or
+replace/reselect its final unstarted Load; it may not do both or change an
+interior position. When the chain is full, a position opens only after the
+earliest planned Load is assigned and Execution records its actual pickup.
+Loads beyond the rolling horizon or a full chain are not immediately ranked
+or reserved for that Trio. The five-Load/14-day policy is distinct from
+CC's temporary five-minute `HELD` state.
+
+For either mode, chain construction and re-planning must satisfy current
+hard gates, sequential schedule and route feasibility, resource availability,
+pickup notice, and CC capacity rules. Dispatch submits the complete planned
+resource windows to CC; new Reservations are confirmed together, and
+replacements use CC's atomic operation so a failed replacement leaves the
+prior confirmed claim intact. The 07:00 morning run remains read-only for
+allocation. Automated LA-only planning does not override strong
+avoid-preferences, explicit driver objections, or other review holds.
 Cycle-selected plans become persistent CC `CONFIRMED` Reservations. A
 temporary five-minute `HELD` state is used only while creating or replacing
 a Reservation; it is not retained between cycles. Confirmed Reservations
 protect capacity across cycles and remain distinct from active Assignments.
 
-Dispatcher ranking of Loads, the system's matching-index ordering, and
-D-499's ranking of feasible resource plans are distinct inputs. The system
-proposes up to ten feasible Loads per Trio; the responsible dispatcher may
-remove or reorder them but may not add Loads. Normalize system and
-dispatcher rankings to common rank points and combine them at 60/40,
-respectively. The original list remains available for acceptance. An empty
-submitted list means acceptance of the original proposal. A customized
-version is confirmable only while at least one proposed Load remains.
-Each Trio may specify up to three preferred destination states, except that
-these do not apply to destinations within the LA CSA. The list is exhausted
-during a cycle when every Load sought for an unmatched Trio is already
-accounted for in the cycle reserve. The remaining allocation maximizes
-additional eligible matches; among equal-coverage variations, select the
-highest aggregate signed matching index. These rules do not replace earlier
-priority rules.
+Dispatcher ranking of external Loads, the system's matching-index ordering,
+and D-499's ranking of feasible resource plans are distinct inputs. For
+external Trios, the system proposes up to ten feasible Loads per Trio; the
+responsible dispatcher may remove or reorder them but may not add Loads.
+Normalize system and dispatcher rankings to common rank points and combine
+them at 60/40, respectively. The original list remains available for
+acceptance. An empty submitted list means acceptance of the original
+proposal. A customized version is confirmable only while at least one
+proposed Load remains. Freeze each proposed and submitted list with the
+cycle snapshot. Do not silently change a list during the cycle or evict a
+dispatcher-ranked Load when newer candidates arrive; present refreshed
+options as a new cycle version and preserve prior list versions for audit.
+Internal Trios use the autonomous chain policy above without dispatcher-
+submitted Load rankings.
+Each external Trio may specify up to three preferred destination states,
+except that these do not apply to destinations within the LA CSA. The list
+is exhausted during an external cycle when every Load sought for an
+unmatched Trio is already accounted for in the cycle reserve. The remaining
+external allocation maximizes additional eligible matches; among
+equal-coverage variations, select the highest aggregate signed matching
+index. These rules do not replace earlier priority rules.
 The selection is not a CC Reservation or active Assignment. A strong
 explicit driver or resource
 avoid-preference still triggers the D-08 review hold and cannot be silently
 overridden. Resource selection remains subject to D-499.
 Team/driver championship standings do not affect eligibility or allocation
 in this version.
-The existing five-Load limit and final-chain-Load re-ranking rule remain in
-force; no sixth Load is ranked or reserved while the chain is full.
+For external Trios, the five-Load limit and final-chain-Load re-ranking rule
+remain in force; no sixth Load is ranked or reserved while the chain is
+full. Internal Trios use the immediate complete-chain policy above.
 Team and driver championship standings are maintained separately from both
 Load rankings and are recognition/compensation inputs only in the current
 version. They do not change eligibility, shortlist membership, reservation,
 or Assignment priority.
 
-Run normal matching in multiple scheduled, bounded cycles using a
-consistent snapshot of READY Load revisions, dispatcher preferences,
-system recommendations, current owner facts, and active CC Reservations.
+Run external (long-haul) matching in multiple scheduled, bounded cycles
+using a consistent snapshot of READY Load revisions, dispatcher
+preferences, system recommendations, current owner facts, and active CC
+Reservations. Internal matching is event-triggered by a READY internal Load
+or a relevant owner-fact change; it does not wait for or depend on an
+external cycle. Dispatch serializes the two allocation lanes through one
+coordinator, so only one matching/reservation mutation runs at a time.
 Recalculate candidate feasibility when a relevant fact changes and before
-freezing cycle inputs. During matching, consume the frozen candidate set;
+freezing attempt inputs. During matching, consume the frozen candidate set;
 do not repeat unchanged gate calculations inside the optimizer. If a
 relevant fact changes after the snapshot, refresh or stop the affected
 attempt rather than mixing revisions.
 
-The daily planning sequence begins with allocation at 10:00, continues at
-13:00, 16:00, and 19:00, and concludes with the 07:00 morning run the
+The external daily planning sequence begins with allocation at 10:00,
+continues at 13:00, 16:00, and 19:00, and concludes with the 07:00 morning run the
 following day. The morning run processes same-day Assignments only for
 existing CC-confirmed Reservations, refreshes the available-Load supply,
 and runs a read-only maximum-coverage forecast. The next allocation
 sequence starts at 10:00. The morning run never creates or replaces a
-Reservation.
+Reservation for the external lane. It does not prevent an independent
+event-triggered internal attempt from creating a Reservation.
 
-The first 10:00 cycle identifies unassigned Loads with no technically
-feasible Trio after current hard-gate evaluation. If fewer than 72 hours
-remain until the Load's required fulfillment deadline, immediately refer
-the Load to an external broker or dispatcher. A Load with unknown or stale
+The first external 10:00 cycle identifies unassigned external Loads with no
+technically feasible Trio after current hard-gate evaluation. If fewer than
+72 hours remain until the Load's required fulfillment deadline, immediately
+refer the Load to an external broker or dispatcher. A Load with unknown or stale
 eligibility evidence is not deemed technically infeasible solely on that
 basis; keep it visibly blocked for evidence resolution. Technically
-feasible Loads that remain unassigned through the allocation rounds are
-referred externally after the 19:00 cycle for follow-up beginning the next
-morning. An external referral/release grants the designated external
-broker/dispatcher access to offer the Load; it does not remove it from
-internal allocation cycles. At each cycle's allocation snapshot, a released Load remains
-eligible for the internal fleet unless it is held by an internal
-Reservation or recorded as assigned to a contractor; a newly available,
-eligible internal unit may claim it through that cycle's allocation. An
-external offer or active negotiation alone is not an assignment. If an
-internal Reservation is confirmed before contractor assignment, revoke the
+feasible external Loads that remain unassigned through the external allocation rounds
+are referred to an external broker after the 19:00 cycle for follow-up
+beginning the next morning. An external referral/release grants the
+designated external broker/dispatcher access to offer the Load; it does not
+remove it from company-fleet allocation cycles. At each external cycle's
+allocation snapshot, a released Load remains eligible for the company-
+operated fleet unless it is held by a company Reservation or recorded as
+assigned to a contractor; a newly available, eligible company-operated unit
+may claim it through that cycle's allocation. An external offer or active
+negotiation alone is not an assignment. If a company Reservation is
+confirmed before contractor assignment, revoke the
 external broker's access and require any outstanding offer or negotiation
 to stop, even if the broker has already circulated the offer. A referral is not itself an
 external commitment; coordinate access changes so internal and external
@@ -1509,19 +1565,21 @@ latest-safe planning time. Each operation must configure an IANA time zone,
 calendar, cutoffs, and minimum driver-notice period before automated
 finalization is enabled.
 
-Same-day or emergency work may use an immediate, bounded exception cycle
-only when waiting for the next scheduled cycle would miss the operation's
-configured latest-safe planning time. An authorized dispatcher must approve
+Same-day or emergency external work may use an immediate, bounded exception
+cycle only when waiting for the next scheduled external cycle would miss the
+operation's configured latest-safe planning time. An authorized dispatcher must approve
 the exception and record its reason, approver, and one-time authorization.
 Urgency does not bypass hard gates. Without authority or minimum safe
 notice, leave the Load unassigned and surface it for human action or
-outside-carrier disposition. Safety invalidation and
-cancellation/early-closeout validation of an unstarted chain remain
-immediate, but new matching or replacement outside an exception cycle waits
-for the next scheduled cycle.
+outside-carrier disposition. Internal `READY` Loads and relevant internal
+availability changes use D-530's event-triggered matching path, not this
+external exception process. Safety invalidation and cancellation/early-
+closeout validation of an unstarted chain remain immediate; external new
+matching or replacement outside an exception cycle waits for its next
+scheduled cycle.
 
-After a non-morning scheduled allocation cycle or separately authorized
-exception cycle selects a plan, Dispatch requests a complete resource-window
+After an external scheduled/authorized exception cycle or an event-triggered
+internal attempt selects a plan, Dispatch requests a complete resource-window
 Reservation from CC. An initial claim is protected only after CC's temporary
 five-minute `HELD` claim is confirmed as persistent `CONFIRMED`; the hold
 does not persist between cycles. Forecasts, selected pairs, and unconfirmed

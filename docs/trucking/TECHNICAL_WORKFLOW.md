@@ -656,9 +656,23 @@ Exact tender payload remains open.
    are approved: authoritative requirement/capability mappings, rank-point
    and tie rules, policy-stage precedence, fallback tie-breaks, deadline
    source, and route-mileage/chain accounting. D-527 already settles the
-   system/dispatcher blend, matching-index formula, and Reservation
-   lifecycle/timing. D-499's resource-plan ranking is distinct from the
-   Load/Trio matching objective.
+   system/dispatcher blend, matching-index formula, and baseline Reservation
+   lifecycle/timing, as refined by D-530 for internal matching.    D-529 limits scheduled external/long-haul Trios to one append or
+   final-unstarted-Load replacement per cycle. Under D-530, internal Loads
+   (both stops in the LA-Long Beach CSA) trigger autonomous matching
+   immediately at the exact current `READY` revision; external Loads wait for
+   their scheduled cycle, except for separately authorized D-516 exception
+   cycles, and retain dispatcher lists. Each lane has its own
+   matrix and Trio pool, supports every approved complexity level, and is
+   processed sequentially by one allocation coordinator. An internal attempt
+   may build or restructure the complete unstarted chain of up to five future
+   internal Loads, with each pickup within 14 days of the attempt time.
+   Replanning preserves the completed/in-progress prefix and uses CC's atomic
+   complete-claim confirmation/replacement. D-531 leaves HOS provider/custom/
+   hybrid selection open; do not enable HOS-dependent autonomous matching
+   until the authoritative result and acceptance evidence are approved.
+   D-499's resource-plan ranking is distinct from the Load/Trio matching
+   objective.
    An early-ended Trip or per-Load Execution publishes an actual closeout
    location that immediately triggers suffix revalidation and replanning
    from that location. Minimize feasible deadhead, but do not treat missing
